@@ -532,6 +532,71 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
 ═══════════════════════════════════════ */
 .theme-btn{width:var(--touch);height:var(--touch);background:var(--c2);border-radius:10px;border:1px solid var(--ln2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;color:var(--tan2)}
 .theme-btn:active{background:var(--c3)}
+
+  /* ════════════════════════════════════════════
+   🛠 MOBILE BROWSER PATCH (FIX UI BUGS)
+════════════════════════════════════════════ */
+
+/* 1. แก้ปัญหาความสูงหน้าจอ (โดนแถบ URL Safari บัง) */
+#app {
+  height: 100vh;
+  height: 100dvh; /* ใช้ Dynamic Viewport แทน vh ธรรมดา */
+}
+
+/* 2. แก้ปัญหา Add-ons ตัวอักษรบีบแตกเป็นแนวตั้ง */
+.tbtn {
+  width: 100%;
+  text-align: left;
+}
+/* บังคับไม่ให้ Flexbox บีบความกว้างของข้อความ */
+.tbtn > div:last-child {
+  flex: 1;
+  min-width: 0; 
+  display: flex;
+  justify-content: space-between; /* ดันชื่อไปซ้าย ดันราคาไปขวา */
+  align-items: center;
+}
+.tname {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* ถ้ายาวไปให้เป็น ... */
+  font-size: 14px;
+}
+.tprice {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+/* 3. แก้ปัญหาปุ่ม "Add to order" ซ้อนทับเนื้อหา */
+.sht {
+  display: flex;
+  flex-direction: column;
+  max-height: 85dvh; /* ลดความสูงลงนิดนึงไม่ให้ชนขอบบน */
+  overflow: hidden; /* ปิดการเลื่อนของตัวแม่ */
+}
+/* ให้เลื่อนได้เฉพาะส่วนเนื้อหาตรงกลาง */
+.cs-body, #panelLogin, #panelRegister, #panelForgot {
+  overflow-y: auto;
+  flex: 1;
+  padding-bottom: 24px;
+}
+/* ล็อกปุ่ม Add to order ให้อยู่ล่างสุดเสมอ */
+.cs-foot {
+  position: relative; 
+  flex-shrink: 0;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.05); /* เพิ่มเงาแยกส่วนให้ดูแพงขึ้น */
+  z-index: 10;
+}
+
+/* 4. จัดปุ่มปรับจำนวน (Quantity) ให้อยู่ตรงกลางสวยๆ */
+.qty-row {
+  max-width: 160px; /* ไม่ให้กล่องยาวเกินไป */
+}
+
+/* 5. แก้ไขช่อง Sign In ลอยแปลกๆ */
+.auth-field {
+  text-align: left;
+}
 </style>
 </head>
 <body>
