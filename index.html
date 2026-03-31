@@ -1532,39 +1532,74 @@ function placeOrder(){
   });
 }
 
-/* ── TRACKING ───────────────────────────────────────── */
+/* ── TRACKING (แก้ไขให้ Real-time และแก้บั๊ก true/false) ── */
 function renderTrack(){
   var el=ge('trkContent');if(!el)return;
-  if(!S.order){el.innerHTML='<div style="text-align:center;padding:68px 20px;color:var(--tan3)"><svg width="44" height="44" viewBox="0 0 44 44" fill="none" style="opacity:.12;display:block;margin:0 auto 14px"><rect x="4" y="4" width="36" height="36" rx="6" stroke="currentColor" stroke-width="1.5"/><path d="M11 16h22M11 23h15M11 30h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><div style="font-family:var(--serif);font-size:17px;color:var(--tan2);margin-bottom:5px">No active orders</div><div style="font-size:12px;margin-bottom:20px">Place an order to track it here.</div><button onclick="nav(\'pg-order\',\'nt-order\')" style="height:var(--touch);background:var(--c2);border:1px solid var(--ln2);border-radius:9px;padding:0 20px;font-size:13px;font-weight:500;color:var(--tan);cursor:pointer">Browse menu</button></div>';return}
-  var o=S.order;
-  var stMap={pending:['Preparing','preparing','tb-preparing'],ready:['Ready',null,'tb-ready'],completed:['Completed','done','tb-done'],cancelled:['Cancelled',null,'tb-done']};
-  var st=stMap[o.status]||stMap.pending;
-  var steps=[['Order placed','Your order has been received and confirmed.',true],['Brewing','Our barista is crafting your drink.',o.status!=='pending'],['Ready for pickup','Please show your order number at the counter.',o.status==='ready'||o.status==='completed']];
-  var stepsHtml=steps.map(function(s,i){
-    var cls=s[1]?'done':((i===1&&o.status==='pending')||(i===2&&o.status==='ready')?'active':'');
-    return '<div class="trk-step '+cls+'"><div class="step-dot">'+(s[1]?'<svg width="9" height="8" viewBox="0 0 9 8" fill="none"><path d="M1 4l2.5 3L8 1" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>':'')+'</div><div class="step-body"><h4>'+s[0]+'</h4><p>'+s[2]+'</p></div></div>';
-  }).join('');
-  var isActive=o.status!=='completed'&&o.status!=='cancelled';
-  el.innerHTML='<div class="trk-card"><div class="trk-hd"><div class="trk-status">'+st[0]+'</div><div class="trk-badge '+st[2]+'">'+st[0]+'</div></div>'
-    +(isActive?'<div class="queue-num"><div class="queue-lbl">Your queue</div><div class="queue-n">#'+Math.floor(Math.random()*8+1)+'</div></div>':'')
+  if(!S.order){
+    el.innerHTML='<div style="text-align:center;padding:68px 20px;color:var(--tan3)"><div style="font-family:var(--serif);font-size:17px;color:var(--tan2);margin-bottom:5px">No active orders</div><div style="font-size:12px;margin-bottom:20px">Place an order to track it here.</div><button onclick="nav(\'pg-order\',\'nt-order\')" style="height:var(--touch);background:var(--c2);border:1px solid var(--ln2);border-radius:9px;padding:0 20px;font-size:13px;font-weight:500;color:var(--tan);cursor:pointer">Browse menu</button></div>';
+    return;
+  }
+  
+  var o = S.order;
+  // แปลงสถานะจากระบบให้เป็นคำที่ลูกค้าเข้าใจ
+  var stMap = {
+    pending:   ['Verifying', 'pending', 'tb-preparing', 'รอตรวจสอบสลิป'],
+    confirmed: ['Order Placed', 'confirmed', 'tb-preparing', 'รับออเดอร์แล้ว'],
+    preparing: ['Brewing', 'preparing', 'tb-preparing', 'กำลังชงเครื่องดื่ม'],
+    ready:     ['Ready for Pickup', 'ready', 'tb-ready', 'เชิญรับเครื่องดื่ม'],
+    completed: ['Completed', 'done', 'tb-done', 'เสร็จสิ้น'],
+    cancelled: ['Cancelled', 'cancelled', 'tb-done', 'ยกเลิกออเดอร์']
+  };
+  
+  var stKey = (o.status || 'pending').toLowerCase();
+  var st = stMap[stKey] || stMap.pending;
+
+  // กำหนด Step การทำงาน
+  var isPlaced = ['pending', 'confirmed', 'preparing', 'ready', 'completed'].includes(stKey);
+  var isBrewing = ['preparing', 'ready', 'completed'].includes(stKey);
+  var isReady = ['ready', 'completed'].includes(stKey);
+
+  var stepsHtml = `
+    <div class="trk-step ${isPlaced ? 'done' : 'active'}">
+      <div class="step-dot"><svg width="9" height="8" viewBox="0 0 9 8" fill="none"><path d="M1 4l2.5 3L8 1" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="step-body"><h4>Order placed</h4><p>${stKey === 'pending' ? 'รอตรวจสอบการชำระเงิน' : 'ยืนยันออเดอร์แล้ว'}</p></div>
+    </div>
+    <div class="trk-step ${isBrewing ? 'done' : (stKey === 'confirmed' ? 'active' : '')}">
+      <div class="step-dot">${isBrewing ? '<svg width="9" height="8" viewBox="0 0 9 8" fill="none"><path d="M1 4l2.5 3L8 1" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>' : ''}</div>
+      <div class="step-body"><h4>Brewing</h4><p>บาริสต้ากำลังคราฟต์เครื่องดื่มของคุณ</p></div>
+    </div>
+    <div class="trk-step ${isReady ? 'done' : (stKey === 'preparing' ? 'active' : '')}">
+      <div class="step-dot">${isReady ? '<svg width="9" height="8" viewBox="0 0 9 8" fill="none"><path d="M1 4l2.5 3L8 1" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>' : ''}</div>
+      <div class="step-body"><h4>Ready for pickup</h4><p>เชิญรับเครื่องดื่มที่เคาน์เตอร์</p></div>
+    </div>
+  `;
+
+  var isActive = stKey !== 'completed' && stKey !== 'cancelled';
+  
+  el.innerHTML='<div class="trk-card"><div class="trk-hd"><div class="trk-status">'+st[0]+'</div><div class="trk-badge '+st[2]+'">'+st[3]+'</div></div>'
+    +(isActive?'<div class="queue-num"><div class="queue-lbl">Your queue</div><div class="queue-n">'+(o.id.split('-')[1] || o.id)+'</div></div>':'')
     +'<div class="trk-prog">'+stepsHtml+'</div>'
-    +(isActive?'<div class="trk-eta"><div class="eta-lbl">Estimated wait</div><div class="eta-val">8–12 min</div></div>':'')
     +(isActive?'<div class="cc-row"><div class="cc-lbl" id="ccCd"></div><button class="cancel-sm" onclick="doCancel()">Cancel order</button></div>':'')
     +'</div>'
-    +(o.status==='ready'?'<div class="nv-card"><div class="nv-tag">Ready now</div><div class="nv-txt">Show this to the barista</div><div class="nv-sub" style="font-family:var(--serif);font-size:20px;color:var(--gl)">'+o.id+'</div></div>':'')
-    +(o.status==='completed'&&!S.rating?'<div class="rat-wrap"><div class="rat-ask">How was your order?</div><div class="stars">'+'<svg width="32" height="32" viewBox="0 0 32 32" fill="none">'.repeat(0)+[1,2,3,4,5].map(function(n){return'<button class="starbtn" onclick="doRate('+n+')" style="min-width:var(--touch);min-height:var(--touch)"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 2l3 8.5h9l-7 5 2.5 8.5L14 19l-7.5 5 2.5-8.5-7-5h9z" stroke="var(--gold)" stroke-width="1.4" fill="'+(n<=S.rating?'var(--gold)':'none')+'"/></svg></button>'}).join('')+'</div></div>':'');
-  if(isActive)startCancelTimer();
+    +(stKey==='ready'?'<div class="nv-card"><div class="nv-tag">Ready now</div><div class="nv-txt">Show this to the barista</div><div class="nv-sub" style="font-family:var(--serif);font-size:20px;color:var(--gl)">'+o.id+'</div></div>':'');
+    
+  if(isActive && stKey === 'pending') startCancelTimer();
 }
-function startPoll(){if(pollT)clearInterval(pollT);pollT=setInterval(function(){if(!S.order||S.order.status==='completed'||S.order.status==='cancelled'){clearInterval(pollT);pollT=null;return}},30000)}
-function startCancelTimer(){
-  if(cancelT)clearInterval(cancelT);
-  cancelT=setInterval(function(){
-    var el=ge('ccCd');if(!el||!S.order){clearInterval(cancelT);cancelT=null;return}
-    var rem=S.order.cancelDL-Date.now();
-    if(rem<=0){clearInterval(cancelT);cancelT=null;renderTrack();return}
-    var m=Math.floor(rem/60000),s=Math.floor((rem%60000)/1000);
-    el.textContent='Cancel window: '+m+':'+('0'+s).slice(-2);
-  },1000);
+
+function startPoll(){
+  if(pollT) clearInterval(pollT);
+  pollT = setInterval(() => {
+    if(!S.order || S.order.status.toLowerCase() === 'completed' || S.order.status.toLowerCase() === 'cancelled'){
+      clearInterval(pollT); pollT=null; return;
+    }
+    // ยิง API เช็คสถานะใหม่ทุกๆ 5 วินาที
+    API.getOrderStatus(S.order.id).then(res => {
+      if(res.success && res.status.toLowerCase() !== S.order.status.toLowerCase()) {
+        S.order.status = res.status.toLowerCase();
+        renderTrack(); // สั่งวาดหน้าจอใหม่เมื่อสถานะเปลี่ยน
+      }
+    });
+  }, 5000);
 }
 function doCancel(){
   if(!confirm('Cancel this order?'))return;
