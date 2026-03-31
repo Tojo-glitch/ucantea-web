@@ -99,6 +99,33 @@ async function _sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
+/* ── ADMIN: GET ALL ORDERS ────────────────────────── */
+  async getAdminOrders() {
+    if (BACKEND_MODE === 'supabase') {
+      const orders = await sb.query('orders', { 
+        select: '*', 
+        order: 'created_at.desc',
+        limit: 50 
+      });
+      return { success: true, data: orders };
+    }
+    // MOCK DATA สำหรับทดสอบ
+    return { success: true, data: [
+      { id: 'CTB-A1B2', branch_name: 'Main Branch — Siam', total_amount: 240, status: 'PENDING', order_type: 'pickup', created_at: new Date().toISOString() },
+      { id: 'CTB-C3D4', branch_name: 'Main Branch — Siam', total_amount: 110, status: 'PREPARING', order_type: 'delivery', created_at: new Date(Date.now() - 600000).toISOString() }
+    ]};
+  },
+
+  /* ── ADMIN: UPDATE ORDER STATUS ───────────────────── */
+  async updateOrderStatus(orderId, newStatus) {
+    if (BACKEND_MODE === 'supabase') {
+      await sb.update('orders', { status: newStatus }, { id: orderId });
+      return { success: true };
+    }
+    // MOCK DATA
+    await _mockDelay(500);
+    return { success: true };
+  },
 
 /* ── GAS HELPER ──────────────────────────────────────── */
 function _gasCall(action, params) {
