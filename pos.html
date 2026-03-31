@@ -81,7 +81,25 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 </style>
 </head>
 <body>
+<!-- ใส่ไว้บนสุดของ <body> ใน pos.html -->
+<audio id="posAlert" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
 
+<!-- เพิ่ม Modal สำหรับตรวจสลิป (ใส่ไว้ใต้ Login Overlay) -->
+<div class="overlay" id="slipOv">
+  <div class="modal" style="width:500px;">
+    <div class="modal-title" id="slipOrderId">CTB-XXXX</div>
+    <div style="color:var(--tan3); margin-bottom:16px;">ตรวจสอบยอดเงินเข้าบัญชีให้ตรงกับสลิปนี้</div>
+    <img id="slipImg" src="" style="width:100%; max-height:400px; object-fit:contain; background:#000; border-radius:8px; margin-bottom:20px;">
+    <div style="font-size:24px; color:var(--gl); font-family:var(--serif); margin-bottom:20px;" id="slipTotal">฿0</div>
+    
+    <div style="display:flex; gap:12px;">
+      <button class="btn-sm" style="flex:1; background:rgba(212,79,79,.1); color:#e88080; border-color:rgba(212,79,79,.3);" onclick="decideOrder('CANCELLED')">❌ Cancel (สลิปไม่ผ่าน)</button>
+      <button class="btn-pay" style="flex:1; height:44px;" onclick="decideOrder('CONFIRMED')">✅ Approve (เงินเข้าแล้ว)</button>
+    </div>
+    <button class="t-clear" style="margin-top:16px;" onclick="document.getElementById('slipOv').classList.remove('on')">ปิดหน้าต่าง</button>
+  </div>
+</div>
+  
 <!-- LOGIN OVERLAY -->
 <div class="overlay on" id="loginOv">
   <div class="modal">
@@ -308,6 +326,72 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
     document.getElementById('btnTakeaway').style = "flex:1;";
     btn.style = "flex:1; background:rgba(212,170,106,.1); color:var(--gl); border-color:rgba(212,170,106,.3);";
   }
+
+    // --- โค้ด JS สำหรับ POS (เพิ่มต่อท้ายใน <script> ของ pos.html) ---
+  let pendingOrders = [];
+  let checkingOrderId = null;
+  
+  // ดึงออเดอร์ที่รอตรวจสลิปทุกๆ 5 วินาที
+  function pollIncomingOrders() {
+    API.getAdminOrders().then(res => { // ใช้ API เดียวกับ Admin ได้เลย
+      if(!res.success) return;
+      const newPendings = res.data.filter(o => o.status === 'PENDING');
+      
+      // ถ้ามีออเดอร์ใหม่เข้ามา (จำนวนเพิ่มขึ้น) ให้เล่นเสียงเตือน
+      if(newPendings.length > pendingOrders.length) {
+        document.getElementById('posAlert').play().catch(e => console.log('Auto-play blocked'));
+      }
+      pendingOrders = newPendings;
+      renderPendingList();
+    });
+  }
+  
+  function renderPendingList() {
+    // สร้างโซนแสดงออเดอร์รอตรวจ (คุณสามารถสร้าง div id="pendingList" ไว้ใน Sidebar POS ได้)
+    // สมมติเราแทรกไว้ด้านบนของ TICKET Sidebar
+    let el = document.getElementById('pendingList');
+    if(!el) {
+      const sidebar = document.querySelector('.pos-sidebar');
+      sidebar.insertAdjacentHTML('afterbegin', `<div id="pendingList" style="background:rgba(212,170,106,.1); border-bottom:1px solid var(--line); padding:16px 24px;"></div>`);
+      el = document.getElementById('pendingList');
+    }
+  
+    if(pendingOrders.length === 0) {
+      el.style.display = 'none';
+    } else {
+      el.style.display = 'block';
+      el.innerHTML = `<div style="font-weight:700; color:var(--gl); margin-bottom:8px;">🔔 ${pendingOrders.length} Order(s) รอตรวจสลิป!</div>` +
+        pendingOrders.map(o => `
+          <button style="width:100%; text-align:left; background:var(--c1); border:1px solid var(--gl); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;" onclick="openSlipCheck('${o.id}', '${o.slip_url || ''}', ${o.total_amount})">
+            <div><span style="font-weight:600; color:var(--tan);">${o.id}</span><br><span style="font-size:11px; color:var(--tan3);">฿${o.total_amount}</span></div>
+            <span style="background:var(--gl); color:var(--c0); font-size:11px; font-weight:700; padding:4px 8px; border-radius:4px;">ตรวจสลิป</span>
+          </button>
+        `).join('');
+    }
+  }
+  
+  function openSlipCheck(id, slipUrl, total) {
+    checkingOrderId = id;
+    document.getElementById('slipOrderId').textContent = id;
+    document.getElementById('slipTotal').textContent = 'ยอดโอน: ฿' + total;
+    // ใช้รูปจำลองถ้าไม่มี url เพื่อการทดสอบ
+    document.getElementById('slipImg').src = slipUrl || 'https://via.placeholder.com/300x400?text=Customer+Slip'; 
+    document.getElementById('slipOv').classList.add('on');
+  }
+  
+  function decideOrder(status) {
+    const actionText = status === 'CONFIRMED' ? 'Approve ออเดอร์และส่งเข้าครัว?' : 'Cancel ออเดอร์นี้ (สลิปไม่ถูกต้อง)?';
+    if(confirm(`⚠️ ยืนยันการทำงาน:\nคุณแน่ใจหรือไม่ที่จะ ${actionText}`)) {
+      API.updateOrderStatus(checkingOrderId, status).then(() => {
+        document.getElementById('slipOv').classList.remove('on');
+        pollIncomingOrders(); // โหลดใหม่ทันที
+        alert('ทำรายการสำเร็จ');
+      });
+    }
+  }
+  
+  // เริ่มดึงข้อมูล
+  setInterval(pollIncomingOrders, 5000);
 
   function processCheckout() {
     if(TICKET.length === 0) return;
