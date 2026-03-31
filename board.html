@@ -1,120 +1,81 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ceramic - Order Status</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Order Status Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0c0b09; --panel: #141310; --card: #1c1a17; --line: rgba(212,170,106,0.15);
-    --gold: #d4aa6a; --green: #6dbb8a; --text: #e8e0d4; --sub: #9e9080;
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+  body { background: #0c0b09; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
   
-  /* HEADER */
-  .header { height: 100px; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid var(--line); background: linear-gradient(to bottom, rgba(20,19,16,0.8), transparent); flex-shrink: 0; }
-  .brand { font-family: 'Fraunces', serif; font-size: 42px; font-style: italic; color: var(--text); letter-spacing: 1px; }
-  .brand span { color: var(--gold); font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; font-style: normal; text-transform: uppercase; letter-spacing: 3px; font-weight: 700; margin-left: 12px; vertical-align: middle; }
+  .header { padding: 30px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .logo { font-size: 28px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #d4aa6a; }
   
-  /* MAIN LAYOUT */
-  .container { display: flex; flex: 1; overflow: hidden; }
+  .board-container { display: flex; flex: 1; }
   .col { flex: 1; padding: 40px 60px; display: flex; flex-direction: column; }
-  .col.left { border-right: 1px solid var(--line); background: radial-gradient(circle at top left, rgba(212,170,106,0.03), transparent 50%); }
-  .col.right { background: radial-gradient(circle at top right, rgba(109,187,138,0.05), transparent 50%); }
+  .col.left { border-right: 1px solid rgba(255,255,255,0.1); background: linear-gradient(135deg, rgba(212,170,106,0.05) 0%, transparent 50%); }
+  .col.right { background: linear-gradient(135deg, rgba(109,187,138,0.05) 0%, transparent 50%); }
   
-  /* TITLES */
-  .col-title { text-align: center; margin-bottom: 40px; }
-  .col-title h2 { font-family: 'Fraunces', serif; font-size: 56px; font-weight: 400; letter-spacing: -1px; margin-bottom: 8px; }
-  .col-title p { font-size: 16px; color: var(--sub); text-transform: uppercase; letter-spacing: 2px; font-weight: 600; }
-  .col.left h2 { color: var(--gold); }
-  .col.right h2 { color: var(--green); }
+  .col-title { font-size: 32px; font-weight: 600; margin-bottom: 40px; text-align: center; letter-spacing: 1px; }
+  .col.left .col-title { color: #d4aa6a; }
+  .col.right .col-title { color: #6dbb8a; }
   
-  /* GRID */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px; align-content: start; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 24px; align-content: start; }
   
-  /* CARDS */
-  .q-card { background: var(--panel); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; height: 120px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 56px; color: var(--text); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .q-card { background: #1c1a17; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; height: 100px; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
   
-  /* PREPARING CARD */
-  .q-card.prep { border-left: 4px solid var(--gold); }
+  .q-card.ready { background: rgba(109,187,138,0.15); border-color: #6dbb8a; color: #6dbb8a; animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(109,187,138,0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(109,187,138,0); } 100% { transform: scale(1); } }
   
-  /* READY CARD (With Animation) */
-  .q-card.ready { background: rgba(109,187,138,0.1); border: 1px solid rgba(109,187,138,0.3); color: var(--green); transform: scale(1); animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-  
-  @keyframes popIn { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
-  
-  /* EMPTY STATE */
-  .empty { grid-column: 1 / -1; text-align: center; color: var(--sub); font-size: 20px; font-style: italic; margin-top: 60px; opacity: 0.5; }
+  .empty-msg { grid-column: 1 / -1; text-align: center; font-size: 20px; color: #666; margin-top: 40px; }
 </style>
 </head>
 <body>
 
-<!-- เสียงประกาศ (เล่นเมื่อมีออเดอร์เสร็จใหม่) -->
-<audio id="dingSound" src="https://actions.google.com/sounds/v1/alarms/dinner_bell_triangle.ogg" preload="auto"></audio>
+<audio id="ding" src="https://actions.google.com/sounds/v1/alarms/dinner_bell_triangle.ogg"></audio>
 
 <div class="header">
-  <div class="brand">Ceramic <span>Now Serving</span></div>
+  <div class="logo">Ceramic</div>
+  <div style="font-size:18px; color:#999;" id="clock">00:00</div>
 </div>
 
-<div class="container">
-  <!-- ฝั่งซ้าย: กำลังทำ -->
+<div class="board-container">
   <div class="col left">
-    <div class="col-title">
-      <h2>Preparing</h2>
-      <p>กำลังจัดเตรียม</p>
-    </div>
-    <div class="grid" id="boardPrep">
-      <div class="empty">Loading...</div>
-    </div>
+    <div class="col-title">Preparing (กำลังเตรียม)</div>
+    <div class="grid" id="prepGrid"><div class="empty-msg">Waiting for connection...</div></div>
   </div>
-
-  <!-- ฝั่งขวา: เสร็จแล้ว -->
   <div class="col right">
-    <div class="col-title">
-      <h2>Please Collect</h2>
-      <p>เชิญรับเครื่องดื่ม</p>
-    </div>
-    <div class="grid" id="boardReady">
-      <div class="empty">Loading...</div>
-    </div>
+    <div class="col-title">Please Collect (เชิญรับเครื่องดื่ม)</div>
+    <div class="grid" id="readyGrid"><div class="empty-msg">Waiting for connection...</div></div>
   </div>
 </div>
 
 <script src="config.js"></script>
 <script src="api.js"></script>
 <script>
-  let lastReadyCount = 0;
+  setInterval(() => document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}), 1000);
 
-  function loadBoard() {
+  let lastReadyCount = 0;
+  function updateBoard() {
+    // ใช้ getAdminOrders เพื่อดึงคิวทั้งหมด
+    if(!window.API) return; 
     API.getAdminOrders().then(res => {
       if(!res.success) return;
-      
-      const prep = res.data.filter(o => o.status === 'PREPARING');
+      const prep = res.data.filter(o => o.status === 'PREPARING' || o.status === 'CONFIRMED');
       const ready = res.data.filter(o => o.status === 'READY');
 
-      // ถ้าจำนวนคิวที่เสร็จแล้ว เพิ่มขึ้นจากเดิม ให้เล่นเสียง "ติ๊ง!"
       if(ready.length > lastReadyCount) {
-        document.getElementById('dingSound').play().catch(e => console.log('Audio blocked'));
+        document.getElementById('ding').play().catch(()=>{});
       }
       lastReadyCount = ready.length;
 
-      // Render Preparing
-      const prepEl = document.getElementById('boardPrep');
-      if(prep.length === 0) prepEl.innerHTML = '<div class="empty">No orders currently preparing</div>';
-      else prepEl.innerHTML = prep.map(o => `<div class="q-card prep">${o.id.split('-')[1] || o.id}</div>`).join('');
-
-      // Render Ready
-      const readyEl = document.getElementById('boardReady');
-      if(ready.length === 0) readyEl.innerHTML = '<div class="empty">Waiting for orders...</div>';
-      else readyEl.innerHTML = ready.map(o => `<div class="q-card ready">${o.id.split('-')[1] || o.id}</div>`).join('');
-    });
+      document.getElementById('prepGrid').innerHTML = prep.length ? prep.map(o => `<div class="q-card">${o.id.split('-')[1] || o.id}</div>`).join('') : `<div class="empty-msg">No active orders</div>`;
+      document.getElementById('readyGrid').innerHTML = ready.length ? ready.map(o => `<div class="q-card ready">${o.id.split('-')[1] || o.id}</div>`).join('') : `<div class="empty-msg">No ready orders</div>`;
+    }).catch(e => console.log("API Error:", e));
   }
-  
-  // อัปเดตหน้าจอทุก 5 วินาที
-  setInterval(loadBoard, 5000);
-  loadBoard(); // โหลดครั้งแรกทันที
+  setInterval(updateBoard, 3000);
+  setTimeout(updateBoard, 1000); // โหลดครั้งแรก
 </script>
 </body>
 </html>
