@@ -310,6 +310,27 @@ window.API = {
     await _mockDelay(600);
     return { success: true };
   },
+  /* ── KDS: GET ACTIVE ORDERS ───────────────────────── */
+  async getKdsOrders() {
+    if (BACKEND_MODE === 'supabase') {
+      // ดึงออเดอร์ล่าสุด 30 คิว แล้วกรองเฉพาะที่ต้องทำ
+      const orders = await sb.query('orders', { 
+        select: '*', 
+        order: 'created_at.asc',
+        limit: 30 
+      });
+      return { 
+        success: true, 
+        data: orders.filter(o => o.status === 'PENDING' || o.status === 'PREPARING') 
+      };
+    }
+    // MOCK DATA
+    await _mockDelay(300);
+    return { success: true, data: [
+      { id: 'CTB-K1', order_type: 'dine-in', status: 'PENDING', created_at: new Date(Date.now() - 300000).toISOString(), items: [{name: 'White Peach Oolong', qty: 1, opts: 'L · 25% Sweet · Less Ice', note: 'แยกน้ำแข็ง'}, {name: 'Matcha Latte', qty: 2, opts: 'M · Regular Sweet'}] },
+      { id: 'CTB-K2', order_type: 'delivery', status: 'PREPARING', created_at: new Date(Date.now() - 600000).toISOString(), items: [{name: 'Brown Sugar Boba', qty: 1, opts: 'M · Extra Sweet'}] }
+    ]};
+  },
 
   /* ── MENU ────────────────────────────────────────── */
   async getMenu() {
