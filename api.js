@@ -11,8 +11,8 @@
 const BACKEND_MODE = 'supabase'; // 'supabase' | 'mock' | 'gas'
 
 /* ── CONFIG ─────────────────────────────────────────── */
-const SUPABASE_URL  = 'https://itjzvcbuzyywgwdfjonp.supabase.co';  // ← เปลี่ยน
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0anp2Y2J1enl5d2d3ZGZqb25wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4NjYxMjQsImV4cCI6MjA5MDQ0MjEyNH0.U0wkJYwL4elzcAazlqm9uq4tk9JPOUD6CoIND61lLO0';                     // ← เปลี่ยน
+const SUPABASE_URL  = window.ENV.URL;
+const SUPABASE_ANON = window.ENV.KEY;
 const GAS_URL       = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'; // ← ถ้าใช้ GAS
 
 /* ── SUPABASE CLIENT (lightweight, no SDK) ───────────── */
