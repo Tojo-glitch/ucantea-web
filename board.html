@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<title>Ceramic - Order Status Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;1,400&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#0c0b09; color:#e8e0d4; font-family:'Plus Jakarta Sans', sans-serif; display:flex; height:100vh; overflow:hidden; }
+  .col { flex:1; padding:40px; display:flex; flex-direction:column; }
+  .col.left { border-right:1px solid rgba(255,255,255,0.1); }
+  .title { font-family:'Fraunces', serif; font-size:48px; text-align:center; margin-bottom:40px; }
+  .title.prep { color:#d4aa6a; }
+  .title.ready { color:#6dbb8a; }
+  .queue-grid { display:flex; flex-wrap:wrap; gap:24px; align-content:flex-start; justify-content:center; }
+  .q-num { font-size:56px; font-weight:800; padding:20px 40px; background:#1c1a17; border-radius:16px; border:2px solid rgba(255,255,255,0.1); }
+  .q-num.ready { background:rgba(74,173,117,0.1); border-color:#6dbb8a; color:#6dbb8a; animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+</style>
+</head>
+<body>
+
+<div class="col left">
+  <div class="title prep">Preparing (กำลังทำ)</div>
+  <div class="queue-grid" id="boardPrep"></div>
+</div>
+
+<div class="col">
+  <div class="title ready">Please Collect (เชิญรับเครื่องดื่ม)</div>
+  <div class="queue-grid" id="boardReady"></div>
+</div>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script>
+  function loadBoard() {
+    API.getAdminOrders().then(res => {
+      if(!res.success) return;
+      const prep = res.data.filter(o => o.status === 'PREPARING');
+      const ready = res.data.filter(o => o.status === 'READY');
+
+      document.getElementById('boardPrep').innerHTML = prep.map(o => `<div class="q-num">${o.id.split('-')[1] || o.id}</div>`).join('');
+      document.getElementById('boardReady').innerHTML = ready.map(o => `<div class="q-num ready">${o.id.split('-')[1] || o.id}</div>`).join('');
+    });
+  }
+  setInterval(loadBoard, 5000);
+</script>
+</body>
+</html>
