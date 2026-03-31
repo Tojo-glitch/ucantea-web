@@ -68,12 +68,44 @@ button { font-family:var(--sans); cursor:pointer; border:none; outline:none; }
 .btn-bump:active { transform:scale(0.97); }
 .btn-start { background:var(--gl); }
 .btn-done { background:var(--grnl); }
-
+  
+/* ... (เอาสไตล์เดิมมาใส่) ... */
+.kds-board { display:flex; height:calc(100vh - 70px); background:var(--c0); padding:16px; gap:16px; }
+.kds-col { flex:1; background:var(--c1); border:1px solid var(--line); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
+.col-head { padding:16px; font-family:var(--serif); font-size:20px; text-align:center; border-bottom:1px solid var(--line); font-weight:600; }
+.col-head.new { background:rgba(212,79,79,.1); color:#e88080; }
+.col-head.prep { background:rgba(212,170,106,.1); color:var(--gl); }
+.col-head.ready { background:rgba(74,173,117,.1); color:var(--grnl); }
+.col-body { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px; }
+  
 /* Empty state */
 .empty-kds { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--tan3); }
-</style>
+/style>
 </head>
 <body>
+
+<div class="kds-board">
+  <!-- ซ้าย: ออเดอร์เข้าใหม่ (รอรับ) -->
+  <div class="kds-col">
+    <div class="col-head new">1. New Orders (รอรับ)</div>
+    <div class="col-body" id="colNew"></div>
+  </div>
+  
+  <!-- กลาง: กำลังทำ -->
+  <div class="kds-col">
+    <div class="col-head prep">2. Preparing (กำลังทำ)</div>
+    <div class="col-body" id="colPrep"></div>
+  </div>
+
+  <!-- ขวา: เสร็จแล้ว -->
+  <div class="kds-col">
+    <div class="col-head ready">3. Ready (รอเสิร์ฟ)</div>
+    <div class="col-body" id="colReady"></div>
+  </div>
+</div>
+
+<!-- เพิ่มเสียงแจ้งเตือนใน kds.html (บนสุดของ body) -->
+<audio id="kdsAlarm" src="https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg" loop preload="auto"></audio>
 
 <div class="kds-header">
   <div class="brand">Ceramic <span>Kitchen Display</span></div>
@@ -93,6 +125,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; outline:none; }
 <script src="config.js"></script>
 <script src="api.js"></script>
 <script>
+  
   let kdsTimer;
 
   // --- CLOCK & TIMERS ---
@@ -187,6 +220,64 @@ button { font-family:var(--sans); cursor:pointer; border:none; outline:none; }
       `;
     }).join('');
   }
+              
+  function loadKds() {
+  // ดึงเฉพาะออเดอร์ที่ POS Approve แล้ว (CONFIRMED), กำลังทำ (PREPARING), หรือเสร็จแล้วเพิ่งเสิร์ฟ (READY)
+  API.getAdminOrders().then(res => {
+    if(!res.success) return;
+    const orders = res.data;
+    
+    const newOrders = orders.filter(o => o.status === 'CONFIRMED');
+    const prepOrders = orders.filter(o => o.status === 'PREPARING');
+    const readyOrders = orders.filter(o => o.status === 'READY');
+
+    // ระบบเสียงเตือน: ถ้ามีออเดอร์ใหม่ ให้ร้องต่อเนื่อง
+    const alarm = document.getElementById('kdsAlarm');
+    if(newOrders.length > 0) {
+      // ใช้คำสั่งเสียงพูดของ Browser
+      if(alarm.paused) {
+        alarm.play().catch(e=>console.log('Audio blocked'));
+        const utterance = new SpeechSynthesisUtterance("มีออเดอร์ใหม่เข้าครัวค่ะ");
+        utterance.lang = 'th-TH';
+        speechSynthesis.speak(utterance);
+      }
+    } else {
+      alarm.pause();
+      alarm.currentTime = 0; // รีเซ็ตเสียง
+    }
+
+    // Render ทั้ง 3 ช่อง
+    renderCol('colNew', newOrders, 'PREPARING', '👨‍🍳 รับออเดอร์ (Start)');
+    renderCol('colPrep', prepOrders, 'READY', '✅ ทำเสร็จแล้ว (Done)');
+    renderCol('colReady', readyOrders, 'COMPLETED', '👋 เสิร์ฟแล้ว (Clear)');
+  });
+}
+
+function renderCol(colId, list, nextStatus, btnText) {
+  const el = document.getElementById(colId);
+  if(list.length === 0) {
+    el.innerHTML = '<div style="text-align:center; color:var(--tan3); margin-top:40px;">- ว่าง -</div>';
+    return;
+  }
+  el.innerHTML = list.map(o => `
+    <div class="ticket">
+      <div class="tk-head">
+        <div class="tk-id">${o.id}</div>
+        <div class="tk-time">${new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+      </div>
+      <div class="tk-body" style="background:var(--c0); padding:12px;">
+        ${JSON.parse(o.items || '[]').map(i => `<div style="font-size:16px; margin-bottom:4px;"><b>${i.qty}x</b> ${i.name}</div>`).join('')}
+      </div>
+      <button class="btn-bump btn-start" onclick="bumpStatus('${o.id}', '${nextStatus}')">${btnText}</button>
+    </div>
+  `).join('');
+}
+
+function bumpStatus(id, nextStatus) {
+  API.updateOrderStatus(id, nextStatus).then(() => loadKds());
+}
+
+setInterval(loadKds, 5000);
 
   // --- ACTIONS ---
   function bumpStatus(id, nextStatus) {
