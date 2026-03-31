@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ceramic KDS (Kitchen Display)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─── */
+:root {
+  --c0:#0c0b09;--c1:#141310;--c2:#1c1a17;--c3:#252320;--c4:#2f2d29;
+  --tan:#e8e0d4;--tan2:#b8ad9e;--tan3:#9e9080;
+  --gold:#b8924a;--gl:#d4aa6a;
+  --grn:#4aad75;--grnl:#6dbb8a;
+  --red:#d44f4f;--line:rgba(255,255,255,.07);--ln2:rgba(255,255,255,.12);
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'Plus Jakarta Sans','Helvetica Neue',sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; user-select:none; }
+body { background:var(--c0); color:var(--tan); font-family:var(--sans); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+button { font-family:var(--sans); cursor:pointer; border:none; outline:none; }
+
+/* ─── HEADER ─── */
+.kds-header { height:70px; background:var(--c1); border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; padding:0 32px; flex-shrink:0; }
+.brand { font-family:var(--serif); font-size:26px; font-style:italic; color:var(--tan); }
+.brand span { color:var(--gl); font-size:12px; font-family:var(--sans); font-style:normal; letter-spacing:1.5px; text-transform:uppercase; margin-left:8px; font-weight:700; }
+.clock { font-size:24px; font-weight:700; color:var(--tan); font-variant-numeric:tabular-nums; letter-spacing:1px; }
+.status-bar { display:flex; align-items:center; gap:24px; }
+.status-item { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:var(--tan2); }
+.dot { width:12px; height:12px; border-radius:50%; }
+.dot.red { background:#e88080; box-shadow:0 0 10px rgba(232,128,128,0.4); }
+.dot.yellow { background:var(--gl); box-shadow:0 0 10px rgba(212,170,106,0.4); }
+
+/* ─── MAIN GRID ─── */
+.kds-main { flex:1; padding:24px 32px; overflow-x:auto; overflow-y:hidden; display:flex; gap:24px; background:var(--c0); }
+.kds-main::-webkit-scrollbar { height:12px; }
+.kds-main::-webkit-scrollbar-track { background:var(--c1); border-radius:6px; }
+.kds-main::-webkit-scrollbar-thumb { background:var(--c3); border-radius:6px; }
+
+/* ─── TICKET CARD ─── */
+.ticket { width:320px; background:var(--c1); border:1px solid var(--ln2); border-radius:16px; display:flex; flex-direction:column; flex-shrink:0; max-height:100%; overflow:hidden; }
+.ticket.urgent { border-color:#e88080; box-shadow:0 0 0 1px #e88080; }
+
+.tk-head { padding:16px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-start; }
+.tk-head.pending { background:rgba(212,79,79,.1); } /* Red-ish for Pending */
+.tk-head.preparing { background:rgba(212,170,106,.1); } /* Yellow-ish for Preparing */
+
+.tk-id { font-family:var(--serif); font-size:24px; color:var(--tan); line-height:1; margin-bottom:6px; font-weight:600; }
+.tk-type { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; padding:4px 8px; border-radius:6px; display:inline-block; }
+.type-dine-in { background:rgba(74,173,117,.2); color:var(--grnl); }
+.type-takeaway { background:rgba(212,170,106,.2); color:var(--gl); }
+.type-delivery { background:rgba(180,150,250,.2); color:#c0a8f0; }
+
+.tk-time { font-size:20px; font-weight:700; color:var(--tan); font-variant-numeric:tabular-nums; }
+.tk-wait { font-size:12px; color:var(--tan3); text-align:right; margin-top:4px; font-weight:600; }
+
+.tk-body { flex:1; overflow-y:auto; padding:16px; }
+.tk-item { margin-bottom:16px; padding-bottom:16px; border-bottom:1px dashed var(--line); }
+.tk-item:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+.it-row { display:flex; gap:12px; align-items:flex-start; }
+.it-qty { font-size:22px; font-weight:800; color:var(--tan); min-width:32px; }
+.it-name { font-size:20px; font-weight:600; color:var(--tan); line-height:1.2; margin-bottom:6px; }
+.it-opts { font-size:14px; color:var(--tan2); line-height:1.5; margin-bottom:6px; }
+.it-note { font-size:14px; color:#e88080; font-weight:600; background:rgba(212,79,79,.1); padding:8px 12px; border-radius:8px; display:inline-block; width:100%; border:1px solid rgba(212,79,79,.2); }
+
+.tk-foot { padding:16px; border-top:1px solid var(--line); background:var(--c2); }
+.btn-bump { width:100%; height:64px; border-radius:12px; font-size:20px; font-weight:700; color:var(--c0); cursor:pointer; transition:transform .1s; }
+.btn-bump:active { transform:scale(0.97); }
+.btn-start { background:var(--gl); }
+.btn-done { background:var(--grnl); }
+
+/* Empty state */
+.empty-kds { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--tan3); }
+</style>
+</head>
+<body>
+
+<div class="kds-header">
+  <div class="brand">Ceramic <span>Kitchen Display</span></div>
+  <div class="status-bar">
+    <div class="status-item"><div class="dot red"></div> <span id="countPending">0</span> Pending</div>
+    <div class="status-item"><div class="dot yellow"></div> <span id="countPrep">0</span> Preparing</div>
+    <button onclick="loadKds()" style="height:40px; padding:0 20px; background:var(--c2); border:1px solid var(--ln2); border-radius:8px; color:var(--tan); font-weight:600;">↻ Refresh</button>
+  </div>
+  <div class="clock" id="sysClock">00:00:00</div>
+</div>
+
+<div class="kds-main" id="kdsGrid">
+  <div class="empty-kds">Loading orders...</div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script>
+  let kdsTimer;
+
+  // --- CLOCK & TIMERS ---
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('sysClock').textContent = now.toLocaleTimeString('en-GB');
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  function calcWaitTime(isoString) {
+    const diff = Math.floor((new Date() - new Date(isoString)) / 60000); // in minutes
+    if(diff < 1) return 'Just now';
+    return `${diff} min`;
+  }
+
+  // --- LOAD DATA ---
+  function loadKds() {
+    API.getKdsOrders().then(res => {
+      if(res.success) renderKds(res.data);
+    }).catch(err => console.error(err));
+  }
+
+  function renderKds(orders) {
+    const grid = document.getElementById('kdsGrid');
+    
+    // Update Stats
+    const pends = orders.filter(o => o.status === 'PENDING');
+    const preps = orders.filter(o => o.status === 'PREPARING');
+    document.getElementById('countPending').textContent = pends.length;
+    document.getElementById('countPrep').textContent = preps.length;
+
+    if(orders.length === 0) {
+      grid.innerHTML = `<div class="empty-kds">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="opacity:0.2; margin-bottom:16px;"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <div style="font-size:24px; font-family:var(--serif);">No active orders</div>
+        <div style="font-size:16px; margin-top:8px;">Kitchen is clear. Good job!</div>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = orders.map(o => {
+      // Parse items safely (handles stringified JSON from Supabase)
+      let items = [];
+      try { items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items; } catch(e){}
+
+      const isPending = o.status === 'PENDING';
+      const waitTime = calcWaitTime(o.created_at);
+      const isUrgent = parseInt(waitTime) > 15; // Mark red if wait > 15 mins
+      
+      let typeClass = 'type-takeaway';
+      if(o.order_type === 'dine-in') typeClass = 'type-dine-in';
+      if(o.order_type === 'delivery') typeClass = 'type-delivery';
+
+      const itemsHtml = items.map(i => `
+        <div class="tk-item">
+          <div class="it-row">
+            <div class="it-qty">${i.qty}x</div>
+            <div>
+              <div class="it-name">${i.name}</div>
+              <div class="it-opts">${i.opts || ''}</div>
+              ${i.note ? `<div class="it-note">** ${i.note}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      const btnHtml = isPending 
+        ? `<button class="btn-bump btn-start" onclick="bumpStatus('${o.id}', 'PREPARING')">Start Making</button>`
+        : `<button class="btn-bump btn-done" onclick="bumpStatus('${o.id}', 'READY')">Done / Ready</button>`;
+
+      return `
+        <div class="ticket ${isUrgent ? 'urgent' : ''}">
+          <div class="tk-head ${isPending ? 'pending' : 'preparing'}">
+            <div>
+              <div class="tk-id">${o.id}</div>
+              <div class="tk-type ${typeClass}">${o.order_type}</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="tk-time">${new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+              <div class="tk-wait" style="color:${isUrgent ? '#e88080' : 'var(--tan3)'}">${waitTime}</div>
+            </div>
+          </div>
+          <div class="tk-body">
+            ${itemsHtml}
+            ${o.notes ? `<div style="margin-top:16px; padding:12px; background:var(--c2); border-radius:8px; color:var(--tan2); font-size:14px;"><strong>Order Note:</strong><br>${o.notes}</div>` : ''}
+          </div>
+          <div class="tk-foot">
+            ${btnHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // --- ACTIONS ---
+  function bumpStatus(id, nextStatus) {
+    API.updateOrderStatus(id, nextStatus).then(res => {
+      if(res.success) loadKds(); // Refresh immediately
+    });
+  }
+
+  // Auto-refresh every 15 seconds
+  loadKds();
+  setInterval(loadKds, 15000);
+
+</script>
+</body>
+</html>
