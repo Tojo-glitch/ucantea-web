@@ -126,6 +126,18 @@ async function _sha256(str) {
     await _mockDelay(500);
     return { success: true };
   },
+  /* ── POS: GET MEMBER BY PHONE ─────────────────────── */
+  async getMemberByPhone(phone) {
+    if (BACKEND_MODE === 'supabase') {
+      const res = await sb.query('members', { eq: { phone: phone }, select: '*' });
+      if (res && res.length > 0) return { success: true, member: res[0] };
+      return { success: false, message: 'Member not found' };
+    }
+    // MOCK DATA
+    await _mockDelay(300);
+    if (phone === '0812345678') return { success: true, member: { id: 'm1', name: 'Khun Demo', points: 245, tier: 'Silver' } };
+    return { success: false, message: 'Member not found' };
+  },
 
 /* ── GAS HELPER ──────────────────────────────────────── */
 function _gasCall(action, params) {
