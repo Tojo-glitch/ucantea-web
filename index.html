@@ -598,17 +598,25 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
   text-align: left;
 }
 /* =======================================================
-   🔥 HOTFIX V2: แก้บั๊ก Safari บีบหน้าจอ + แก้ Add-ons แตก
+   ✨ HOTFIX FINAL: ล็อคปุ่มให้สัดส่วนเป๊ะ, แก้ Modal, เลื่อนจอได้
    ======================================================= */
 
-/* 1. ปลดล็อคการบีบขอบขวาของ Safari (ตัวการที่ทำให้ Modal แคบครึ่งจอ) */
-.ov, #splash, #loader {
-    right: auto !important; 
-    width: 100% !important;
+/* 1. คืนความพรีเมียมให้ปุ่ม Top Bar กลับมาเป็น "สี่เหลี่ยมจัตุรัส" ไม่ยืดอ้วน */
+.tbar .tbtn {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important; /* ล็อคขนาดห้ามยืดห่อดเด็ดขาด */
+    padding: 0 !important;
+    justify-content: center !important;
 }
 
-/* 2. จัดระเบียบตัวอักษร Add-ons ไม่ให้เรียงเป็นแนวตั้ง */
-.tbtn > div:last-child {
+/* 2. ให้ปุ่ม Add-ons กว้าง 100% อย่างถูกต้อง (ไม่ให้ลามไปปุ่มอื่น) */
+.top-grid .tbtn {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 48px !important;
+}
+.top-grid .tbtn > div:last-child {
     display: flex !important;
     flex-direction: row !important;
     justify-content: space-between !important;
@@ -617,17 +625,23 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
     flex: 1 !important;
     min-width: 0 !important;
 }
-.tname {
+.top-grid .tname {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     text-align: left !important;
 }
-.tprice {
+.top-grid .tprice {
     flex-shrink: 0 !important;
 }
 
-/* 3. ปรับให้ Sheet เลื่อนลงไปดูปุ่มได้ */
+/* 3. แก้บั๊ก Safari บีบหน้าต่างเหลือครึ่งจอ */
+.ov, #splash, #loader {
+    right: auto !important; 
+    width: 100% !important;
+}
+
+/* 4. ปลดล็อคให้หน้าตะกร้า (Cart) ไถเลื่อนขึ้นลงได้ */
 .sht {
     max-height: 90dvh !important;
     display: flex !important;
@@ -636,6 +650,11 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
 .cs-body, #panelLogin, #panelRegister, #panelForgot {
     overflow-y: auto !important;
     flex: 1 !important;
+}
+#cartOv .sht {
+    display: block !important;
+    overflow-y: auto !important;
+    padding-bottom: 40px !important;
 }
 </style>
 </head>
@@ -1009,6 +1028,16 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
       <div class="otbtn" id="ct-delivery" onclick="setOT('delivery',this)"><div class="ot-ico"><svg width="18" height="12" viewBox="0 0 18 12" fill="none"><rect x="1" y="2" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M11 4.5l3 1.5V9h-3V4.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><circle cx="4.5" cy="11" r="1.5" stroke="currentColor" stroke-width="1"/><circle cx="14" cy="11" r="1.5" stroke="currentColor" stroke-width="1"/></svg></div><div class="ot-lbl">Delivery</div></div>
       <div class="otbtn" id="ct-preorder" onclick="setOT('preorder',this)"><div class="ot-ico"><svg width="14" height="16" viewBox="0 0 14 16" fill="none"><rect x="1" y="2" width="12" height="13" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M4 1v3M10 1v3M1 7h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></div><div class="ot-lbl">Pre-order</div></div>
     </div>
+    <!-- 🟢 ส่วนที่ต้องเพิ่มใหม่: กล่องกรอกข้อมูลที่จะโผล่มาเมื่อกด Delivery หรือ Pre-order -->
+    <div id="cartDWrap" style="display:none; padding: 0 16px; margin-bottom: 12px;">
+      <div style="font-size:12px;color:var(--tan3);margin-bottom:4px">Delivery Details</div>
+      <input class="inp" placeholder="ที่อยู่จัดส่ง (เช่น ชื่อหมู่บ้าน, เลขห้อง)" id="cartDelAddr" style="margin-bottom: 8px;">
+      <input class="inp" placeholder="เบอร์โทรติดต่อผู้รับ" id="cartDelPhone" type="tel">
+    </div>
+    <div id="cartPWrap" style="display:none; padding: 0 16px; margin-bottom: 12px;">
+      <div style="font-size:12px;color:var(--tan3);margin-bottom:4px">Select pickup time</div>
+      <input class="inp" type="datetime-local" id="cartPreTime">
+    </div>
     <div style="padding:0 16px;margin-bottom:8px;font-size:12px;color:var(--tan3);display:flex;align-items:center;gap:6px">
       <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M6 1C3.79 1 2 2.79 2 5c0 3 4 8 4 8s4-5 4-8c0-2.21-1.79-4-4-4z" stroke="var(--gl)" stroke-width="1.2"/><circle cx="6" cy="5" r="1.5" stroke="var(--gl)" stroke-width="1.1"/></svg>
       <span id="cartBrName">Main Branch — Siam</span>
@@ -1311,15 +1340,25 @@ function updLocPills(){
   ['hLocN','oLocN'].forEach(function(id){safeSet(id,S.branch.name)});
   safeSet('cartBrName',S.branch.name);
 }
+// 1. ฟังก์ชันเปลี่ยนโหมดการจัดส่ง (เพิ่มให้ซ่อน/โชว์กล่องที่อยู่)
 function syncOT(type){
   ['ot-pickup','ot-delivery','ot-preorder','ct-pickup','ct-delivery','ct-preorder'].forEach(function(id){var e=ge(id);if(e)e.classList.remove('on')});
   ['ot-'+type,'ct-'+type].forEach(function(id){var e=ge(id);if(e)e.classList.add('on')});
   S.orderType=type;
+  
+  // โชว์/ซ่อน ฟอร์มในหน้าแรก
   var dw=ge('dWrap'),pw=ge('pWrap');
   if(dw)dw.style.display=type==='delivery'?'block':'none';
   if(pw)pw.style.display=type==='preorder'?'block':'none';
+  
+  // โชว์/ซ่อน ฟอร์มในหน้าตะกร้า (ตัวที่เราเพิ่งเพิ่มไป)
+  var cdw=ge('cartDWrap'),cpw=ge('cartPWrap');
+  if(cdw)cdw.style.display=type==='delivery'?'block':'none';
+  if(cpw)cpw.style.display=type==='preorder'?'block':'none';
+
   var sdr=ge('sumDelRow');if(sdr)sdr.style.display=type==='delivery'?'flex':'none';
   updSummary();
+}
 }
 function setOT(type,el){
   ['ot-pickup','ot-delivery','ot-preorder','ct-pickup','ct-delivery','ct-preorder'].forEach(function(id){var e=ge(id);if(e)e.classList.remove('on')});
@@ -1533,6 +1572,19 @@ function applyPromo(){
 /* ── PLACE ORDER ────────────────────────────────────── */
 function placeOrder(){
   if(!S.cart.length){toast('Your cart is empty');return}
+  
+  // ตรวจสอบข้อมูลก่อนส่ง (ถ้ายาวไปให้เด้งเตือน)
+  var addr = '', phone = '', time = '';
+  if(S.orderType === 'delivery') {
+      addr = ge('cartDelAddr') ? ge('cartDelAddr').value.trim() : '';
+      phone = ge('cartDelPhone') ? ge('cartDelPhone').value.trim() : '';
+      if(!addr) { toast('กรุณาระบุที่อยู่สำหรับจัดส่ง'); return; }
+      if(!phone) { toast('กรุณาระบุเบอร์ติดต่อ'); return; }
+  } else if (S.orderType === 'preorder') {
+      time = ge('cartPreTime') ? ge('cartPreTime').value : '';
+      if(!time) { toast('กรุณาระบุเวลารับของ'); return; }
+  }
+
   if(!S.slipFile){toast('Please upload your payment slip');return}
   var btn=ge('placeBtn');if(btn){btn.disabled=true;btn.textContent='Processing...'}
   var total=calcTotal();
@@ -1540,8 +1592,9 @@ function placeOrder(){
   
   // Call API (Supabase) or simulate
   API.createOrder({
-    items:S.cart,total:total,branch:S.branch,type:S.orderType,
-    userId:S.user?S.user.id:null,promoCode:S.disc>0?(ge('promoInp')?.value||null):null,
+    items:S.cart, total:total, branch:S.branch, type:S.orderType,
+    address: addr, contactPhone: phone, pickupTime: time,
+    userId:S.user?S.user.id:null, promoCode:S.disc>0?(ge('promoInp')?.value||null):null,
     disc:S.disc
   }).then(function(res){
     if(btn){btn.disabled=false;btn.textContent='Confirm & Pay'}
@@ -1558,6 +1611,12 @@ function placeOrder(){
     ge('rcptOv').classList.add('on');
     S.orderHistory.unshift({receipt:res.id||orderId,items:S.cart.slice(),total:total,status:'completed',created:new Date().toISOString()});
     S.cart=[];S.disc=0;S.slipFile=null;
+    
+    // เคลียร์ค่าในกล่องพิมพ์
+    if(ge('cartDelAddr')) ge('cartDelAddr').value = '';
+    if(ge('cartDelPhone')) ge('cartDelPhone').value = '';
+    if(ge('cartPreTime')) ge('cartPreTime').value = '';
+
     var sp=ge('slipPrev'),sc=ge('slipChg'),sl=ge('slipLbl');
     if(sp)sp.classList.remove('on');if(sc)sc.classList.remove('on');if(sl)sl.textContent='Upload payment slip';
     ge('promoOk')&&(ge('promoOk').style.display='none');
