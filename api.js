@@ -99,6 +99,34 @@ async function _sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
+/* ── ADMIN: GET ALL MEMBERS ────────────────────────── */
+  async getAdminMembers() {
+    if (BACKEND_MODE === 'supabase') {
+      // เรียกใช้ sb.query เพื่อดึงข้อมูลจากตาราง members
+      const members = await sb.query('members', { 
+        select: '*', 
+        order: 'created_at.desc'
+      });
+      return { success: true, data: members };
+    }
+    // MOCK DATA (สำหรับเทสในเครื่อง)
+    await _mockDelay(300);
+    return { success: true, data: [
+      { id: '1', name: 'Khun Demo', phone: '0812345678', tier: 'Silver', points: 245, is_active: true },
+      { id: '2', name: 'Khun Test', phone: '0899999999', tier: 'Bronze', points: 50, is_active: true }
+    ]};
+  },
+
+  /* ── ADMIN: UPDATE MEMBER POINTS ───────────────────── */
+  async updateMemberPoints(memberId, newPoints) {
+    if (BACKEND_MODE === 'supabase') {
+      const res = await sb.update('members', { points: newPoints }, { id: memberId });
+      return { success: true, data: res };
+    }
+    // MOCK DATA
+    await _mockDelay(500);
+    return { success: true };
+  },
 /* ── ADMIN: GET ALL ORDERS ────────────────────────── */
   async getAdminOrders() {
     if (BACKEND_MODE === 'supabase') {
