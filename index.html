@@ -641,6 +641,26 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
     z-index: 10 !important;
     box-shadow: 0 -5px 15px rgba(0,0,0,0.15) !important; /* เพิ่มเงาแบ่งเลเยอร์เนื้อหาชัดเจน */
 }
+/* =======================================================
+   ล็อคหน้าจอไม่ให้อ้วน และ ล็อคปุ่มด้านบนให้เป็นจัตุรัสเป๊ะๆ
+   ======================================================= */
+body, #app, .ov, #splash, #loader {
+    max-width: 430px !important;
+    margin: 0 auto !important;
+}
+.ov, #splash, #loader {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    right: auto !important;
+    width: 100% !important;
+}
+.tbar .tbtn {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important; /* ล็อคห้ามยืดเด็ดขาด */
+    padding: 0 !important;
+    justify-content: center !important;
+}
 </style>
 </head>
 <body>
