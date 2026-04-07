@@ -140,89 +140,118 @@ select.status-sel:focus { border-color:var(--gl); }
 <div class="sidebar">
   <div class="brand">Ceramic <span>Admin</span></div>
   <div class="nav-menu">
-    <a class="nav-item active">Live Orders</a>
+    <a class="nav-item active" id="nav-orders" onclick="switchSection('orders', this)">Live Orders</a>
+    <a class="nav-item" id="nav-customers" onclick="switchSection('customers', this)">Customers</a>
     <a class="nav-item">Menu Manager (Soon)</a>
-    <a class="nav-item">Customers (Soon)</a>
     <a class="nav-item" style="margin-top:auto; color:var(--red);" onclick="location.reload()">Sign Out</a>
   </div>
 </div>
 
 <div class="main-content">
-<div class="header">
-    <div class="title">Live Orders</div>
-    <div style="display:flex; gap:12px;">
-      <!-- ปุ่มเปิด-ปิดร้าน เพิ่มเข้ามาใหม่ -->
-     <!-- Premium Slide Toggle -->
-<div id="storeToggleBtn" class="store-status-wrapper" onclick="toggleStoreStatus()">
-  <div class="toggle-switch">
-    <div class="toggle-thumb"></div>
-  </div>
-  <div class="status-text" id="storeStatusText">Loading...</div>
-</div>
-      <button class="btn" style="width:auto; padding:0 20px; background:var(--c2); color:var(--tan); border:1px solid var(--ln2);" onclick="loadOrders()">↻ Refresh</button>
+  <!-- ส่วนของ Live Orders -->
+  <div id="orderSection">
+    <div class="header">
+      <div class="title">Live Orders</div>
+      <div style="display:flex; gap:12px;">
+        <div id="storeToggleBtn" class="store-status-wrapper" onclick="toggleStoreStatus()">
+          <div class="toggle-switch"><div class="toggle-thumb"></div></div>
+          <div class="status-text" id="storeStatusText">Loading...</div>
+        </div>
+        <button class="btn" style="width:auto; padding:0 20px; background:var(--c2); color:var(--tan); border:1px solid var(--ln2);" onclick="loadOrders()">↻ Refresh</button>
+      </div>
     </div>
-  </div>
-  <!-- แถบตั้งค่าเวลาเปิด-ปิดร้าน -->
-  <div style="background:var(--c1); border:1px solid var(--ln2); border-radius:12px; padding:16px 20px; margin-bottom:24px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
-    <div style="font-size:13px; color:var(--tan3); font-weight:600; text-transform:uppercase; letter-spacing:1px;">Store Hours</div>
-    <div style="display:flex; align-items:center; gap:8px;">
+    
+    <div style="background:var(--c1); border:1px solid var(--ln2); border-radius:12px; padding:16px 20px; margin-bottom:24px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+      <div style="font-size:13px; color:var(--tan3); font-weight:600; text-transform:uppercase; letter-spacing:1px;">Store Hours</div>
       <input type="time" id="openTime" class="inp" style="width:130px; height:40px; margin:0; cursor:pointer;">
       <span style="color:var(--tan3); font-size:13px;">to</span>
       <input type="time" id="closeTime" class="inp" style="width:130px; height:40px; margin:0; cursor:pointer;">
+      <button class="btn" style="width:auto; height:40px; padding:0 20px; font-size:13px;" onclick="saveStoreHours()">Save Hours</button>
     </div>
-    <button class="btn" style="width:auto; height:40px; padding:0 20px; font-size:13px;" onclick="saveStoreHours()">Save Hours</button>
-  </div>
-  <div class="stats-grid">
-    <div class="stat-card"><div class="stat-lbl">Today's Revenue</div><div class="stat-val" id="stRev">฿0</div></div>
-    <div class="stat-card"><div class="stat-lbl">Total Orders</div><div class="stat-val" id="stCount">0</div></div>
-    <div class="stat-card"><div class="stat-lbl">Pending</div><div class="stat-val" id="stPend">0</div></div>
-    <div class="stat-card"><div class="stat-lbl">Preparing</div><div class="stat-val" id="stPrep">0</div></div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-lbl">Today's Revenue</div><div class="stat-val" id="stRev">฿0</div></div>
+      <div class="stat-card"><div class="stat-lbl">Total Orders</div><div class="stat-val" id="stCount">0</div></div>
+      <div class="stat-card"><div class="stat-lbl">Pending</div><div class="stat-val" id="stPend">0</div></div>
+      <div class="stat-card"><div class="stat-lbl">Preparing</div><div class="stat-val" id="stPrep">0</div></div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th>Order ID</th><th>Time</th><th>Type</th><th>Amount</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody id="orderBody"><tr><td colspan="6" style="text-align:center; padding:40px;">Loading orders...</td></tr></tbody>
+      </table>
+    </div>
   </div>
 
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>Order ID</th>
-          <th>Time</th>
-          <th>Type</th>
-          <th>Amount</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="orderBody">
-        <tr><td colspan="6" style="text-align:center; padding:40px;">Loading orders...</td></tr>
-      </tbody>
-    </table>
+  <!-- ตารางสมาชิก (ซ่อนไว้โดย default) -->
+  <div id="customerSection" style="display:none;">
+    <div class="header">
+      <div class="title">Customer Management</div>
+      <button class="btn" onclick="loadCustomers()">↻ Refresh List</button>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Phone</th><th>Tier</th><th>Points</th><th>Action</th></tr>
+        </thead>
+        <tbody id="customerBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
-<!-- ตารางสมาชิก (ซ่อนไว้ก่อน ถ้ากดเมนูค่อยให้โชว์) -->
-  <div id="customerSection" class="table-container" style="margin-top: 40px;">
-    <div class="header">
-      <div class="title">Customer Management</div>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Phone</th>
-          <th>Tier</th>
-          <th>Points</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="customerBody">
-        <!-- ข้อมูลจะถูกโหลดมาใส่ตรงนี้ -->
-      </tbody>
-    </table>
-  </div>
-
-<!-- Load API (Must be in same folder) -->
 <script src="config.js"></script>
 <script src="api.js"></script>
 <script>
+
+  // ฟังก์ชันสลับหน้า Admin
+function switchSection(section, element) {
+  // สลับสถานะ Active ของเมนู
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  element.classList.add('active');
+
+  // สลับการมองเห็น
+  document.getElementById('orderSection').style.display = (section === 'orders' ? 'block' : 'none');
+  document.getElementById('customerSection').style.display = (section === 'customers' ? 'block' : 'none');
+  
+  if(section === 'customers') loadCustomers();
+}
+
+// ฟังก์ชันดึงสมาชิก
+async function loadCustomers() {
+  const tbody = document.getElementById('customerBody');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+  
+  const res = await API.getAdminMembers(); // เรียกผ่าน api.js ที่เราเพิ่มฟังก์ชันไว้แล้ว
+  if(res.success) {
+    tbody.innerHTML = res.data.map(m => `
+      <tr>
+        <td style="color:var(--tan)">${m.name}</td>
+        <td>${m.phone}</td>
+        <td><span class="badge bg-pending">${m.tier}</span></td>
+        <td style="color:var(--gl); font-weight:bold;">${m.points} pts</td>
+        <td>
+          <button class="btn" style="height:32px; font-size:11px; width:100px; background:var(--gold);" 
+                  onclick="addPoints('${m.id}', ${m.points})">+10 Points</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+}
+
+// ฟังก์ชันเพิ่มแต้ม
+async function addPoints(memberId, currentPoints) {
+  const newPoints = currentPoints + 10;
+  const res = await API.updateMemberPoints(memberId, newPoints);
+  if(res.success) {
+    alert('Points updated!');
+    loadCustomers();
+  }
+}
+
   // Simple Mock Login
   function adminLogin() {
     // ในระบบจริงต้องยิง API ไปเช็คสิทธิ์ (Role)
@@ -357,11 +386,6 @@ select.status-sel:focus { border-color:var(--gl); }
     }
   }
 
-  // ให้โหลดสถานะร้านตอนเข้าสู่ระบบด้วย
-  function adminLogin() {
-    document.getElementById('login-overlay').style.display = 'none';
-    loadStoreStatus(); // เรียกใช้ตรงนี้
-    loadOrders();
   }
   // --- ระบบตั้งเวลาเปิด-ปิด ---
   function loadStoreHours() {
@@ -382,10 +406,17 @@ select.status-sel:focus { border-color:var(--gl); }
   // อัปเดตฟังก์ชัน adminLogin ให้โหลดเวลาด้วย
   function adminLogin() {
     document.getElementById('login-overlay').style.display = 'none';
+    updateStoreUI();;
     loadStoreStatus(); 
     loadStoreHours(); // <--- เพิ่มบรรทัดนี้
     loadOrders();
   }
+   window.onload = () => { 
+    loadStoreStatus(); 
+    loadStoreHours(); 
+    updateStoreUI(); 
+    loadOrders(); 
+  };
 </script>
 </body>
 </html>
