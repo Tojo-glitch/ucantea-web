@@ -147,7 +147,39 @@ const _mockCats = [
    All functions return Promise<{success, ...}>
 ══════════════════════════════════════════════════════ */
 window.API = {
+  /* ── ADMIN: LOGIN (เชื่อมกับ Supabase) ────────────────────────── */
+  async adminSignIn(username, password) {
+    if (BACKEND_MODE === 'supabase') {
+      // ในตัวอย่างนี้ สมมติว่าคุณมีตารางชื่อ 'staff' ที่มีคอลัมน์ 'username' และ 'password'
+      // *คำเตือน: ในระบบจริงไม่ควรเก็บรหัสผ่านเป็น Plain Text 
+      // แต่เพื่อความง่ายในการใช้งานตอนนี้ เราจะให้ดึงข้อมูลมาเช็คตรงๆ ครับ
+      
+      const { data, error } = await sb.query('staff', { 
+        select: '*', 
+        eq: { username: username } 
+      });
 
+      if (error || !data || data.length === 0) {
+        return { success: false, message: 'Admin not found.' };
+      }
+
+      // เช็ครหัสผ่าน (เทียบกับข้อมูลในตาราง staff)
+      if (data[0].password === password) {
+        // ให้สิทธิ์ผ่าน
+        return { success: true, admin: data[0] };
+      } else {
+        return { success: false, message: 'Invalid password.' };
+      }
+    }
+    
+    // MOCK DATA สำหรับทดสอบ
+    await _mockDelay(500);
+    if (username === 'admin' && password === '1234') {
+      return { success: true, admin: { username: 'admin', role: 'superadmin' } };
+    }
+    return { success: false, message: 'Invalid credentials.' };
+  },
+  
   /* ── AUTH ─────────────────────────────────────────── */
   async login({ phone, hashedPassword }) {
     if (BACKEND_MODE === 'supabase') {
