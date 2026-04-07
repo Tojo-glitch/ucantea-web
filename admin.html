@@ -198,6 +198,27 @@ select.status-sel:focus { border-color:var(--gl); }
   </div>
 </div>
 
+<!-- ตารางสมาชิก (ซ่อนไว้ก่อน ถ้ากดเมนูค่อยให้โชว์) -->
+  <div id="customerSection" class="table-container" style="margin-top: 40px;">
+    <div class="header">
+      <div class="title">Customer Management</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Tier</th>
+          <th>Points</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="customerBody">
+        <!-- ข้อมูลจะถูกโหลดมาใส่ตรงนี้ -->
+      </tbody>
+    </table>
+  </div>
+
 <!-- Load API (Must be in same folder) -->
 <script src="config.js"></script>
 <script src="api.js"></script>
@@ -208,7 +229,7 @@ select.status-sel:focus { border-color:var(--gl); }
     document.getElementById('login-overlay').style.display = 'none';
     loadOrders();
   }
-
+  
   // Load Data
   function loadOrders() {
     document.getElementById('orderBody').innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading orders...</td></tr>';
@@ -259,6 +280,44 @@ select.status-sel:focus { border-color:var(--gl); }
     });
   }
 
+  /* ── CUSTOMERS: LOAD & UPDATE ─────────────────────── */
+  async function loadCustomers() {
+    const tbody = document.getElementById('customerBody');
+    if(!tbody) return; // กัน Error ถ้าหน้าจอไม่เจอตาราง
+    
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading members...</td></tr>';
+    
+    API.getAdminMembers().then(res => {
+      if(!res.success) { alert('Failed to load members'); return; }
+      
+      tbody.innerHTML = res.data.map(m => `
+        <tr>
+          <td style="color:var(--tan); font-weight:600;">${m.name}</td>
+          <td>${m.phone}</td>
+          <td><span class="badge bg-pending">${m.tier}</span></td>
+          <td style="color:var(--gl); font-weight:bold;">${m.points} pts</td>
+          <td>
+            <button class="btn" style="height:32px; font-size:11px; width:100px; background:var(--gold);" 
+                    onclick="addPoints('${m.id}', ${m.points})">+10 Points</button>
+          </td>
+        </tr>
+      `).join('');
+    });
+  }
+
+  async function addPoints(memberId, currentPoints) {
+    const newPoints = currentPoints + 10;
+    // เรียกฟังก์ชันใหม่ที่เราเพิ่งเพิ่มใน api.js
+    API.updateMemberPoints(memberId, newPoints).then(res => {
+      if(res.success) {
+        alert('Points updated to ' + newPoints + '!');
+        loadCustomers(); // รีเฟรชตารางให้เลขแต้มเปลี่ยนทันที
+      } else {
+        alert('Update failed');
+      }
+    });
+  }
+  
   // Change Status
   function changeStatus(id, newStatus) {
     API.updateOrderStatus(id, newStatus).then(res => {
