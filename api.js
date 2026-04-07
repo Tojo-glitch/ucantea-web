@@ -13,12 +13,19 @@ const GAS_URL       = '';
 
 /* ── SUPABASE CLIENT ───────────────────────────────── */
 const sb = {
-  get headers() {
+  // สร้าง function เล็กๆ สำหรับดึง headers จะได้อัปเดต token ได้ตลอด
+  getHeaders() {
+    const adminToken = localStorage.getItem('ctb_admin_token');
+    const clientToken = localStorage.getItem('ctb_token'); // ของฝั่งลูกค้า
+    
+    // ใช้ Admin Token ก่อน (ถ้ามี), ถ้าไม่มีค่อยใช้ Client Token, ถ้าไม่มีเลยค่อยใช้ Anon Key
+    const tokenToUse = adminToken || clientToken || SUPABASE_ANON;
+    
     return {
-      'apikey':        SUPABASE_ANON,
-      'Authorization': `Bearer ${SUPABASE_ANON}`,
-      'Content-Type':  'application/json',
-      'Prefer':        'return=representation',
+      'apikey': SUPABASE_ANON,
+      'Authorization': `Bearer ${tokenToUse}`, // << ตรงนี้แหละคือความปลอดภัย!
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
     };
   },
 
@@ -147,43 +154,11 @@ const _mockCats = [
    All functions return Promise<{success, ...}>
 ══════════════════════════════════════════════════════ */
 window.API = {
-  /* ── ADMIN: LOGIN (เชื่อมกับ Supabase) ────────────────────────── */
-  async adminSignIn(username, password) {
-    if (BACKEND_MODE === 'supabase') {
-      // ในตัวอย่างนี้ สมมติว่าคุณมีตารางชื่อ 'staff' ที่มีคอลัมน์ 'username' และ 'password'
-      // *คำเตือน: ในระบบจริงไม่ควรเก็บรหัสผ่านเป็น Plain Text 
-      // แต่เพื่อความง่ายในการใช้งานตอนนี้ เราจะให้ดึงข้อมูลมาเช็คตรงๆ ครับ
-      
-      const { data, error } = await sb.query('staff', { 
-        select: '*', 
-        eq: { username: username } 
-      });
 
-      if (error || !data || data.length === 0) {
-        return { success: false, message: 'Admin not found.' };
-      }
-
-      // เช็ครหัสผ่าน (เทียบกับข้อมูลในตาราง staff)
-      if (data[0].password === password) {
-        // ให้สิทธิ์ผ่าน
-        return { success: true, admin: data[0] };
-      } else {
-        return { success: false, message: 'Invalid password.' };
-      }
-    }
-    
-    // MOCK DATA สำหรับทดสอบ
-    await _mockDelay(500);
-    if (username === 'admin' && password === '1234') {
-      return { success: true, admin: { username: 'admin', role: 'superadmin' } };
-    }
-    return { success: false, message: 'Invalid credentials.' };
-  },
-  
   /* ── AUTH ─────────────────────────────────────────── */
   async login({ phone, hashedPassword }) {
     if (BACKEND_MODE === 'supabase') {
-      const pseudoEmail = `${phone}Chanon.chonv@gmail.com`;
+      const pseudoEmail = `${phone}@ceramic.internal`;
       const data = await sb.signIn(pseudoEmail, hashedPassword);
       if (data.error) return { success: false, message: 'Incorrect credentials' };
       const members = await sb.query('members', { eq: { auth_id: data.user.id }, select: '*' });
@@ -242,6 +217,42 @@ window.API = {
     localStorage.setItem('ctb_user', JSON.stringify(user));
     await _delay(400);
     return { success: true };
+  },
+
+  /* ── ADMIN: SECURE LOGIN (ใช้ Supabase Auth) ────────────────────────── */
+  async adminSecureLogin(email, password) {
+    if (BACKEND_MODE === 'supabase') {
+      // 1. ยิงไปที่ระบบ Authentication ของ Supabase โดยตรง (ปลอดภัย 100%)
+      const res = await sb.signIn(email, password);
+      
+      if (res.error) {
+        return { success: false, message: res.error.message || 'Invalid email or password' };
+      }
+
+      // 2. ล็อกอินสำเร็จ ได้ Token มา
+      const adminUser = {
+        id: res.user.id,
+        email: res.user.email,
+        token: res.access_token
+      };
+
+      // 3. เก็บ Token ไว้ใช้ดึงข้อมูล (ในระบบจริงควรเก็บใน HttpOnly Cookie แต่ LocalStorage ก็พอใช้ได้เบื้องต้น)
+      localStorage.setItem('ctb_admin_token', res.access_token);
+      localStorage.setItem('ctb_admin_user', JSON.stringify(adminUser));
+
+      // **สำคัญมาก:** อัปเดต Headers ของ sb object ให้ใช้ Token ของ Admin แทน Anon Key
+      // เพื่อให้สามารถทะลุ RLS policy ที่อนุญาตเฉพาะ Admin ได้
+      sb.headers['Authorization'] = `Bearer ${res.access_token}`;
+
+      return { success: true, admin: adminUser };
+    }
+    
+    // MOCK DATA
+    await _mockDelay(800);
+    if (email === 'admin@test.com' && password === '123456') {
+      return { success: true, admin: { email: 'admin@test.com' } };
+    }
+    return { success: false, message: 'Invalid credentials.' };
   },
 
   /* ── ORDERS ───────────────────────────────────────── */
