@@ -85,9 +85,13 @@ select.status-sel:focus { border-color:var(--gl); }
 </div>
 
 <div class="main-content">
-  <div class="header">
+<div class="header">
     <div class="title">Live Orders</div>
-    <button class="btn" style="width:auto; padding:0 20px; background:var(--c2); color:var(--tan); border:1px solid var(--ln2);" onclick="loadOrders()">↻ Refresh</button>
+    <div style="display:flex; gap:12px;">
+      <!-- ปุ่มเปิด-ปิดร้าน เพิ่มเข้ามาใหม่ -->
+      <button id="storeToggleBtn" class="btn" style="width:auto; padding:0 20px; font-size:13px;" onclick="toggleStoreStatus()">Loading...</button>
+      <button class="btn" style="width:auto; padding:0 20px; background:var(--c2); color:var(--tan); border:1px solid var(--ln2);" onclick="loadOrders()">↻ Refresh</button>
+    </div>
   </div>
 
   <div class="stats-grid">
@@ -183,6 +187,41 @@ select.status-sel:focus { border-color:var(--gl); }
       if(res.success) loadOrders(); // Refresh table
       else alert('Failed to update status');
     });
+  }
+  // --- ระบบเปิดปิดร้าน ---
+  let isStoreOpen = true;
+
+  function loadStoreStatus() {
+    // ดึงค่าจำลองจาก LocalStorage
+    const status = localStorage.getItem('ctb_store_status');
+    isStoreOpen = status !== 'closed';
+    updateStoreBtnUI();
+  }
+
+  function toggleStoreStatus() {
+    isStoreOpen = !isStoreOpen;
+    localStorage.setItem('ctb_store_status', isStoreOpen ? 'open' : 'closed');
+    updateStoreBtnUI();
+  }
+
+  function updateStoreBtnUI() {
+    const btn = document.getElementById('storeToggleBtn');
+    if(isStoreOpen) {
+      btn.style.background = 'var(--grnl)';
+      btn.style.color = 'var(--c0)';
+      btn.textContent = '🟢 ร้านเปิดอยู่ (กดเพื่อปิด)';
+    } else {
+      btn.style.background = 'var(--red)';
+      btn.style.color = '#fff';
+      btn.textContent = '🔴 ร้านปิดแล้ว (กดเพื่อเปิด)';
+    }
+  }
+
+  // ให้โหลดสถานะร้านตอนเข้าสู่ระบบด้วย
+  function adminLogin() {
+    document.getElementById('login-overlay').style.display = 'none';
+    loadStoreStatus(); // เรียกใช้ตรงนี้
+    loadOrders();
   }
 </script>
 </body>
