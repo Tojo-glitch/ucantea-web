@@ -1032,9 +1032,11 @@ tbody tr:hover{background:var(--c2)}
 </div>
 
 <!-- ══ SCRIPTS ══════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="env-config.js"></script>
 <script src="api.js"></script>
 <script>
+const supabase = supabase.createClient(window.ENV.URL, window.ENV.KEY);
 /* ═══════════════════════════════════════════════════════
    CERAMIC ADMIN ENGINE
    ═══════════════════════════════════════════════════════ */
