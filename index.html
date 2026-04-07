@@ -1884,20 +1884,27 @@ var API = window.API || {
   createOrder:function(p){return new Promise(function(res){setTimeout(function(){res({id:'CTB-'+Date.now().toString(36).toUpperCase(),success:true})},1200)})},
   getMenu:function(){return Promise.resolve(MENUS)},
 };
-/* ── STORE STATUS (เปิด-ปิดร้าน แต่รับ Pre-order) ────────────────────────── */
+/* ── STORE STATUS (เปิด-ปิดร้าน + เวลา + Real-time) ────────────────────────── */
 let isStoreOpen = true;
 
 function checkStoreStatus() {
   const status = localStorage.getItem('ctb_store_status');
+  // ดึงเวลาจากที่ Admin ตั้งไว้ (ถ้าไม่มีให้ใช้ค่าเริ่มต้น)
+  const openTime = localStorage.getItem('ctb_open_time') || '09:00';
+  const closeTime = localStorage.getItem('ctb_close_time') || '21:00';
+  
   isStoreOpen = status !== 'closed';
 
   const dot = ge('liveDot');
   const txt = ge('storeStatusTxt');
   const placeBtn = ge('placeBtn');
+  
+  // สร้างข้อความเวลา
+  const timeString = openTime + '–' + closeTime;
 
   if(isStoreOpen) {
     if(dot) dot.style.background = 'var(--grnl)';
-    if(txt) txt.textContent = 'Open now · 09:00–21:00';
+    if(txt) txt.textContent = 'Open now · ' + timeString;
     if(placeBtn) { 
       placeBtn.disabled = false; 
       placeBtn.textContent = 'Confirm & Pay'; 
@@ -1905,17 +1912,19 @@ function checkStoreStatus() {
     }
   } else {
     if(dot) dot.style.background = 'var(--red)';
-    if(txt) txt.textContent = 'Store Closed · สั่งล่วงหน้าได้ (Pre-order)';
+    if(txt) txt.textContent = 'Store Closed · ' + timeString;
     
-    // เช็คปุ่มจ่ายเงินในตะกร้า
+    // บังคับเปลี่ยนโหมดเป็น Pre-order ถ้าร้านปิด (ถ้าลูกค้าอยู่ในหน้าตะกร้า)
+    if(S.orderType !== 'preorder' && ge('cartOv').classList.contains('on')) {
+       syncOT('preorder');
+    }
+
     if(placeBtn) { 
       if(S.orderType !== 'preorder') {
-        // ถ้าร้านปิด และไม่ได้เลือกพรีออเดอร์ ให้ล็อคปุ่มจ่ายเงิน
         placeBtn.disabled = true; 
         placeBtn.textContent = 'ร้านปิด (ต้องเลือก Pre-order)'; 
         placeBtn.style.opacity = '0.5'; 
       } else {
-        // ถ้าร้านปิด แต่เลือกพรีออเดอร์ ปลดล็อคให้จ่ายเงินได้!
         placeBtn.disabled = false; 
         placeBtn.textContent = 'Confirm Pre-order'; 
         placeBtn.style.opacity = '1'; 
@@ -1945,6 +1954,21 @@ function init(){
   var _origLogin=doLogin;
 }
 init();
+// ⚡️ REAL-TIME LISTENER: ดักจับเมื่อ Admin เปลี่ยนค่าในอีกหน้าต่าง
+window.addEventListener('storage', function(e) {
+  if(e.key === 'ctb_store_status' || e.key === 'ctb_open_time' || e.key === 'ctb_close_time') {
+    checkStoreStatus();
+    
+    // เด้งแจ้งเตือนลูกค้าถ้าร้านถูกปิดกะทันหัน
+    if(e.key === 'ctb_store_status') {
+      if(e.newValue === 'closed') {
+        toast('🔴 ร้านปิดรับออเดอร์ปกติแล้ว (กรุณาสั่งล่วงหน้า)');
+      } else {
+        toast('🟢 ร้านเปิดรับออเดอร์แล้ว!');
+      }
+    }
+  }
+});
 </script>
 <script src="env-config.js"></script>
 </body>
