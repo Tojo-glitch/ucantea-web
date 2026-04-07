@@ -58,6 +58,63 @@ select.status-sel:focus { border-color:var(--gl); }
 .login-box { background:var(--c1); border:1px solid var(--ln2); border-radius:16px; padding:40px; width:100%; max-width:400px; text-align:center; }
 .inp { width:100%; height:48px; background:var(--c2); border:1px solid var(--ln2); border-radius:10px; padding:0 16px; color:var(--tan); font-family:var(--sans); margin-bottom:16px; outline:none; }
 .btn { width:100%; height:48px; background:var(--tan); border:none; border-radius:10px; color:var(--c0); font-weight:600; font-size:15px; cursor:pointer; }
+/* ─── PREMIUM TOGGLE SWITCH ─── */
+.store-status-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--c2);
+  padding: 6px 16px 6px 6px;
+  border-radius: 30px;
+  border: 1px solid var(--ln2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+.store-status-wrapper:active { transform: scale(0.97); }
+
+.toggle-switch {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  background: var(--c3);
+  border-radius: 30px;
+  transition: background 0.3s ease;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.status-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tan3);
+  transition: color 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+/* Active State (Store Open) */
+.store-status-wrapper.is-open {
+  border-color: rgba(74, 173, 117, 0.3);
+  background: rgba(74, 173, 117, 0.05);
+}
+.store-status-wrapper.is-open .toggle-switch {
+  background: var(--grnl);
+}
+.store-status-wrapper.is-open .toggle-thumb {
+  transform: translateX(22px);
+}
+.store-status-wrapper.is-open .status-text {
+  color: var(--grnl);
+}
 </style>
 </head>
 <body>
@@ -89,7 +146,13 @@ select.status-sel:focus { border-color:var(--gl); }
     <div class="title">Live Orders</div>
     <div style="display:flex; gap:12px;">
       <!-- ปุ่มเปิด-ปิดร้าน เพิ่มเข้ามาใหม่ -->
-      <button id="storeToggleBtn" class="btn" style="width:auto; padding:0 20px; font-size:13px;" onclick="toggleStoreStatus()">Loading...</button>
+     <!-- Premium Slide Toggle -->
+<div id="storeToggleBtn" class="store-status-wrapper" onclick="toggleStoreStatus()">
+  <div class="toggle-switch">
+    <div class="toggle-thumb"></div>
+  </div>
+  <div class="status-text" id="storeStatusText">Loading...</div>
+</div>
       <button class="btn" style="width:auto; padding:0 20px; background:var(--c2); color:var(--tan); border:1px solid var(--ln2);" onclick="loadOrders()">↻ Refresh</button>
     </div>
   </div>
@@ -204,16 +267,19 @@ select.status-sel:focus { border-color:var(--gl); }
     updateStoreBtnUI();
   }
 
+ // --- ระบบอัปเดต UI ของปุ่มเปิดปิดร้าน ---
   function updateStoreBtnUI() {
-    const btn = document.getElementById('storeToggleBtn');
+    const wrapper = document.getElementById('storeToggleBtn');
+    const text = document.getElementById('storeStatusText');
+    
     if(isStoreOpen) {
-      btn.style.background = 'var(--grnl)';
-      btn.style.color = 'var(--c0)';
-      btn.textContent = '🟢 ร้านเปิดอยู่ (กดเพื่อปิด)';
+      // เปิดร้าน: เลื่อนสวิตช์ไปทางขวา เปลี่ยนเป็นสีเขียว
+      wrapper.classList.add('is-open');
+      text.textContent = 'Store Open';
     } else {
-      btn.style.background = 'var(--red)';
-      btn.style.color = '#fff';
-      btn.textContent = '🔴 ร้านปิดแล้ว (กดเพื่อเปิด)';
+      // ปิดร้าน: เลื่อนสวิตช์กลับมาซ้าย เปลี่ยนเป็นสีเทา
+      wrapper.classList.remove('is-open');
+      text.textContent = 'Store Closed';
     }
   }
 
