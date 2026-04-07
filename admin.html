@@ -156,7 +156,16 @@ select.status-sel:focus { border-color:var(--gl); }
       <button class="btn" style="width:auto; padding:0 20px; background:var(--c2); color:var(--tan); border:1px solid var(--ln2);" onclick="loadOrders()">↻ Refresh</button>
     </div>
   </div>
-
+  <!-- แถบตั้งค่าเวลาเปิด-ปิดร้าน -->
+  <div style="background:var(--c1); border:1px solid var(--ln2); border-radius:12px; padding:16px 20px; margin-bottom:24px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+    <div style="font-size:13px; color:var(--tan3); font-weight:600; text-transform:uppercase; letter-spacing:1px;">Store Hours</div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <input type="time" id="openTime" class="inp" style="width:130px; height:40px; margin:0; cursor:pointer;">
+      <span style="color:var(--tan3); font-size:13px;">to</span>
+      <input type="time" id="closeTime" class="inp" style="width:130px; height:40px; margin:0; cursor:pointer;">
+    </div>
+    <button class="btn" style="width:auto; height:40px; padding:0 20px; font-size:13px;" onclick="saveStoreHours()">Save Hours</button>
+  </div>
   <div class="stats-grid">
     <div class="stat-card"><div class="stat-lbl">Today's Revenue</div><div class="stat-val" id="stRev">฿0</div></div>
     <div class="stat-card"><div class="stat-lbl">Total Orders</div><div class="stat-val" id="stCount">0</div></div>
@@ -287,6 +296,29 @@ select.status-sel:focus { border-color:var(--gl); }
   function adminLogin() {
     document.getElementById('login-overlay').style.display = 'none';
     loadStoreStatus(); // เรียกใช้ตรงนี้
+    loadOrders();
+  }
+  // --- ระบบตั้งเวลาเปิด-ปิด ---
+  function loadStoreHours() {
+    const open = localStorage.getItem('ctb_open_time') || '09:00';
+    const close = localStorage.getItem('ctb_close_time') || '21:00';
+    document.getElementById('openTime').value = open;
+    document.getElementById('closeTime').value = close;
+  }
+
+  function saveStoreHours() {
+    const open = document.getElementById('openTime').value;
+    const close = document.getElementById('closeTime').value;
+    localStorage.setItem('ctb_open_time', open);
+    localStorage.setItem('ctb_close_time', close);
+    alert('Store hours updated successfully!');
+  }
+
+  // อัปเดตฟังก์ชัน adminLogin ให้โหลดเวลาด้วย
+  function adminLogin() {
+    document.getElementById('login-overlay').style.display = 'none';
+    loadStoreStatus(); 
+    loadStoreHours(); // <--- เพิ่มบรรทัดนี้
     loadOrders();
   }
 </script>
