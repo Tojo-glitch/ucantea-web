@@ -1076,34 +1076,77 @@ function toast(msg,type='info',dur=3000){
 }
 
 /* ── LOGIN ──────────────────────────────────────────── */
-async function adminLogin(){
-  const user=(ge('lg-user').value||'').trim();
-  const pass=ge('lg-pass').value||'';
-  const err=ge('lg-err'),btn=ge('lg-btn');
-  if(!user||!pass){err.textContent='Please fill in all fields';return}
-  btn.textContent='Signing in...';btn.disabled=true;err.textContent='';
+// --- ระบบ Login แอดมิน (เชื่อม Supabase Auth) ---
+  async function adminLogin() {
+    // ดึงค่าจาก HTML ชุดใหม่ที่เราเพิ่งแก้ (ต้องชื่อตรงกับ id เป๊ะๆ)
+    const emailInput = document.getElementById('adminEmail');
+    const passInput = document.getElementById('adminPass');
+    const btn = document.getElementById('loginBtn');
 
-  // Hash password
-  const enc=new TextEncoder();
-  const buf=await crypto.subtle.digest('SHA-256',enc.encode(pass+'CTB_SALT_2025'));
-  const hashed=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    // เผื่อหา element ไม่เจอ
+    if (!emailInput || !passInput || !btn) {
+      console.error('Cannot find login elements!');
+      return;
+    }
 
-  try {
-    const res = await API.login({phone:user,hashedPassword:hashed});
-    btn.textContent='Sign In';btn.disabled=false;
-    if(!res.success){err.textContent=res.message||'Invalid credentials';return}
-    // Check role — in Supabase you'd check res.user.role
-    A.admin=res.user;
-    ge('login-overlay').style.display='none';
-    ge('admin-name-chip').textContent=res.user.name||'Admin';
-    ge('admin-av').textContent=(res.user.name||'A')[0].toUpperCase();
-    if(ge('sb-url-display')) ge('sb-url-display').textContent=window.ENV?.URL||'configured';
-    initDashboard();
-  } catch(e) {
-    btn.textContent='Sign In';btn.disabled=false;
-    err.textContent='Connection error. Check Supabase config.';
+    const email = emailInput.value.trim();
+    const pass = passInput.value;
+
+    if (!email || !pass) {
+      alert('Please enter your email and password.');
+      return;
+    }
+
+    // เปลี่ยนปุ่มเป็นสถานะโหลด
+    btn.textContent = 'Authenticating...';
+    btn.disabled = true;
+
+    try {
+      // ยิงไปหา Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: pass,
+      });
+
+      if (error) {
+        alert('Login Failed: ' + error.message);
+        btn.textContent = 'Sign In to Workspace';
+        btn.disabled = false;
+        return;
+      }
+
+      // ถ้ารหัสถูก ปิดหน้าต่าง Login แล้วโหลดข้อมูล
+      document.getElementById('login-overlay').style.display = 'none';
+      alert('Welcome Admin!');
+      
+      // เรียกฟังก์ชันเตรียมหน้า Dashboard
+      loadStoreStatus(); 
+      loadStoreHours(); 
+      updateStoreUI();
+      loadOrders();
+
+    } catch (err) {
+      alert('Connection Error');
+      console.error(err);
+      btn.textContent = 'Sign In to Workspace';
+      btn.disabled = false;
+    }
   }
-}
+
+  // --- เช็คตอนเปิดเว็บว่าเคยล็อกอินไว้ไหม ---
+  window.onload = async () => { 
+    // เช็คว่ามี session ค้างอยู่ไหม (Supabase จำไว้ให้)
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      // ถ้าเคยล็อกอินแล้ว ซ่อนหน้าล็อกอินไปเลย
+      document.getElementById('login-overlay').style.display = 'none';
+      loadStoreStatus(); 
+      loadStoreHours(); 
+      updateStoreUI();
+      loadOrders();
+    }
+  };
 
 function adminLogout(){
   if(A.pollTimer)clearInterval(A.pollTimer);
