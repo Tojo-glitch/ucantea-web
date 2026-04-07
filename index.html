@@ -689,7 +689,7 @@ body, #app, .ov, #splash, #loader {
         <div class="ph"><svg width="32" height="24" viewBox="0 0 32 24" fill="none"><rect x="1" y="1" width="30" height="18" rx="3" stroke="currentColor" stroke-width="1.2"/><circle cx="10" cy="7.5" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M1 18l8-7 6.5 5 5-3.5L31 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Hero Banner</span></div>
       </div>
       <div class="h-hero-txt">
-        <div class="h-eyebrow"><div class="live-dot"></div>Open now · 09:00–21:00</div>
+        <div class="h-eyebrow"><div class="live-dot" id="liveDot"></div><span id="storeStatusTxt">Open now · 09:00–21:00</span></div>
         <div class="h-title">Brewed to order,<br>every single cup.</div>
         <div class="h-sub">Single-origin leaves · Yunnan &amp; Assam</div>
       </div>
@@ -1335,11 +1335,19 @@ function syncOT(type){
   var sdr=ge('sumDelRow');if(sdr)sdr.style.display=type==='delivery'?'flex':'none';
   updSummary();
 }
-function setOT(type,el){
-  ['ot-pickup','ot-delivery','ot-preorder','ct-pickup','ct-delivery','ct-preorder'].forEach(function(id){var e=ge(id);if(e)e.classList.remove('on')});
-  var prefix=el.id.startsWith('ct-')?'ct-':'ot-';
-  ['ct-'+type,'ot-'+type].forEach(function(id){var e=ge(id);if(e)e.classList.add('on')});
-  syncOT(type);
+function setOT(type, el){ 
+  checkStoreStatus(); // อัปเดตสถานะร้านล่าสุดก่อนเสมอ
+  
+  // ถ้าร้านปิดอยู่ แล้วลูกค้าพยายามกด Pickup หรือ Delivery
+  if(!isStoreOpen && type !== 'preorder') {
+    toast('ร้านปิดให้บริการตอนนี้ กรุณาเลือกสั่งล่วงหน้า (Pre-order)');
+    syncOT('preorder'); // บังคับสลับไปโหมด Pre-order อัตโนมัติ
+    checkStoreStatus(); // อัปเดตปุ่มจ่ายเงิน
+    return;
+  }
+  
+  syncOT(type); 
+  checkStoreStatus(); // อัปเดตปุ่มจ่ายเงิน
 }
 
 /* ── HOME ───────────────────────────────────────────── */
@@ -1418,6 +1426,7 @@ function renderMenu(list){
 
 /* ── CUSTOMIZE ──────────────────────────────────────── */
 function openCS(id){
+  checkStoreStatus();
   var m=MENUS.find(function(x){return x.id===id});if(!m)return;
   S.cur=m;S.cust={sz:'M',szX:15,sw:'regular',ic:'regular ice',tops:[],qty:1};
   safeSet('csName',m.name);safeSet('csDesc',m.desc||'');safeSet('csPrice','฿'+m.price);
@@ -1492,6 +1501,7 @@ function updSummary(){
   safeSet('sumTotal','฿'+calcTotal());
 }
 function openCart(){
+  checkStoreStatus();
   renderCartItems();updSummary();ge('cartOv').classList.add('on');
 }
 function closeCart(){ge('cartOv').classList.remove('on')}
@@ -1874,9 +1884,50 @@ var API = window.API || {
   createOrder:function(p){return new Promise(function(res){setTimeout(function(){res({id:'CTB-'+Date.now().toString(36).toUpperCase(),success:true})},1200)})},
   getMenu:function(){return Promise.resolve(MENUS)},
 };
+/* ── STORE STATUS (เปิด-ปิดร้าน แต่รับ Pre-order) ────────────────────────── */
+let isStoreOpen = true;
+
+function checkStoreStatus() {
+  const status = localStorage.getItem('ctb_store_status');
+  isStoreOpen = status !== 'closed';
+
+  const dot = ge('liveDot');
+  const txt = ge('storeStatusTxt');
+  const placeBtn = ge('placeBtn');
+
+  if(isStoreOpen) {
+    if(dot) dot.style.background = 'var(--grnl)';
+    if(txt) txt.textContent = 'Open now · 09:00–21:00';
+    if(placeBtn) { 
+      placeBtn.disabled = false; 
+      placeBtn.textContent = 'Confirm & Pay'; 
+      placeBtn.style.opacity = '1'; 
+    }
+  } else {
+    if(dot) dot.style.background = 'var(--red)';
+    if(txt) txt.textContent = 'Store Closed · สั่งล่วงหน้าได้ (Pre-order)';
+    
+    // เช็คปุ่มจ่ายเงินในตะกร้า
+    if(placeBtn) { 
+      if(S.orderType !== 'preorder') {
+        // ถ้าร้านปิด และไม่ได้เลือกพรีออเดอร์ ให้ล็อคปุ่มจ่ายเงิน
+        placeBtn.disabled = true; 
+        placeBtn.textContent = 'ร้านปิด (ต้องเลือก Pre-order)'; 
+        placeBtn.style.opacity = '0.5'; 
+      } else {
+        // ถ้าร้านปิด แต่เลือกพรีออเดอร์ ปลดล็อคให้จ่ายเงินได้!
+        placeBtn.disabled = false; 
+        placeBtn.textContent = 'Confirm Pre-order'; 
+        placeBtn.style.opacity = '1'; 
+      }
+    }
+  }
+}
 
 /* ── INIT ───────────────────────────────────────────── */
 function init(){
+  checkStoreStatus();
+  if(!isStoreOpen) { S.orderType = 'preorder'; } 
   applyTheme(S.theme);
   updClk();setInterval(updClk,10000);
   if(isRet()){ge('splash').style.display='none'}
