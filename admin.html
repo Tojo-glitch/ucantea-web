@@ -406,21 +406,18 @@ tbody tr:hover{background:var(--c2)}
 </head>
 <body>
 
-<!-- ── LOGIN ─────────────────────────────────────────── -->
+
+<!-- LOGIN OVERLAY -->
 <div id="login-overlay">
   <div class="login-box">
-    <div class="login-logo">Ceramic</div>
-    <div class="login-sub">Admin Dashboard</div>
-    <div class="field">
-      <label class="field-label">Username</label>
-      <input type="text" class="field-input" id="lg-user" placeholder="admin@ceramic.co" onkeydown="if(event.key==='Enter')document.getElementById('lg-pass').focus()">
-    </div>
-    <div class="field">
-      <label class="field-label">Password</label>
-      <input type="password" class="field-input" id="lg-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()">
-    </div>
-    <div class="login-err" id="lg-err"></div>
-    <button class="btn btn-primary" style="width:100%;height:46px;font-size:15px;" onclick="adminLogin()" id="lg-btn">Sign In</button>
+    <div class="brand">Ceramic <span>Admin</span></div>
+    <div style="font-size:13px; color:var(--tan3); margin-bottom:24px;">Please sign in securely.</div>
+    
+    <!-- กล่องใส่อีเมลและรหัสผ่าน -->
+    <input type="email" id="adminEmail" class="inp" placeholder="Admin Email">
+    <input type="password" id="adminPass" class="inp" placeholder="Password">
+    
+    <button class="btn" id="loginBtn" onclick="adminLogin()">Sign In to Workspace</button>
   </div>
 </div>
 
@@ -1005,34 +1002,59 @@ function toast(msg,type='info',dur=3000){
 }
 
 /* ── LOGIN ──────────────────────────────────────────── */
-async function adminLogin(){
-  const user=(ge('lg-user').value||'').trim();
-  const pass=ge('lg-pass').value||'';
-  const err=ge('lg-err'),btn=ge('lg-btn');
-  if(!user||!pass){err.textContent='Please fill in all fields';return}
-  btn.textContent='Signing in...';btn.disabled=true;err.textContent='';
+// --- ระบบ Login แอดมิน (เชื่อมกับ Supabase Auth) ---
+  async function adminLogin() {
+    const email = document.getElementById('adminEmail').value.trim();
+    const pass = document.getElementById('adminPass').value;
+    const btn = document.getElementById('loginBtn');
 
-  // Hash password
-  const enc=new TextEncoder();
-  const buf=await crypto.subtle.digest('SHA-256',enc.encode(pass+'CTB_SALT_2025'));
-  const hashed=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    if (!email || !pass) {
+      alert('Please enter your email and password.');
+      return;
+    }
 
-  try {
-    const res = await API.login({phone:user,hashedPassword:hashed});
-    btn.textContent='Sign In';btn.disabled=false;
-    if(!res.success){err.textContent=res.message||'Invalid credentials';return}
-    // Check role — in Supabase you'd check res.user.role
-    A.admin=res.user;
-    ge('login-overlay').style.display='none';
-    ge('admin-name-chip').textContent=res.user.name||'Admin';
-    ge('admin-av').textContent=(res.user.name||'A')[0].toUpperCase();
-    if(ge('sb-url-display')) ge('sb-url-display').textContent=window.ENV?.URL||'configured';
-    initDashboard();
-  } catch(e) {
-    btn.textContent='Sign In';btn.disabled=false;
-    err.textContent='Connection error. Check Supabase config.';
+    // เปลี่ยนปุ่มเป็นสถานะโหลด
+    btn.textContent = 'Authenticating...';
+    btn.disabled = true;
+
+    // ส่งอีเมลและรหัสผ่านไปเช็คกับ Supabase (ใช้ฟังก์ชัน signIn ที่มีใน api.js)
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: pass,
+    });
+
+    btn.textContent = 'Sign In to Workspace';
+    btn.disabled = false;
+
+    if (error) {
+      // ถ้ารหัสผิด
+      alert('Login Failed: ' + error.message);
+    } else {
+      // ถ้ารหัสถูก ปิดหน้าต่าง Login แล้วโหลดข้อมูล
+      document.getElementById('login-overlay').style.display = 'none';
+      alert('Welcome Admin!');
+      
+      loadStoreStatus(); 
+      loadStoreHours(); 
+      updateStoreUI();
+      loadOrders();
+    }
   }
-}
+
+  // --- เช็คตอนเปิดเว็บว่าเคยล็อกอินไว้ไหม ---
+  window.onload = async () => { 
+    // เช็คว่ามี session ค้างอยู่ไหม
+    const { data } = await supabase.auth.getSession();
+    
+    if (data.session) {
+      // ถ้าเคยล็อกอินแล้ว ซ่อนหน้าล็อกอินไปเลย
+      document.getElementById('login-overlay').style.display = 'none';
+      loadStoreStatus(); 
+      loadStoreHours(); 
+      updateStoreUI();
+      loadOrders();
+    }
+  };
 
 function adminLogout(){
   if(A.pollTimer)clearInterval(A.pollTimer);
