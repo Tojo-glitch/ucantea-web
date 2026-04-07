@@ -2,420 +2,1618 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Ceramic Admin — Management</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ceramic — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ─── TOKENS (Shared with Client) ─── */
+/* ══════════════════════════════════════════════════
+   CERAMIC ADMIN — FULL DESIGN SYSTEM
+   ══════════════════════════════════════════════════ */
 :root {
   --c0:#0c0b09;--c1:#141310;--c2:#1c1a17;--c3:#252320;--c4:#2f2d29;
-  --tan:#e8e0d4;--tan2:#b8ad9e;--tan3:#9e9080;
-  --gold:#b8924a;--gl:#d4aa6a;
-  --grn:#4aad75;--grnl:#6dbb8a;
-  --red:#d44f4f;--line:rgba(255,255,255,.07);--ln2:rgba(255,255,255,.12);
+  --tan:#e8e0d4;--tan2:#b8ad9e;--tan3:#9e9080;--tan4:#6a5e52;
+  --gold:#b8924a;--gl:#d4aa6a;--gl2:rgba(212,170,106,.12);
+  --grn:#4aad75;--grnl:#6dbb8a;--grn2:rgba(74,173,117,.12);
+  --red:#d44f4f;--red2:rgba(212,79,79,.12);
+  --blue:#4a7fbf;--blue2:rgba(74,127,191,.12);
+  --line:rgba(255,255,255,.07);--ln2:rgba(255,255,255,.12);
   --serif:'Fraunces',Georgia,serif;
   --sans:'Plus Jakarta Sans','Helvetica Neue',sans-serif;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:var(--c0); color:var(--tan); font-family:var(--sans); display:flex; height:100vh; overflow:hidden; }
-
-/* ─── LAYOUT ─── */
-.sidebar { width:260px; background:var(--c1); border-right:1px solid var(--line); display:flex; flex-direction:column; padding:24px; }
-.brand { font-family:var(--serif); font-size:24px; font-style:italic; color:var(--tan); margin-bottom:40px; }
-.brand span { color:var(--gl); font-size:12px; font-family:var(--sans); font-style:normal; letter-spacing:1px; text-transform:uppercase; margin-left:8px; }
-.nav-menu { display:flex; flex-direction:column; gap:8px; flex:1; }
-.nav-item { padding:12px 16px; border-radius:10px; color:var(--tan3); text-decoration:none; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:12px; }
-.nav-item:hover { background:var(--c2); color:var(--tan); }
-.nav-item.active { background:rgba(212,170,106,.1); color:var(--gl); border:1px solid rgba(212,170,106,.2); }
-.main-content { flex:1; padding:32px 40px; overflow-y:auto; }
-
-/* ─── DASHBOARD ─── */
-.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; }
-.title { font-family:var(--serif); font-size:28px; color:var(--tan); }
-.stats-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; margin-bottom:32px; }
-.stat-card { background:var(--c1); border:1px solid var(--ln2); border-radius:12px; padding:20px; }
-.stat-lbl { font-size:11px; color:var(--tan3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
-.stat-val { font-family:var(--serif); font-size:32px; color:var(--gl); }
-
-/* ─── DATA TABLE ─── */
-.table-container { background:var(--c1); border:1px solid var(--ln2); border-radius:12px; overflow:hidden; }
-table { width:100%; border-collapse:collapse; text-align:left; }
-th { background:var(--c2); padding:16px 20px; font-size:11px; font-weight:600; color:var(--tan3); text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid var(--line); }
-td { padding:16px 20px; font-size:14px; border-bottom:1px solid var(--line); color:var(--tan2); }
-tr:last-child td { border-bottom:none; }
-tr:hover { background:var(--c2); }
-
-.badge { padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; display:inline-block; }
-.bg-pending { background:rgba(212,170,106,.1); color:var(--gl); border:1px solid rgba(212,170,106,.2); }
-.bg-preparing { background:rgba(74,173,117,.1); color:var(--grnl); border:1px solid rgba(74,173,117,.2); }
-.bg-completed { background:var(--c3); color:var(--tan3); }
-
-select.status-sel { background:var(--c3); border:1px solid var(--ln2); color:var(--tan); padding:6px 12px; border-radius:8px; font-family:var(--sans); font-size:12px; outline:none; cursor:pointer; }
-select.status-sel:focus { border-color:var(--gl); }
-
-/* ─── LOGIN OVERLAY ─── */
-#login-overlay { position:fixed; inset:0; background:var(--c0); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-.login-box { background:var(--c1); border:1px solid var(--ln2); border-radius:16px; padding:40px; width:100%; max-width:400px; text-align:center; }
-.inp { width:100%; height:48px; background:var(--c2); border:1px solid var(--ln2); border-radius:10px; padding:0 16px; color:var(--tan); font-family:var(--sans); margin-bottom:16px; outline:none; }
-.btn { width:100%; height:48px; background:var(--tan); border:none; border-radius:10px; color:var(--c0); font-weight:600; font-size:15px; cursor:pointer; }
-/* ─── PREMIUM TOGGLE SWITCH (RED = CLOSED, GREEN = OPEN) ─── */
-.store-status-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 16px 6px 6px;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  user-select: none;
-  
-  /* 🔴 โหมดปกติ (ปิดร้าน) = สีแดง */
-  background: rgba(212, 79, 79, 0.05);
-  border: 1px solid rgba(212, 79, 79, 0.3);
-}
-.store-status-wrapper:active { transform: scale(0.97); }
-
-.toggle-switch {
-  position: relative;
-  width: 52px;
-  height: 30px;
-  border-radius: 30px;
-  transition: background 0.3s ease;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-  
-  /* 🔴 สีพื้นของสวิตช์ตอนปิดร้าน = สีแดง */
-  background: var(--red); 
-}
-.toggle-thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 24px;
-  height: 24px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-.status-text {
-  font-size: 13px;
-  font-weight: 600;
-  transition: color 0.3s ease;
-  letter-spacing: 0.5px;
-  
-  /* 🔴 สีข้อความตอนปิดร้าน = สีแดงอ่อน */
-  color: #e88080;
+  --sh:0 4px 20px rgba(0,0,0,.3);
+  --sidebar-w:240px;
 }
 
-/* 🟢 Active State (เปิดร้าน) = สีเขียว */
-.store-status-wrapper.is-open {
-  background: rgba(74, 173, 117, 0.05);
-  border-color: rgba(74, 173, 117, 0.3);
+/* ── RESET ─────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--c0);color:var(--tan);font-family:var(--sans);font-size:14px;line-height:1.5;overflow:hidden;height:100vh}
+button{font-family:var(--sans);cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:var(--sans);font-size:14px;color:var(--tan)}
+input:focus,select:focus,textarea:focus{outline:none}
+a{text-decoration:none}
+
+/* ── LAYOUT ────────────────────────── */
+#app{display:flex;height:100vh}
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--c1);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;padding:24px 16px;
+  transition:transform .3s;z-index:50;
 }
-.store-status-wrapper.is-open .toggle-switch {
-  background: var(--grnl);
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{
+  height:60px;background:var(--c1);border-bottom:1px solid var(--line);
+  padding:0 28px;display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
 }
-.store-status-wrapper.is-open .toggle-thumb {
-  transform: translateX(22px);
+.content{flex:1;overflow-y:auto;padding:28px;scrollbar-width:thin;scrollbar-color:var(--c3) transparent}
+.content::-webkit-scrollbar{width:5px}
+.content::-webkit-scrollbar-thumb{background:var(--c3);border-radius:3px}
+
+/* ── SIDEBAR ───────────────────────── */
+.brand{
+  font-family:var(--serif);font-size:22px;font-style:italic;color:var(--tan);
+  margin-bottom:32px;padding-left:4px;display:flex;align-items:baseline;gap:8px;
 }
-.store-status-wrapper.is-open .status-text {
-  color: var(--grnl);
+.brand-badge{
+  font-size:9px;font-family:var(--sans);font-style:normal;
+  font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--gold);background:rgba(184,146,74,.12);
+  border:1px solid rgba(184,146,74,.2);padding:2px 7px;border-radius:4px;
 }
+.nav-group{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+.nav-group-label{
+  font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--tan4);padding:8px 12px 4px;
+}
+.nav-item{
+  padding:10px 12px;border-radius:8px;color:var(--tan3);
+  font-size:13px;font-weight:500;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  transition:all .15s;position:relative;
+  border:1px solid transparent;
+}
+.nav-item:hover{background:var(--c2);color:var(--tan)}
+.nav-item.active{background:var(--gl2);color:var(--gl);border-color:rgba(212,170,106,.18)}
+.nav-item svg{flex-shrink:0;opacity:.7}
+.nav-item.active svg{opacity:1}
+.nav-badge{
+  margin-left:auto;min-width:18px;height:18px;
+  background:var(--red);border-radius:9px;
+  font-size:10px;font-weight:700;color:#fff;
+  display:none;align-items:center;justify-content:center;padding:0 4px;
+}
+.nav-badge.on{display:flex}
+.sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+.admin-chip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;margin-bottom:10px}
+.admin-av{width:32px;height:32px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--c0);flex-shrink:0}
+.admin-name{font-size:13px;font-weight:600;color:var(--tan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-role{font-size:10px;color:var(--tan3)}
+.btn-signout{width:100%;padding:9px;border-radius:8px;background:var(--red2);color:var(--red);border:1px solid rgba(212,79,79,.2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-signout:hover{background:var(--red);color:#fff}
+
+/* ── TOPBAR ────────────────────────── */
+.page-title{font-family:var(--serif);font-size:20px;color:var(--tan)}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.store-toggle{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 14px;border-radius:24px;cursor:pointer;
+  transition:all .25s;border:1px solid;
+}
+.store-toggle.closed{background:var(--red2);border-color:rgba(212,79,79,.25);color:var(--red)}
+.store-toggle.open{background:var(--grn2);border-color:rgba(74,173,117,.25);color:var(--grnl)}
+.toggle-track{width:36px;height:20px;border-radius:10px;position:relative;transition:background .25s;flex-shrink:0}
+.store-toggle.closed .toggle-track{background:var(--red)}
+.store-toggle.open .toggle-track{background:var(--grnl)}
+.toggle-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .25s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.store-toggle.open .toggle-knob{transform:translateX(16px)}
+.store-status-label{font-size:13px;font-weight:600;white-space:nowrap}
+.btn-icon{width:36px;height:36px;border-radius:8px;background:var(--c2);border:1px solid var(--ln2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tan3);transition:all .15s}
+.btn-icon:hover{background:var(--c3);color:var(--tan)}
+.notif-badge{position:relative}
+.notif-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1.5px solid var(--c1);display:none}
+.notif-dot.on{display:block;animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── SECTIONS ──────────────────────── */
+.section{display:none}
+.section.active{display:block}
+
+/* ── SECTION HEADER ─────────────────── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.sec-title{font-family:var(--serif);font-size:22px;color:var(--tan)}
+.sec-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* ── BUTTONS ───────────────────────── */
+.btn{
+  height:38px;padding:0 16px;border-radius:8px;font-size:13px;font-weight:600;
+  cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  transition:all .15s;border:1px solid transparent;white-space:nowrap;
+}
+.btn-primary{background:var(--tan);color:var(--c0)}
+.btn-primary:hover{background:var(--tan2)}
+.btn-ghost{background:var(--c2);color:var(--tan2);border-color:var(--ln2)}
+.btn-ghost:hover{background:var(--c3);color:var(--tan)}
+.btn-gold{background:rgba(184,146,74,.15);color:var(--gl);border-color:rgba(212,170,106,.25)}
+.btn-gold:hover{background:var(--gold);color:var(--c0)}
+.btn-red{background:var(--red2);color:var(--red);border-color:rgba(212,79,79,.25)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-grn{background:var(--grn2);color:var(--grnl);border-color:rgba(74,173,117,.25)}
+.btn-grn:hover{background:var(--grn);color:#fff}
+.btn-sm{height:30px;padding:0 12px;font-size:11px}
+
+/* ── STATS GRID ────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{
+  background:var(--c1);border:1px solid var(--ln2);border-radius:12px;
+  padding:18px 20px;position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--border-color,var(--gl))}
+.stat-lbl{font-size:10px;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.stat-val{font-family:var(--serif);font-size:28px;color:var(--stat-color,var(--gl))}
+.stat-sub{font-size:11px;color:var(--tan3);margin-top:4px}
+
+/* ── FILTER BAR ─────────────────────── */
+.filter-bar{
+  display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;
+  padding:12px 16px;background:var(--c1);border:1px solid var(--line);border-radius:10px;
+}
+.filter-search{
+  flex:1;min-width:180px;height:36px;background:var(--c2);
+  border:1px solid var(--ln2);border-radius:8px;padding:0 12px;
+  color:var(--tan);font-size:13px;
+}
+.filter-search:focus{border-color:var(--gl)}
+.filter-search::placeholder{color:var(--tan3)}
+.filter-sel{
+  height:36px;background:var(--c2);border:1px solid var(--ln2);
+  border-radius:8px;padding:0 10px;color:var(--tan);cursor:pointer;
+  font-size:13px;
+}
+.filter-sel:focus{border-color:var(--gl)}
+
+/* ── TABLE ──────────────────────────── */
+.table-wrap{background:var(--c1);border:1px solid var(--ln2);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;text-align:left}
+thead{background:var(--c2)}
+th{padding:13px 18px;font-size:10px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:13px 18px;font-size:13px;border-bottom:1px solid var(--line);color:var(--tan2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:var(--c2)}
+.table-empty{text-align:center;padding:48px;color:var(--tan3);font-size:14px}
+
+/* ── BADGES ─────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:20px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border:1px solid;white-space:nowrap;
+}
+.b-pending  {background:var(--gl2);color:var(--gl);border-color:rgba(212,170,106,.25)}
+.b-confirmed{background:var(--blue2);color:var(--blue);border-color:rgba(74,127,191,.25)}
+.b-preparing{background:var(--grn2);color:var(--grnl);border-color:rgba(74,173,117,.25)}
+.b-ready    {background:rgba(130,100,200,.1);color:#b090e0;border-color:rgba(130,100,200,.25)}
+.b-completed{background:var(--c3);color:var(--tan3);border-color:var(--line)}
+.b-cancelled{background:var(--red2);color:var(--red);border-color:rgba(212,79,79,.25)}
+.b-tier-bronze  {background:rgba(160,100,50,.12);color:#c4845a;border-color:rgba(160,100,50,.22)}
+.b-tier-silver  {background:rgba(180,180,200,.07);color:#a8a8c0;border-color:rgba(180,180,200,.18)}
+.b-tier-gold    {background:var(--gl2);color:var(--gl);border-color:rgba(212,170,106,.22)}
+.b-tier-platinum{background:rgba(200,210,230,.06);color:#c0c8d8;border-color:rgba(200,210,220,.18)}
+.b-tier-diamond {background:rgba(150,100,255,.08);color:#c0a8f0;border-color:rgba(200,150,255,.18)}
+.b-type-pickup  {background:var(--grn2);color:var(--grnl);border-color:rgba(74,173,117,.25)}
+.b-type-delivery{background:var(--gl2);color:var(--gl);border-color:rgba(212,170,106,.25)}
+.b-type-preorder{background:var(--blue2);color:var(--blue);border-color:rgba(74,127,191,.25)}
+
+/* ── STATUS SELECT ──────────────────── */
+.status-sel{
+  background:var(--c3);border:1px solid var(--ln2);color:var(--tan);
+  padding:5px 10px;border-radius:7px;font-size:12px;cursor:pointer;
+}
+.status-sel:focus{border-color:var(--gl)}
+
+/* ── MODAL ──────────────────────────── */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+  z-index:900;display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-backdrop.on{display:flex}
+.modal{
+  background:var(--c1);border:1px solid var(--ln2);border-radius:16px;
+  width:100%;max-width:620px;max-height:90vh;display:flex;flex-direction:column;
+  overflow:hidden;animation:modal-in .22s ease;box-shadow:0 24px 64px rgba(0,0,0,.5);
+}
+@keyframes modal-in{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-head{
+  padding:20px 24px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.modal-title{font-family:var(--serif);font-size:20px;color:var(--tan)}
+.modal-close{width:32px;height:32px;border-radius:8px;background:var(--c3);color:var(--tan3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.modal-close:hover{background:var(--red);color:#fff}
+.modal-body{padding:24px;overflow-y:auto;flex:1}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
+
+/* ── FORM FIELDS ────────────────────── */
+.field{margin-bottom:16px}
+.field-label{font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block}
+.field-input{
+  width:100%;height:44px;background:var(--c2);border:1px solid var(--ln2);
+  border-radius:9px;padding:0 14px;color:var(--tan);font-size:14px;
+  transition:border-color .15s;
+}
+.field-input:focus{border-color:var(--gl)}
+.field-input::placeholder{color:var(--tan3)}
+.field-textarea{
+  width:100%;background:var(--c2);border:1px solid var(--ln2);border-radius:9px;
+  padding:10px 14px;color:var(--tan);font-size:14px;resize:vertical;
+  min-height:80px;transition:border-color .15s;
+}
+.field-textarea:focus{border-color:var(--gl)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field-hint{font-size:11px;color:var(--tan3);margin-top:4px}
+.field-err{font-size:11px;color:var(--red);margin-top:4px}
+
+/* ── ORDER DETAIL ───────────────────── */
+.order-items-list{background:var(--c2);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.order-item-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 14px;border-bottom:1px solid var(--line);gap:10px}
+.order-item-row:last-child{border-bottom:none}
+.oi-name{font-size:13px;font-weight:600;color:var(--tan);margin-bottom:2px}
+.oi-opts{font-size:11px;color:var(--tan3)}
+.oi-qty{font-size:11px;color:var(--tan3);white-space:nowrap}
+.oi-price{font-family:var(--serif);font-size:14px;color:var(--gl);white-space:nowrap}
+.order-summary-row{display:flex;justify-content:space-between;font-size:13px;color:var(--tan3);padding:5px 0}
+.order-summary-row.total{font-size:16px;font-weight:600;color:var(--tan);border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
+.slip-viewer{width:100%;max-height:260px;object-fit:contain;border-radius:8px;background:var(--c2);border:1px solid var(--line);margin-top:8px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.info-card{background:var(--c2);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.info-key{font-size:10px;color:var(--tan3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.info-val{font-size:14px;font-weight:500;color:var(--tan)}
+
+/* ── QUICK STATUS BUTTONS ───────────── */
+.quick-status{display:flex;gap:6px;flex-wrap:wrap}
+.qs-btn{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;transition:all .15s}
+
+/* ── ANALYTICS ──────────────────────── */
+.chart-wrap{background:var(--c1);border:1px solid var(--ln2);border-radius:12px;padding:20px;margin-bottom:16px}
+.chart-title{font-size:12px;font-weight:600;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}
+.bar-chart{display:flex;gap:6px;align-items:flex-end;height:120px;padding-top:8px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;min-height:2px;background:linear-gradient(to top,var(--gold),var(--gl));transition:height .5s ease}
+.bar-label{font-size:9px;color:var(--tan3);white-space:nowrap}
+.bar-val{font-size:9px;font-weight:600;color:var(--gl)}
+.bestseller-list{display:flex;flex-direction:column;gap:8px}
+.bs-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--c2);border-radius:8px;border:1px solid var(--line)}
+.bs-rank{width:22px;height:22px;border-radius:50%;background:var(--gl2);color:var(--gl);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bs-name{flex:1;font-size:13px;font-weight:500;color:var(--tan)}
+.bs-count{font-size:12px;color:var(--tan3)}
+.bs-rev{font-family:var(--serif);font-size:14px;color:var(--gl)}
+.hourly-wrap{display:flex;gap:3px;align-items:flex-end;height:60px;padding-top:4px}
+.h-bar{flex:1;background:rgba(212,170,106,.2);border-radius:2px 2px 0 0;min-height:2px;position:relative;cursor:default}
+.h-bar:hover{background:var(--gl)}
+.h-bar[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--c3);color:var(--tan);font-size:9px;padding:3px 6px;border-radius:4px;white-space:nowrap;z-index:10}
+.analytics-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* ── MENU MANAGER ───────────────────── */
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.menu-card{
+  background:var(--c1);border:1px solid var(--ln2);border-radius:12px;
+  overflow:hidden;display:flex;flex-direction:column;
+  transition:border-color .15s;
+}
+.menu-card.unavailable{opacity:.55}
+.menu-card-img{width:100%;height:120px;object-fit:cover;background:var(--c2);flex-shrink:0}
+.menu-card-img-ph{width:100%;height:120px;background:var(--c2);display:flex;align-items:center;justify-content:center;color:var(--tan3);flex-shrink:0}
+.menu-card-body{padding:12px 14px;flex:1}
+.menu-card-name{font-size:14px;font-weight:600;color:var(--tan);margin-bottom:3px}
+.menu-card-cat{font-size:11px;color:var(--tan3)}
+.menu-card-price{font-family:var(--serif);font-size:16px;color:var(--gl);margin-top:6px}
+.menu-card-foot{padding:10px 14px;border-top:1px solid var(--line);display:flex;gap:6px;align-items:center}
+.toggle-avail{
+  flex:1;height:30px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;
+  transition:all .15s;border:1px solid;
+}
+.toggle-avail.avail{background:var(--grn2);color:var(--grnl);border-color:rgba(74,173,117,.3)}
+.toggle-avail.unavail{background:var(--red2);color:var(--red);border-color:rgba(212,79,79,.3)}
+.btn-edit-item{height:30px;width:30px;border-radius:6px;background:var(--c3);border:1px solid var(--ln2);color:var(--tan3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.btn-edit-item:hover{background:var(--gl2);color:var(--gl);border-color:rgba(212,170,106,.25)}
+.feat-badge{display:inline-block;background:var(--red2);color:var(--red);font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;letter-spacing:.3px;text-transform:uppercase}
+.new-badge{display:inline-block;background:var(--grn2);color:var(--grnl);font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;letter-spacing:.3px;text-transform:uppercase}
+
+/* ── PROMO ──────────────────────────── */
+.promo-card{background:var(--c1);border:1px solid var(--ln2);border-radius:12px;overflow:hidden;margin-bottom:10px}
+.promo-card-head{display:flex;align-items:center;gap:14px;padding:14px 18px}
+.promo-code-chip{font-size:14px;font-weight:700;color:var(--gl);letter-spacing:1px;background:var(--gl2);border:1px solid rgba(212,170,106,.2);padding:4px 12px;border-radius:6px;font-family:var(--sans)}
+.promo-desc{flex:1;font-size:13px;color:var(--tan2)}
+.promo-meta{font-size:11px;color:var(--tan3);margin-top:2px}
+.promo-expired{opacity:.45}
+.promo-toggle{width:40px;height:22px;border-radius:11px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.promo-toggle.on{background:var(--grnl)}
+.promo-toggle.off{background:var(--tan4)}
+.promo-knob{position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.promo-toggle.on .promo-knob{transform:translateX(18px)}
+
+/* ── MEMBER CARD ────────────────────── */
+.member-actions{display:flex;gap:6px}
+
+/* ── SETTINGS ───────────────────────── */
+.settings-section{background:var(--c1);border:1px solid var(--ln2);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.settings-section-title{padding:14px 18px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tan3)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);gap:16px}
+.settings-row:last-child{border-bottom:none}
+.settings-row-label{font-size:14px;font-weight:500;color:var(--tan)}
+.settings-row-sub{font-size:11px;color:var(--tan3);margin-top:2px}
+.hours-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.time-inp{width:100%;height:40px;background:var(--c2);border:1px solid var(--ln2);border-radius:8px;padding:0 12px;color:var(--tan);font-size:14px}
+
+/* ── LOGIN ──────────────────────────── */
+#login-overlay{
+  position:fixed;inset:0;background:var(--c0);z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.login-box{
+  background:var(--c1);border:1px solid var(--ln2);border-radius:16px;
+  padding:40px;width:100%;max-width:380px;
+}
+.login-logo{font-family:var(--serif);font-size:28px;font-style:italic;color:var(--tan);text-align:center;margin-bottom:4px}
+.login-sub{text-align:center;font-size:12px;color:var(--tan3);margin-bottom:28px;letter-spacing:.5px;text-transform:uppercase}
+.login-err{font-size:12px;color:var(--red);text-align:center;min-height:18px;margin-bottom:8px}
+
+/* ── TOAST ──────────────────────────── */
+#admin-toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  background:var(--c2);border:1px solid var(--ln2);border-radius:10px;
+  padding:12px 18px;font-size:13px;font-weight:500;color:var(--tan);
+  box-shadow:var(--sh);opacity:0;transform:translateY(8px);
+  transition:all .25s;pointer-events:none;display:flex;align-items:center;gap:10px;max-width:320px;
+}
+#admin-toast.on{opacity:1;transform:translateY(0)}
+.toast-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ── NEW ORDER ALERT ────────────────── */
+.new-order-alert{
+  position:fixed;top:20px;right:20px;z-index:800;
+  background:var(--c1);border:1px solid rgba(212,170,106,.4);border-radius:12px;
+  padding:14px 18px;display:flex;gap:12px;align-items:center;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  animation:slide-in .3s ease;max-width:300px;
+}
+@keyframes slide-in{from{transform:translateX(120%)}to{transform:translateX(0)}}
+.alert-dot{width:8px;height:8px;border-radius:50%;background:var(--gl);flex-shrink:0;animation:pulse-dot 1.5s infinite}
+.alert-title{font-size:13px;font-weight:600;color:var(--tan);margin-bottom:2px}
+.alert-sub{font-size:11px;color:var(--tan3)}
+.alert-close{color:var(--tan3);cursor:pointer;font-size:14px;margin-left:auto}
+
+/* ── SCROLLBAR global ──────────────── */
+*::-webkit-scrollbar{width:4px;height:4px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:var(--c3);border-radius:2px}
+
+/* ── MOBILE ─────────────────────────── */
+@media(max-width:768px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);z-index:200}
+  .sidebar.open{transform:translateX(0)}
+  .main{width:100%}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .analytics-2col{grid-template-columns:1fr}
+  .field-row{grid-template-columns:1fr}
+  .menu-grid{grid-template-columns:1fr 1fr}
+  .info-grid{grid-template-columns:1fr}
+  #hamburger{display:flex!important}
+}
+#hamburger{width:36px;height:36px;border-radius:8px;background:var(--c2);border:1px solid var(--ln2);display:none;align-items:center;justify-content:center;cursor:pointer;color:var(--tan3)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
+.sidebar-overlay.on{display:block}
 </style>
 </head>
 <body>
 
-<!-- LOGIN (Simulated for Staff) -->
+<!-- ── LOGIN ─────────────────────────────────────────── -->
 <div id="login-overlay">
   <div class="login-box">
-    <div class="brand">Ceramic <span>Admin</span></div>
-    <div style="font-size:13px; color:var(--tan3); margin-bottom:24px;">Please sign in to access the dashboard.</div>
-    <input type="text" id="adminUser" class="inp" placeholder="Staff Username / Phone">
-    <input type="password" id="admin" class="inp" placeholder="password">
-    <button class="btn" onclick="adminLogin()">Sign In to Workspace</button>
+    <div class="login-logo">Ceramic</div>
+    <div class="login-sub">Admin Dashboard</div>
+    <div class="field">
+      <label class="field-label">Username</label>
+      <input type="text" class="field-input" id="lg-user" placeholder="admin@ceramic.co" onkeydown="if(event.key==='Enter')document.getElementById('lg-pass').focus()">
+    </div>
+    <div class="field">
+      <label class="field-label">Password</label>
+      <input type="password" class="field-input" id="lg-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()">
+    </div>
+    <div class="login-err" id="lg-err"></div>
+    <button class="btn btn-primary" style="width:100%;height:46px;font-size:15px;" onclick="adminLogin()" id="lg-btn">Sign In</button>
   </div>
 </div>
 
-<!-- MAIN LAYOUT -->
-<div class="sidebar">
-  <div class="brand">Ceramic <span>Admin</span></div>
-  <div class="nav-menu">
-    <a class="nav-item active" id="nav-orders" onclick="switchSection('orders', this)">Live Orders</a>
-    <a class="nav-item" id="nav-customers" onclick="switchSection('customers', this)">Customers</a>
-    <a class="nav-item">Menu Manager (Soon)</a>
-    <a class="nav-item" style="margin-top:auto; color:var(--red);" onclick="location.reload()">Sign Out</a>
-  </div>
-</div>
+<!-- ── SIDEBAR OVERLAY (mobile) ──────────────────────── -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-<div class="main-content">
-  <!-- ส่วนของ Live Orders -->
-  <div id="orderSection">
-    <div class="header">
-      <div class="title">Live Orders</div>
-      <div style="display:flex; gap:12px;">
-        <div id="storeToggleBtn" class="store-status-wrapper" onclick="toggleStoreStatus()">
-          <div class="toggle-switch"><div class="toggle-thumb"></div></div>
-          <div class="status-text" id="storeStatusText">Loading...</div>
-        </div>
-        <button class="btn" style="width:auto; padding:0 20px; background:var(--c2); color:var(--tan); border:1px solid var(--ln2);" onclick="loadOrders()">↻ Refresh</button>
+<!-- ── APP ───────────────────────────────────────────── -->
+<div id="app">
+  <div class="sidebar" id="sidebar">
+    <div class="brand">Ceramic <span class="brand-badge">Admin</span></div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Operations</div>
+      <div class="nav-item active" id="nav-orders" onclick="nav('orders',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="12" y2="15"/></svg>
+        Live Orders
+        <div class="nav-badge" id="nav-orders-badge">0</div>
+      </div>
+      <div class="nav-item" id="nav-analytics" onclick="nav('analytics',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Analytics
       </div>
     </div>
-    
-    <div style="background:var(--c1); border:1px solid var(--ln2); border-radius:12px; padding:16px 20px; margin-bottom:24px; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
-      <div style="font-size:13px; color:var(--tan3); font-weight:600; text-transform:uppercase; letter-spacing:1px;">Store Hours</div>
-      <input type="time" id="openTime" class="inp" style="width:130px; height:40px; margin:0; cursor:pointer;">
-      <span style="color:var(--tan3); font-size:13px;">to</span>
-      <input type="time" id="closeTime" class="inp" style="width:130px; height:40px; margin:0; cursor:pointer;">
-      <button class="btn" style="width:auto; height:40px; padding:0 20px; font-size:13px;" onclick="saveStoreHours()">Save Hours</button>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Content</div>
+      <div class="nav-item" id="nav-menu" onclick="nav('menu',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Menu Manager
+      </div>
+      <div class="nav-item" id="nav-promos" onclick="nav('promos',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Promo Codes
+      </div>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-lbl">Today's Revenue</div><div class="stat-val" id="stRev">฿0</div></div>
-      <div class="stat-card"><div class="stat-lbl">Total Orders</div><div class="stat-val" id="stCount">0</div></div>
-      <div class="stat-card"><div class="stat-lbl">Pending</div><div class="stat-val" id="stPend">0</div></div>
-      <div class="stat-card"><div class="stat-lbl">Preparing</div><div class="stat-val" id="stPrep">0</div></div>
+    <div class="nav-group">
+      <div class="nav-group-label">People</div>
+      <div class="nav-item" id="nav-members" onclick="nav('members',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Members
+      </div>
     </div>
 
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr><th>Order ID</th><th>Time</th><th>Type</th><th>Amount</th><th>Status</th><th>Action</th></tr>
-        </thead>
-        <tbody id="orderBody"><tr><td colspan="6" style="text-align:center; padding:40px;">Loading orders...</td></tr></tbody>
-      </table>
+    <div class="nav-group">
+      <div class="nav-group-label">System</div>
+      <div class="nav-item" id="nav-settings" onclick="nav('settings',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="admin-chip">
+        <div class="admin-av" id="admin-av">A</div>
+        <div>
+          <div class="admin-name" id="admin-name-chip">Admin</div>
+          <div class="admin-role">Manager</div>
+        </div>
+      </div>
+      <button class="btn-signout" onclick="adminLogout()">Sign Out</button>
     </div>
   </div>
 
-  <!-- ตารางสมาชิก (ซ่อนไว้โดย default) -->
-  <div id="customerSection" style="display:none;">
-    <div class="header">
-      <div class="title">Customer Management</div>
-      <button class="btn" onclick="loadCustomers()">↻ Refresh List</button>
+  <!-- ── MAIN ─────────────────────────────────────────── -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div id="hamburger" onclick="toggleSidebar()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </div>
+        <div class="page-title" id="page-title">Live Orders</div>
+      </div>
+      <div class="topbar-actions">
+        <!-- Store toggle -->
+        <div class="store-toggle closed" id="store-toggle" onclick="toggleStore()">
+          <div class="toggle-track"><div class="toggle-knob"></div></div>
+          <span class="store-status-label" id="store-label">Store Closed</span>
+        </div>
+        <!-- Notifications -->
+        <div class="btn-icon notif-badge" onclick="openOrdersSection()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <div class="notif-dot" id="notif-dot"></div>
+        </div>
+        <!-- Refresh -->
+        <div class="btn-icon" id="refresh-btn" onclick="refreshCurrent()" title="Refresh">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </div>
+      </div>
     </div>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr><th>Name</th><th>Phone</th><th>Tier</th><th>Points</th><th>Action</th></tr>
-        </thead>
-        <tbody id="customerBody"></tbody>
-      </table>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ═══ ORDERS ═══════════════════════════════════ -->
+      <div class="section active" id="sec-orders">
+        <div class="stats-grid">
+          <div class="stat-card" style="--border-color:var(--gl);--stat-color:var(--gl)">
+            <div class="stat-lbl">Today Revenue</div>
+            <div class="stat-val" id="st-rev">฿0</div>
+            <div class="stat-sub" id="st-rev-sub">0 orders</div>
+          </div>
+          <div class="stat-card" style="--border-color:var(--red);--stat-color:var(--red)">
+            <div class="stat-lbl">Pending</div>
+            <div class="stat-val" id="st-pend">0</div>
+            <div class="stat-sub">Awaiting confirmation</div>
+          </div>
+          <div class="stat-card" style="--border-color:var(--grnl);--stat-color:var(--grnl)">
+            <div class="stat-lbl">Preparing</div>
+            <div class="stat-val" id="st-prep">0</div>
+            <div class="stat-sub">In the kitchen</div>
+          </div>
+          <div class="stat-card" style="--border-color:var(--blue);--stat-color:var(--blue)">
+            <div class="stat-lbl">Ready</div>
+            <div class="stat-val" id="st-ready">0</div>
+            <div class="stat-sub">Waiting for pickup</div>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input class="filter-search" id="ord-search" placeholder="Search order ID, branch..." oninput="filterOrders()">
+          <select class="filter-sel" id="ord-status-filter" onchange="filterOrders()">
+            <option value="">All Statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="CONFIRMED">Confirmed</option>
+            <option value="PREPARING">Preparing</option>
+            <option value="READY">Ready</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+          <select class="filter-sel" id="ord-type-filter" onchange="filterOrders()">
+            <option value="">All Types</option>
+            <option value="pickup">Pickup</option>
+            <option value="delivery">Delivery</option>
+            <option value="preorder">Pre-order</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="exportOrdersCSV()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Time</th>
+                <th>Type</th>
+                <th>Branch</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="order-tbody">
+              <tr><td colspan="7" class="table-empty">Loading orders...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ ANALYTICS ════════════════════════════════ -->
+      <div class="section" id="sec-analytics">
+        <div class="stats-grid">
+          <div class="stat-card" style="--border-color:var(--gl);--stat-color:var(--gl)">
+            <div class="stat-lbl">Total Revenue (7d)</div>
+            <div class="stat-val" id="an-rev">฿0</div>
+          </div>
+          <div class="stat-card" style="--border-color:var(--grnl);--stat-color:var(--grnl)">
+            <div class="stat-lbl">Total Orders (7d)</div>
+            <div class="stat-val" id="an-orders">0</div>
+          </div>
+          <div class="stat-card" style="--border-color:var(--blue);--stat-color:var(--blue)">
+            <div class="stat-lbl">Avg Order Value</div>
+            <div class="stat-val" id="an-avg">฿0</div>
+          </div>
+          <div class="stat-card" style="--border-color:var(--red);--stat-color:var(--red)">
+            <div class="stat-lbl">Total Members</div>
+            <div class="stat-val" id="an-members">0</div>
+          </div>
+        </div>
+
+        <div class="analytics-2col">
+          <div class="chart-wrap">
+            <div class="chart-title">Revenue — Last 7 Days</div>
+            <div class="bar-chart" id="rev-chart"></div>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-title">Hourly Sales Distribution</div>
+            <div class="hourly-wrap" id="hourly-chart"></div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px">
+              <span style="font-size:9px;color:var(--tan3)">8AM</span>
+              <span style="font-size:9px;color:var(--tan3)">12PM</span>
+              <span style="font-size:9px;color:var(--tan3)">6PM</span>
+              <span style="font-size:9px;color:var(--tan3)">10PM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-title">Top Selling Items</div>
+          <div class="bestseller-list" id="bestseller-list">
+            <div style="color:var(--tan3);font-size:13px">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ MENU MANAGER ═════════════════════════════ -->
+      <div class="section" id="sec-menu">
+        <div class="sec-head">
+          <div class="sec-title">Menu Manager</div>
+          <div class="sec-actions">
+            <select class="filter-sel" id="menu-cat-filter" onchange="filterMenu()">
+              <option value="">All Categories</option>
+            </select>
+            <button class="btn btn-gold" onclick="openAddMenuItem()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Item
+            </button>
+          </div>
+        </div>
+        <div class="menu-grid" id="menu-grid">
+          <div style="color:var(--tan3);font-size:13px">Loading menu...</div>
+        </div>
+      </div>
+
+      <!-- ═══ PROMO CODES ══════════════════════════════ -->
+      <div class="section" id="sec-promos">
+        <div class="sec-head">
+          <div class="sec-title">Promo Codes</div>
+          <button class="btn btn-gold" onclick="openAddPromo()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Code
+          </button>
+        </div>
+        <div id="promo-list">
+          <div style="color:var(--tan3);font-size:13px">Loading promo codes...</div>
+        </div>
+      </div>
+
+      <!-- ═══ MEMBERS ══════════════════════════════════ -->
+      <div class="section" id="sec-members">
+        <div class="sec-head">
+          <div class="sec-title">Members</div>
+          <div class="sec-actions">
+            <button class="btn btn-ghost btn-sm" onclick="exportMembersCSV()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <input class="filter-search" id="mem-search" placeholder="Search name or phone..." oninput="filterMembers()">
+          <select class="filter-sel" id="mem-tier-filter" onchange="filterMembers()">
+            <option value="">All Tiers</option>
+            <option value="Bronze">Bronze</option>
+            <option value="Silver">Silver</option>
+            <option value="Gold">Gold</option>
+            <option value="Platinum">Platinum</option>
+            <option value="Diamond">Diamond</option>
+          </select>
+          <select class="filter-sel" id="mem-status-filter" onchange="filterMembers()">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Suspended</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Phone</th><th>Email</th><th>Tier</th><th>Points</th><th>Orders</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="member-tbody">
+              <tr><td colspan="7" class="table-empty">Loading members...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ SETTINGS ═════════════════════════════════ -->
+      <div class="section" id="sec-settings">
+        <div class="sec-head"><div class="sec-title">Store Settings</div></div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Shop Status</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Store Open / Closed</div>
+              <div class="settings-row-sub">Changes reflect on the customer app immediately</div>
+            </div>
+            <div class="store-toggle closed" id="store-toggle-settings" onclick="toggleStore()" style="min-width:fit-content">
+              <div class="toggle-track"><div class="toggle-knob"></div></div>
+              <span class="store-status-label" id="store-label-settings">Closed</span>
+            </div>
+          </div>
+          <div class="hours-grid">
+            <div>
+              <div class="field-label">Opening Time</div>
+              <input type="time" class="time-inp" id="open-time" value="09:00">
+            </div>
+            <div>
+              <div class="field-label">Closing Time</div>
+              <input type="time" class="time-inp" id="close-time" value="21:00">
+            </div>
+          </div>
+          <div style="padding:0 18px 14px">
+            <button class="btn btn-gold" onclick="saveHours()">Save Hours</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Auto Refresh</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Order polling interval</div>
+              <div class="settings-row-sub">Auto-refreshes live orders every N seconds</div>
+            </div>
+            <select class="filter-sel" id="poll-interval" onchange="updatePollInterval(this.value)">
+              <option value="15">15 sec</option>
+              <option value="30" selected>30 sec</option>
+              <option value="60">60 sec</option>
+              <option value="0">Off</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">New order sound alert</div>
+              <div class="settings-row-sub">Play a sound when a new order arrives</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="sound-toggle" onclick="toggleSound()">Enabled</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Supabase Connection</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Project URL</div>
+              <div class="settings-row-sub" id="sb-url-display" style="font-size:12px;color:var(--gl)">From env-config.js</div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Connection Status</div>
+            </div>
+            <span class="badge b-preparing" id="sb-status">Checking...</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODALS ═══════════════════════════════════════════ -->
+
+<!-- ORDER DETAIL -->
+<div class="modal-backdrop" id="order-modal">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="om-id">#CTB-—</div>
+        <div style="font-size:12px;color:var(--tan3);margin-top:2px" id="om-time">—</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-ghost btn-sm" onclick="printOrder()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print
+        </button>
+        <div class="modal-close" onclick="closeModal('order-modal')">✕</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-key">Order Type</div>
+          <div class="info-val" id="om-type">—</div>
+        </div>
+        <div class="info-card">
+          <div class="info-key">Branch</div>
+          <div class="info-val" id="om-branch">—</div>
+        </div>
+        <div class="info-card">
+          <div class="info-key">Payment</div>
+          <div class="info-val" id="om-payment">—</div>
+        </div>
+        <div class="info-card">
+          <div class="info-key">Customer</div>
+          <div class="info-val" id="om-customer">Guest</div>
+        </div>
+      </div>
+      <div id="om-delivery-info"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Order Items</div>
+      <div class="order-items-list" id="om-items"></div>
+      <div id="om-summary"></div>
+      <!-- Status change -->
+      <div style="margin-top:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Update Status</div>
+        <div class="quick-status" id="om-qs"></div>
+      </div>
+      <!-- Slip viewer -->
+      <div id="om-slip-section" style="display:none;margin-top:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Payment Slip</div>
+        <img id="om-slip" class="slip-viewer" src="" alt="Payment slip">
+      </div>
     </div>
   </div>
 </div>
 
+<!-- EDIT MEMBER -->
+<div class="modal-backdrop" id="member-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="mm-title">Edit Member</div>
+      <div class="modal-close" onclick="closeModal('member-modal')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label class="field-label">Display Name</label><input class="field-input" id="mm-name" type="text"></div>
+        <div class="field"><label class="field-label">Email</label><input class="field-input" id="mm-email" type="email"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Phone</label><input class="field-input" id="mm-phone" type="tel" readonly style="opacity:.5"></div>
+        <div class="field">
+          <label class="field-label">Tier</label>
+          <select class="field-input" id="mm-tier">
+            <option value="Bronze">Bronze</option>
+            <option value="Silver">Silver</option>
+            <option value="Gold">Gold</option>
+            <option value="Platinum">Platinum</option>
+            <option value="Diamond">Diamond</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Points</label>
+          <input class="field-input" id="mm-points" type="number" min="0">
+        </div>
+        <div class="field">
+          <label class="field-label">Status</label>
+          <select class="field-input" id="mm-status">
+            <option value="true">Active</option>
+            <option value="false">Suspended</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-err" id="mm-err"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('member-modal')">Cancel</button>
+      <button class="btn btn-primary" id="mm-save" onclick="saveMember()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MENU ITEM -->
+<div class="modal-backdrop" id="menu-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="me-title">Add Menu Item</div>
+      <div class="modal-close" onclick="closeModal('menu-modal')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label class="field-label">Item Name</label><input class="field-input" id="me-name" type="text" placeholder="White Peach Oolong"></div>
+        <div class="field"><label class="field-label">Price (฿)</label><input class="field-input" id="me-price" type="number" min="0"></div>
+      </div>
+      <div class="field">
+        <label class="field-label">Category</label>
+        <select class="field-input" id="me-cat"></select>
+      </div>
+      <div class="field"><label class="field-label">Description</label><textarea class="field-textarea" id="me-desc" placeholder="Single-origin leaves, cold-steeped..."></textarea></div>
+      <div class="field"><label class="field-label">Image URL</label><input class="field-input" id="me-img" type="url" placeholder="https://..."></div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="me-bestseller"> Mark as Bestseller
+          </label>
+        </div>
+        <div class="field">
+          <label class="field-label" style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="me-new"> Mark as New
+          </label>
+        </div>
+      </div>
+      <div class="field-err" id="me-err"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('menu-modal')">Cancel</button>
+      <button class="btn btn-primary" id="me-save" onclick="saveMenuItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PROMO -->
+<div class="modal-backdrop" id="promo-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">New Promo Code</div>
+      <div class="modal-close" onclick="closeModal('promo-modal')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label class="field-label">Code</label><input class="field-input" id="pm-code" type="text" placeholder="SUMMER25" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="field">
+          <label class="field-label">Type</label>
+          <select class="field-input" id="pm-type" onchange="updatePromoTypeUI()">
+            <option value="percent">Percentage (%)</option>
+            <option value="fixed">Fixed Amount (฿)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label" id="pm-val-label">Discount (%)</label><input class="field-input" id="pm-value" type="number" min="1"></div>
+        <div class="field"><label class="field-label">Min. Order (฿)</label><input class="field-input" id="pm-min" type="number" min="0" value="0"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Max Uses (blank = unlimited)</label><input class="field-input" id="pm-max" type="number" min="1" placeholder="∞"></div>
+        <div class="field"><label class="field-label">Expires (blank = never)</label><input class="field-input" id="pm-exp" type="date"></div>
+      </div>
+      <div class="field"><label class="field-label">Description</label><input class="field-input" id="pm-desc" type="text" placeholder="10% off for all orders"></div>
+      <div class="field-err" id="pm-err"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('promo-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="savePromo()">Create Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="admin-toast">
+  <div class="toast-dot" id="toast-dot"></div>
+  <span id="toast-msg"></span>
+</div>
+
+<!-- ══ SCRIPTS ══════════════════════════════════════════ -->
+<script src="env-config.js"></script>
 <script src="api.js"></script>
 <script>
+/* ═══════════════════════════════════════════════════════
+   CERAMIC ADMIN ENGINE
+   ═══════════════════════════════════════════════════════ */
 
-  // ฟังก์ชันสลับหน้า Admin
-function switchSection(section, element) {
-  // สลับสถานะ Active ของเมนู
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  element.classList.add('active');
+/* ── STATE ──────────────────────────────────────────── */
+const A = {
+  admin: null,
+  orders: [],
+  members: [],
+  menuItems: [],
+  categories: [],
+  promos: [],
+  currentSection: 'orders',
+  storeOpen: false,
+  editMenuId: null,
+  editMemberId: null,
+  pollTimer: null,
+  pollInterval: 30,
+  soundOn: true,
+  lastOrderCount: 0,
+  audioCtx: null,
+};
 
-  // สลับการมองเห็น
-  document.getElementById('orderSection').style.display = (section === 'orders' ? 'block' : 'none');
-  document.getElementById('customerSection').style.display = (section === 'customers' ? 'block' : 'none');
-  
-  if(section === 'customers') loadCustomers();
+/* ── HELPERS ────────────────────────────────────────── */
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fmt(n){return'฿'+(Number(n)||0).toLocaleString()}
+function fmtDate(d){if(!d)return'—';const dt=new Date(d);return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+function fmtTime(d){if(!d)return'—';return new Date(d).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+function ge(id){return document.getElementById(id)}
+
+/* ── TOAST ──────────────────────────────────────────── */
+let _tt;
+function toast(msg,type='info',dur=3000){
+  const el=ge('admin-toast'),dot=ge('toast-dot'),msg_el=ge('toast-msg');
+  const cols={success:'#6dbb8a',error:'#d44f4f',info:'#d4aa6a',warn:'#d4aa6a'};
+  dot.style.background=cols[type]||cols.info;
+  msg_el.textContent=msg;el.classList.add('on');
+  clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),dur);
 }
 
-// ฟังก์ชันดึงสมาชิก
-async function loadCustomers() {
-  const tbody = document.getElementById('customerBody');
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
-  
-  const res = await API.getAdminMembers(); // เรียกผ่าน api.js ที่เราเพิ่มฟังก์ชันไว้แล้ว
-  if(res.success) {
-    tbody.innerHTML = res.data.map(m => `
-      <tr>
-        <td style="color:var(--tan)">${m.name}</td>
-        <td>${m.phone}</td>
-        <td><span class="badge bg-pending">${m.tier}</span></td>
-        <td style="color:var(--gl); font-weight:bold;">${m.points} pts</td>
-        <td>
-          <button class="btn" style="height:32px; font-size:11px; width:100px; background:var(--gold);" 
-                  onclick="addPoints('${m.id}', ${m.points})">+10 Points</button>
-        </td>
-      </tr>
-    `).join('');
+/* ── LOGIN ──────────────────────────────────────────── */
+async function adminLogin(){
+  const user=(ge('lg-user').value||'').trim();
+  const pass=ge('lg-pass').value||'';
+  const err=ge('lg-err'),btn=ge('lg-btn');
+  if(!user||!pass){err.textContent='Please fill in all fields';return}
+  btn.textContent='Signing in...';btn.disabled=true;err.textContent='';
+
+  // Hash password
+  const enc=new TextEncoder();
+  const buf=await crypto.subtle.digest('SHA-256',enc.encode(pass+'CTB_SALT_2025'));
+  const hashed=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+
+  try {
+    const res = await API.login({phone:user,hashedPassword:hashed});
+    btn.textContent='Sign In';btn.disabled=false;
+    if(!res.success){err.textContent=res.message||'Invalid credentials';return}
+    // Check role — in Supabase you'd check res.user.role
+    A.admin=res.user;
+    ge('login-overlay').style.display='none';
+    ge('admin-name-chip').textContent=res.user.name||'Admin';
+    ge('admin-av').textContent=(res.user.name||'A')[0].toUpperCase();
+    if(ge('sb-url-display')) ge('sb-url-display').textContent=window.ENV?.URL||'configured';
+    initDashboard();
+  } catch(e) {
+    btn.textContent='Sign In';btn.disabled=false;
+    err.textContent='Connection error. Check Supabase config.';
   }
 }
 
-// ฟังก์ชันเพิ่มแต้ม
-async function addPoints(memberId, currentPoints) {
-  const newPoints = currentPoints + 10;
-  const res = await API.updateMemberPoints(memberId, newPoints);
-  if(res.success) {
-    alert('Points updated!');
-    loadCustomers();
-  }
+function adminLogout(){
+  if(A.pollTimer)clearInterval(A.pollTimer);
+  localStorage.removeItem('ctb_admin');
+  location.reload();
 }
 
-  // Simple Mock Login
-  function adminLogin() {
-    // ในระบบจริงต้องยิง API ไปเช็คสิทธิ์ (Role)
-    document.getElementById('login-overlay').style.display = 'none';
-    loadOrders();
+/* ── INIT ───────────────────────────────────────────── */
+async function initDashboard(){
+  loadStoreStatus();
+  loadOrders();
+  startPoll();
+  checkConnection();
+  // Load settings
+  ge('open-time').value=localStorage.getItem('ctb_open_time')||'09:00';
+  ge('close-time').value=localStorage.getItem('ctb_close_time')||'21:00';
+}
+
+function checkConnection(){
+  const sbEl=ge('sb-status');
+  if(!sbEl)return;
+  API.getAdminOrders().then(()=>{
+    sbEl.textContent='Connected';sbEl.className='badge b-preparing';
+  }).catch(()=>{
+    sbEl.textContent='Error';sbEl.className='badge b-cancelled';
+  });
+}
+
+/* ── NAVIGATION ─────────────────────────────────────── */
+const SECTION_TITLES={orders:'Live Orders',analytics:'Analytics',menu:'Menu Manager',promos:'Promo Codes',members:'Members',settings:'Settings'};
+function nav(section,el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  el&&el.classList.add('active');
+  ge('sec-'+section).classList.add('active');
+  ge('page-title').textContent=SECTION_TITLES[section]||section;
+  A.currentSection=section;
+  closeSidebar();
+  if(section==='orders')loadOrders();
+  if(section==='analytics')loadAnalytics();
+  if(section==='menu')loadMenu();
+  if(section==='promos')loadPromos();
+  if(section==='members')loadMembers();
+}
+function openOrdersSection(){nav('orders',ge('nav-orders'));ge('notif-dot').classList.remove('on')}
+function refreshCurrent(){
+  if(A.currentSection==='orders')loadOrders();
+  else if(A.currentSection==='analytics')loadAnalytics();
+  else if(A.currentSection==='menu')loadMenu();
+  else if(A.currentSection==='members')loadMembers();
+  else if(A.currentSection==='promos')loadPromos();
+}
+
+/* ── MOBILE SIDEBAR ─────────────────────────────────── */
+function toggleSidebar(){ge('sidebar').classList.toggle('open');ge('sidebar-overlay').classList.toggle('on')}
+function closeSidebar(){ge('sidebar').classList.remove('open');ge('sidebar-overlay').classList.remove('on')}
+
+/* ── STORE STATUS ───────────────────────────────────── */
+function loadStoreStatus(){
+  const st=localStorage.getItem('ctb_shop_open');
+  A.storeOpen = st===null ? true : st==='true';
+  updateStoreUI();
+}
+function toggleStore(){
+  A.storeOpen=!A.storeOpen;
+  localStorage.setItem('ctb_shop_open',String(A.storeOpen));
+  // Sync to Supabase store_config table if available
+  if(window.API?.setStoreStatus){
+    API.setStoreStatus(A.storeOpen).catch(()=>{});
   }
-  
-  // Load Data
-  function loadOrders() {
-    document.getElementById('orderBody').innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading orders...</td></tr>';
-    
-    API.getAdminOrders().then(res => {
-      if(!res.success) return alert('Failed to load orders');
-      
-      const orders = res.data;
-      
-      // Update Stats
-      document.getElementById('stCount').textContent = orders.length;
-      document.getElementById('stRev').textContent = '฿' + orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-      document.getElementById('stPend').textContent = orders.filter(o => o.status === 'PENDING').length;
-      document.getElementById('stPrep').textContent = orders.filter(o => o.status === 'PREPARING').length;
+  updateStoreUI();
+  toast(A.storeOpen?'Store is now OPEN':'Store is now CLOSED', A.storeOpen?'success':'warn');
+}
+function updateStoreUI(){
+  ['store-toggle','store-toggle-settings'].forEach(id=>{
+    const el=ge(id);if(!el)return;
+    el.className='store-toggle '+(A.storeOpen?'open':'closed');
+  });
+  ['store-label','store-label-settings'].forEach(id=>{
+    const el=ge(id);if(el)el.textContent=A.storeOpen?'Store Open':'Store Closed';
+  });
+}
 
-      // Render Table
-      const tbody = document.getElementById('orderBody');
-      if(orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No orders found</td></tr>';
-        return;
-      }
+/* ── STORE HOURS ────────────────────────────────────── */
+function saveHours(){
+  const open=ge('open-time').value,close=ge('close-time').value;
+  localStorage.setItem('ctb_open_time',open);localStorage.setItem('ctb_close_time',close);
+  toast('Store hours updated — '+open+' to '+close,'success');
+}
 
-      tbody.innerHTML = orders.map(o => {
-        const time = new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        let badgeCls = 'bg-pending';
-        if(o.status === 'PREPARING' || o.status === 'READY') badgeCls = 'bg-preparing';
-        if(o.status === 'COMPLETED' || o.status === 'CANCELLED') badgeCls = 'bg-completed';
+/* ── POLL ───────────────────────────────────────────── */
+function startPoll(){
+  if(A.pollTimer)clearInterval(A.pollTimer);
+  if(!A.pollInterval||A.pollInterval===0)return;
+  A.pollTimer=setInterval(()=>{if(A.currentSection==='orders')loadOrders(true)},A.pollInterval*1000);
+}
+function updatePollInterval(v){A.pollInterval=Number(v);startPoll();toast('Auto-refresh: '+(v==='0'?'Off':v+'s'),'info')}
 
-        return `
-          <tr>
-            <td style="color:var(--tan); font-weight:600;">${o.id}</td>
-            <td>${time}</td>
-            <td style="text-transform:capitalize;">${o.order_type}</td>
-            <td style="color:var(--gl); font-family:var(--serif); font-size:16px;">฿${o.total_amount}</td>
-            <td><span class="badge ${badgeCls}">${o.status}</span></td>
-            <td>
-              <select class="status-sel" onchange="changeStatus('${o.id}', this.value)">
-                <option value="PENDING" ${o.status==='PENDING'?'selected':''}>Pending</option>
-                <option value="PREPARING" ${o.status==='PREPARING'?'selected':''}>Preparing</option>
-                <option value="READY" ${o.status==='READY'?'selected':''}>Ready</option>
-                <option value="COMPLETED" ${o.status==='COMPLETED'?'selected':''}>Completed</option>
-                <option value="CANCELLED" ${o.status==='CANCELLED'?'selected':''}>Cancelled</option>
-              </select>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    });
-  }
+/* ── SOUND ──────────────────────────────────────────── */
+function toggleSound(){A.soundOn=!A.soundOn;ge('sound-toggle').textContent=A.soundOn?'Enabled':'Disabled';toast('Sound: '+(A.soundOn?'On':'Off'),'info')}
+function playNewOrderSound(){
+  if(!A.soundOn)return;
+  try{
+    if(!A.audioCtx)A.audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=A.audioCtx.createOscillator(),g=A.audioCtx.createGain();
+    o.connect(g);g.connect(A.audioCtx.destination);
+    o.frequency.setValueAtTime(880,A.audioCtx.currentTime);
+    o.frequency.setValueAtTime(1100,A.audioCtx.currentTime+0.1);
+    g.gain.setValueAtTime(0.3,A.audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,A.audioCtx.currentTime+0.4);
+    o.start();o.stop(A.audioCtx.currentTime+0.4);
+  }catch(e){}
+}
 
-  /* ── CUSTOMERS: LOAD & UPDATE ─────────────────────── */
-  async function loadCustomers() {
-    const tbody = document.getElementById('customerBody');
-    if(!tbody) return; // กัน Error ถ้าหน้าจอไม่เจอตาราง
-    
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading members...</td></tr>';
-    
-    API.getAdminMembers().then(res => {
-      if(!res.success) { alert('Failed to load members'); return; }
-      
-      tbody.innerHTML = res.data.map(m => `
-        <tr>
-          <td style="color:var(--tan); font-weight:600;">${m.name}</td>
-          <td>${m.phone}</td>
-          <td><span class="badge bg-pending">${m.tier}</span></td>
-          <td style="color:var(--gl); font-weight:bold;">${m.points} pts</td>
-          <td>
-            <button class="btn" style="height:32px; font-size:11px; width:100px; background:var(--gold);" 
-                    onclick="addPoints('${m.id}', ${m.points})">+10 Points</button>
-          </td>
-        </tr>
-      `).join('');
-    });
-  }
-
-  async function addPoints(memberId, currentPoints) {
-    const newPoints = currentPoints + 10;
-    // เรียกฟังก์ชันใหม่ที่เราเพิ่งเพิ่มใน api.js
-    API.updateMemberPoints(memberId, newPoints).then(res => {
-      if(res.success) {
-        alert('Points updated to ' + newPoints + '!');
-        loadCustomers(); // รีเฟรชตารางให้เลขแต้มเปลี่ยนทันที
-      } else {
-        alert('Update failed');
-      }
-    });
-  }
-  
-  // Change Status
-  function changeStatus(id, newStatus) {
-    API.updateOrderStatus(id, newStatus).then(res => {
-      if(res.success) loadOrders(); // Refresh table
-      else alert('Failed to update status');
-    });
-  }
-  // --- ระบบเปิดปิดร้าน ---
-  let isStoreOpen = true;
-
-  function loadStoreStatus() {
-    // ดึงค่าจำลองจาก LocalStorage
-    const status = localStorage.getItem('ctb_store_status');
-    isStoreOpen = status !== 'closed';
-    updateStoreBtnUI();
-  }
-
-  function toggleStoreStatus() {
-    isStoreOpen = !isStoreOpen;
-    localStorage.setItem('ctb_store_status', isStoreOpen ? 'open' : 'closed');
-    updateStoreBtnUI();
-  }
-
- // --- ระบบอัปเดต UI ของปุ่มเปิดปิดร้าน ---
-  function updateStoreBtnUI() {
-    const wrapper = document.getElementById('storeToggleBtn');
-    const text = document.getElementById('storeStatusText');
-    
-    if(isStoreOpen) {
-      // เปิดร้าน: เลื่อนสวิตช์ไปทางขวา เปลี่ยนเป็นสีเขียว
-      wrapper.classList.add('is-open');
-      text.textContent = 'Store Open';
-    } else {
-      // ปิดร้าน: เลื่อนสวิตช์กลับมาซ้าย เปลี่ยนเป็นสีเทา
-      wrapper.classList.remove('is-open');
-      text.textContent = 'Store Closed';
+/* ── ORDERS ─────────────────────────────────────────── */
+async function loadOrders(silent=false){
+  if(!silent)ge('order-tbody').innerHTML='<tr><td colspan="7" class="table-empty">Loading...</td></tr>';
+  try {
+    const res=await API.getAdminOrders();
+    if(!res.success)throw new Error('Failed');
+    // Detect new orders
+    const newCount=res.data.filter(o=>o.status==='PENDING').length;
+    if(newCount>A.lastOrderCount&&A.lastOrderCount>=0&&A.orders.length>0){
+      showNewOrderAlert();playNewOrderSound();
+      ge('notif-dot').classList.add('on');
     }
+    A.lastOrderCount=newCount;
+    A.orders=res.data;
+    renderOrders();
+    updateOrderStats();
+    // Badge
+    const pendCount=A.orders.filter(o=>o.status==='PENDING').length;
+    const badge=ge('nav-orders-badge');
+    if(badge){badge.textContent=pendCount;badge.classList.toggle('on',pendCount>0)}
+  } catch(e){
+    if(!silent)ge('order-tbody').innerHTML='<tr><td colspan="7" class="table-empty" style="color:var(--red)">Failed to load. Check Supabase config.</td></tr>';
   }
-  }
+}
 
-  // --- ระบบตั้งเวลาเปิด-ปิด ---
-  function loadStoreHours() {
-    const open = localStorage.getItem('ctb_open_time') || '09:00';
-    const close = localStorage.getItem('ctb_close_time') || '21:00';
-    document.getElementById('openTime').value = open;
-    document.getElementById('closeTime').value = close;
-  }
+function updateOrderStats(){
+  const today=new Date().toDateString();
+  const todayOrders=A.orders.filter(o=>new Date(o.created_at).toDateString()===today);
+  ge('st-rev').textContent=fmt(todayOrders.reduce((s,o)=>s+(o.total_amount||0),0));
+  ge('st-rev-sub').textContent=todayOrders.length+' orders today';
+  ge('st-pend').textContent=A.orders.filter(o=>o.status==='PENDING').length;
+  ge('st-prep').textContent=A.orders.filter(o=>o.status==='PREPARING').length;
+  ge('st-ready').textContent=A.orders.filter(o=>o.status==='READY').length;
+}
 
-  function saveStoreHours() {
-    const open = document.getElementById('openTime').value;
-    const close = document.getElementById('closeTime').value;
-    localStorage.setItem('ctb_open_time', open);
-    localStorage.setItem('ctb_close_time', close);
-    alert('Store hours updated successfully!');
-  }
+function renderOrders(){
+  const q=(ge('ord-search').value||'').toLowerCase();
+  const st=ge('ord-status-filter').value;
+  const tp=ge('ord-type-filter').value;
+  const list=A.orders.filter(o=>{
+    if(st&&o.status!==st)return false;
+    if(tp&&o.order_type!==tp)return false;
+    if(q&&!o.id.toLowerCase().includes(q)&&!(o.branch_name||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+  const tbody=ge('order-tbody');
+  if(!list.length){tbody.innerHTML='<tr><td colspan="7" class="table-empty">No orders found</td></tr>';return}
+  tbody.innerHTML=list.map(o=>{
+    const bc='b-'+o.status.toLowerCase();
+    const tc='b-type-'+(o.order_type||'pickup');
+    return`<tr onclick="openOrderDetail('${esc(o.id)}')" style="cursor:pointer">
+      <td style="color:var(--tan);font-weight:600">${esc(o.id)}</td>
+      <td>${fmtTime(o.created_at)}</td>
+      <td><span class="badge ${tc}">${o.order_type||'pickup'}</span></td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.branch_name||'—')}</td>
+      <td style="color:var(--gl);font-family:var(--serif);font-size:15px">${fmt(o.total_amount)}</td>
+      <td><span class="badge ${bc}">${o.status}</span></td>
+      <td onclick="event.stopPropagation()">
+        <select class="status-sel" onchange="changeStatus('${esc(o.id)}',this.value)">
+          ${['PENDING','CONFIRMED','PREPARING','READY','COMPLETED','CANCELLED'].map(s=>`<option value="${s}"${o.status===s?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function filterOrders(){renderOrders()}
 
-  // อัปเดตฟังก์ชัน adminLogin ให้โหลดเวลาด้วย
-  function adminLogin() {
-    document.getElementById('login-overlay').style.display = 'none';
-    updateStoreUI();;
-    loadStoreStatus(); 
-    loadStoreHours(); // <--- เพิ่มบรรทัดนี้
-    loadOrders();
+async function changeStatus(id,status){
+  try{
+    await API.updateOrderStatus(id,status);
+    const o=A.orders.find(x=>x.id===id);if(o)o.status=status;
+    renderOrders();updateOrderStats();
+    toast('Order '+id+' → '+status,'success');
+  }catch(e){toast('Failed to update status','error')}
+}
+
+/* ── ORDER DETAIL MODAL ─────────────────────────────── */
+function openOrderDetail(id){
+  const o=A.orders.find(x=>x.id===id);if(!o)return;
+  ge('om-id').textContent=o.id;
+  ge('om-time').textContent=fmtDate(o.created_at);
+  ge('om-type').innerHTML='<span class="badge b-type-'+(o.order_type||'pickup')+'">'+(o.order_type||'pickup')+'</span>';
+  ge('om-branch').textContent=o.branch_name||'—';
+  ge('om-payment').textContent=o.payment_method||'Transfer';
+  ge('om-customer').textContent=o.user_id?'Member #'+o.user_id.slice(0,8):'Guest';
+
+  // Delivery info
+  const di=ge('om-delivery-info');
+  if(o.delivery_address||o.pickup_time){
+    di.innerHTML=`<div class="info-card" style="margin-bottom:12px"><div class="info-key">${o.delivery_address?'Delivery Address':'Pickup Time'}</div><div class="info-val">${esc(o.delivery_address||o.pickup_time)}</div></div>`;
+  } else di.innerHTML='';
+
+  // Items
+  let items=[];try{items=typeof o.items==='string'?JSON.parse(o.items):o.items}catch{}
+  ge('om-items').innerHTML=(items||[]).map(i=>`
+    <div class="order-item-row">
+      <div><div class="oi-name">${esc(i.name)}</div><div class="oi-opts">${esc((i.options?.sweetness||'')+' · '+(i.options?.ice||''))}</div></div>
+      <div class="oi-qty">×${i.qty||1}</div>
+      <div class="oi-price">${fmt((i.price||0)*(i.qty||1))}</div>
+    </div>`).join('');
+
+  // Summary
+  const disc=o.discount||0;
+  const del=o.order_type==='delivery'?20:0;
+  ge('om-summary').innerHTML=`
+    <div class="order-summary-row"><span>Subtotal</span><span>${fmt(o.total_amount)}</span></div>
+    ${disc>0?`<div class="order-summary-row"><span>Discount</span><span style="color:var(--grnl)">−${fmt(disc)}</span></div>`:''}
+    ${del>0?`<div class="order-summary-row"><span>Delivery</span><span>${fmt(del)}</span></div>`:''}
+    <div class="order-summary-row total"><span>Total</span><span style="color:var(--gl)">${fmt(o.total_amount)}</span></div>`;
+
+  // Quick status buttons
+  const statuses=[
+    {s:'CONFIRMED',cls:'btn btn-ghost btn-sm'},
+    {s:'PREPARING',cls:'btn btn-grn btn-sm'},
+    {s:'READY',cls:'btn btn-gold btn-sm'},
+    {s:'COMPLETED',cls:'btn btn-primary btn-sm'},
+    {s:'CANCELLED',cls:'btn btn-red btn-sm'},
+  ];
+  ge('om-qs').innerHTML=statuses.map(({s,cls})=>`
+    <button class="${cls}${o.status===s?' ring':''}" style="${o.status===s?'opacity:.5;pointer-events:none':''}" onclick="changeStatus('${id}','${s}');closeModal('order-modal')">${s}</button>`).join('');
+
+  // Slip
+  if(o.slip_url){
+    ge('om-slip-section').style.display='block';
+    ge('om-slip').src=o.slip_url;
+  } else {ge('om-slip-section').style.display='none'}
+
+  ge('order-modal').classList.add('on');
+}
+
+function printOrder(){
+  const el=ge('order-modal').querySelector('.modal-body');
+  const w=window.open('','_blank','width=400,height=700');
+  w.document.write('<html><head><title>Order</title><style>body{font-family:sans-serif;font-size:13px;padding:20px;max-width:360px}.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eee}</style></head><body>');
+  w.document.write(el.innerHTML);
+  w.document.write('</body></html>');
+  w.document.close();w.focus();
+  setTimeout(()=>{w.print();w.close()},400);
+}
+
+/* ── NEW ORDER ALERT ─────────────────────────────────── */
+let _alertEl=null;
+function showNewOrderAlert(){
+  if(_alertEl){_alertEl.remove();_alertEl=null}
+  const div=document.createElement('div');
+  div.className='new-order-alert';
+  div.innerHTML=`<div class="alert-dot"></div><div><div class="alert-title">New Order!</div><div class="alert-sub">Check live orders</div></div><div class="alert-close" onclick="this.parentElement.remove()">✕</div>`;
+  div.onclick=(e)=>{if(e.target.className!=='alert-close'){openOrdersSection();div.remove()}};
+  document.body.appendChild(div);_alertEl=div;
+  setTimeout(()=>{if(div.parentElement)div.remove()},8000);
+}
+
+/* ── EXPORT ─────────────────────────────────────────── */
+function exportOrdersCSV(){
+  const rows=[['Order ID','Date','Type','Branch','Amount','Status']];
+  A.orders.forEach(o=>rows.push([o.id,fmtDate(o.created_at),o.order_type,o.branch_name||'',o.total_amount,o.status]));
+  downloadCSV(rows,'orders_'+new Date().toISOString().slice(0,10)+'.csv');
+}
+function exportMembersCSV(){
+  const rows=[['Name','Phone','Email','Tier','Points']];
+  A.members.forEach(m=>rows.push([m.name,m.phone,m.email||'',m.tier,m.points]));
+  downloadCSV(rows,'members_'+new Date().toISOString().slice(0,10)+'.csv');
+}
+function downloadCSV(rows,name){
+  const csv=rows.map(r=>r.map(c=>'"'+(c||'').toString().replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=name;a.click();
+}
+
+/* ── ANALYTICS ──────────────────────────────────────── */
+async function loadAnalytics(){
+  // Build from orders data
+  await loadOrders(true);
+  const orders=A.orders;
+  const now=new Date();
+
+  // 7-day revenue
+  const days=[];for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);days.push(d)}
+  const dayRevs=days.map(d=>{
+    const ds=d.toDateString();
+    return {label:d.toLocaleDateString('en-GB',{weekday:'short'}),rev:orders.filter(o=>new Date(o.created_at).toDateString()===ds).reduce((s,o)=>s+(o.total_amount||0),0)};
+  });
+  const maxRev=Math.max(...dayRevs.map(d=>d.rev),1);
+  ge('rev-chart').innerHTML=dayRevs.map(d=>`
+    <div class="bar-col">
+      <div class="bar-val">${d.rev>0?'฿'+d.rev:''}</div>
+      <div class="bar-fill" style="height:${Math.max(4,(d.rev/maxRev)*100)}px"></div>
+      <div class="bar-label">${d.label}</div>
+    </div>`).join('');
+
+  // Stats
+  const week7=orders.filter(o=>{const d=new Date(o.created_at);return(now-d)/(1000*3600*24)<7});
+  const totalRev=week7.reduce((s,o)=>s+(o.total_amount||0),0);
+  ge('an-rev').textContent=fmt(totalRev);
+  ge('an-orders').textContent=week7.length;
+  ge('an-avg').textContent=week7.length?fmt(Math.round(totalRev/week7.length)):'฿0';
+
+  // Members count
+  try{const mr=await API.getAdminMembers();ge('an-members').textContent=(mr.data||[]).length}catch{}
+
+  // Hourly distribution
+  const hrs=Array(14).fill(0);
+  week7.forEach(o=>{const h=new Date(o.created_at).getHours();const idx=h-8;if(idx>=0&&idx<14)hrs[idx]++});
+  const maxH=Math.max(...hrs,1);
+  ge('hourly-chart').innerHTML=hrs.map((v,i)=>`<div class="h-bar" style="height:${Math.max(4,(v/maxH)*56)}px" title="${8+i}:00 — ${v} orders"></div>`).join('');
+
+  // Bestsellers
+  const itemMap={};
+  orders.forEach(o=>{
+    let items=[];try{items=typeof o.items==='string'?JSON.parse(o.items):o.items}catch{}
+    (items||[]).forEach(i=>{
+      if(!itemMap[i.name])itemMap[i.name]={count:0,rev:0};
+      itemMap[i.name].count+=(i.qty||1);
+      itemMap[i.name].rev+=(i.price||0)*(i.qty||1);
+    });
+  });
+  const bs=Object.entries(itemMap).sort((a,b)=>b[1].count-a[1].count).slice(0,6);
+  ge('bestseller-list').innerHTML=bs.map(([name,d],i)=>`
+    <div class="bs-item">
+      <div class="bs-rank">${i+1}</div>
+      <div class="bs-name">${esc(name)}</div>
+      <div class="bs-count">${d.count} sold</div>
+      <div class="bs-rev">${fmt(d.rev)}</div>
+    </div>`).join('')||'<div style="color:var(--tan3);font-size:13px">No order data yet</div>';
+}
+
+/* ── MENU MANAGER ───────────────────────────────────── */
+async function loadMenu(){
+  ge('menu-grid').innerHTML='<div style="color:var(--tan3);font-size:13px">Loading...</div>';
+  try {
+    const res=await API.getMenu();
+    A.menuItems=res.products||[];
+    A.categories=res.categories||[];
+    // Populate category filter
+    const catSel=ge('menu-cat-filter');
+    catSel.innerHTML='<option value="">All Categories</option>'+
+      A.categories.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+    // Populate menu item modal category select
+    const meCat=ge('me-cat');
+    if(meCat)meCat.innerHTML=A.categories.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+    renderMenuGrid();
+  } catch(e){ge('menu-grid').innerHTML='<div style="color:var(--red);font-size:13px">Failed to load menu</div>'}
+}
+function filterMenu(){renderMenuGrid()}
+function renderMenuGrid(){
+  const catF=ge('menu-cat-filter').value;
+  const list=catF?A.menuItems.filter(m=>m.category_id===catF):A.menuItems;
+  ge('menu-grid').innerHTML=list.map(m=>`
+    <div class="menu-card${m.is_available===false?' unavailable':''}">
+      ${m.img_url?`<img class="menu-card-img" src="${esc(m.img_url)}" alt="">`:`<div class="menu-card-img-ph"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg></div>`}
+      <div class="menu-card-body">
+        <div style="display:flex;gap:5px;margin-bottom:5px">
+          ${m.is_bestseller?'<span class="feat-badge">Hot</span>':''}
+          ${m.is_new?'<span class="new-badge">New</span>':''}
+        </div>
+        <div class="menu-card-name">${esc(m.name)}</div>
+        <div class="menu-card-cat">${esc(A.categories.find(c=>c.id===m.category_id)?.name||'')}</div>
+        <div class="menu-card-price">${fmt(m.price)}</div>
+      </div>
+      <div class="menu-card-foot">
+        <button class="toggle-avail ${m.is_available!==false?'avail':'unavail'}" onclick="toggleMenuAvail('${esc(m.id)}',${m.is_available!==false})">
+          ${m.is_available!==false?'Available':'Unavailable'}
+        </button>
+        <button class="btn-edit-item" onclick="openEditMenuItem('${esc(m.id)}')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+      </div>
+    </div>`).join('')||'<div style="color:var(--tan3);font-size:13px">No items found</div>';
+}
+
+async function toggleMenuAvail(id,currentAvail){
+  try{
+    await API.updateMenuAvailability?.(id,!currentAvail);
+    const m=A.menuItems.find(x=>x.id===id);if(m)m.is_available=!currentAvail;
+    renderMenuGrid();toast((currentAvail?'Item hidden':'Item visible'),'success');
+  }catch(e){toast('Failed to update','error')}
+}
+
+function openAddMenuItem(){
+  A.editMenuId=null;
+  ge('me-title').textContent='Add Menu Item';
+  ge('me-name').value='';ge('me-price').value='';ge('me-desc').value='';
+  ge('me-img').value='';ge('me-bestseller').checked=false;ge('me-new').checked=false;
+  ge('me-err').textContent='';
+  ge('menu-modal').classList.add('on');
+}
+function openEditMenuItem(id){
+  const m=A.menuItems.find(x=>x.id===id);if(!m)return;
+  A.editMenuId=id;
+  ge('me-title').textContent='Edit — '+m.name;
+  ge('me-name').value=m.name||'';ge('me-price').value=m.price||0;
+  ge('me-desc').value=m.description||'';ge('me-img').value=m.img_url||'';
+  ge('me-bestseller').checked=!!m.is_bestseller;ge('me-new').checked=!!m.is_new;
+  if(ge('me-cat'))ge('me-cat').value=m.category_id||'';
+  ge('me-err').textContent='';
+  ge('menu-modal').classList.add('on');
+}
+async function saveMenuItem(){
+  const name=(ge('me-name').value||'').trim();
+  const price=Number(ge('me-price').value);
+  if(!name){ge('me-err').textContent='Name required';return}
+  if(!price||price<0){ge('me-err').textContent='Valid price required';return}
+  const btn=ge('me-save');btn.textContent='Saving...';btn.disabled=true;
+  try{
+    const data={name,price,description:ge('me-desc').value,img_url:ge('me-img').value,category_id:ge('me-cat').value,is_bestseller:ge('me-bestseller').checked,is_new:ge('me-new').checked};
+    if(A.editMenuId){await API.updateMenuItem?.(A.editMenuId,data);}
+    else{await API.addMenuItem?.(data);}
+    btn.textContent='Save Item';btn.disabled=false;
+    closeModal('menu-modal');loadMenu();toast('Menu item saved','success');
+  }catch(e){btn.textContent='Save Item';btn.disabled=false;ge('me-err').textContent='Failed: '+e.message}
+}
+
+/* ── PROMO CODES ────────────────────────────────────── */
+async function loadPromos(){
+  ge('promo-list').innerHTML='<div style="color:var(--tan3);font-size:13px">Loading...</div>';
+  try{
+    const res=await API.getPromos?.();
+    A.promos=res?.data||[];
+    renderPromos();
+  }catch(e){
+    // Fallback: mock promos from localStorage
+    const stored=localStorage.getItem('ctb_promos_admin');
+    A.promos=stored?JSON.parse(stored):[
+      {id:'p1',code:'NEW10',type:'percent',value:10,min_order:0,max_uses:null,used_count:47,description:'10% off first order',is_active:true},
+      {id:'p2',code:'CERAMIC50',type:'fixed',value:50,min_order:200,max_uses:100,used_count:23,description:'฿50 off orders over ฿200',is_active:true,expires_at:'2025-12-31'},
+    ];
+    renderPromos();
   }
-   window.onload = () => { 
-    loadStoreStatus(); 
-    loadStoreHours(); 
-    updateStoreUI(); 
-    loadOrders(); 
-  };
+}
+function renderPromos(){
+  ge('promo-list').innerHTML=A.promos.map(p=>{
+    const expired=p.expires_at&&new Date(p.expires_at)<new Date();
+    const descVal=p.type==='percent'?p.value+'% off':'฿'+p.value+' off';
+    return`<div class="promo-card${expired?' promo-expired':''}">
+      <div class="promo-card-head">
+        <div class="promo-code-chip">${esc(p.code)}</div>
+        <div class="flex-1">
+          <div class="promo-desc">${descVal}${p.min_order>0?' · min ฿'+p.min_order:''}</div>
+          <div class="promo-meta">${esc(p.description||'')} · ${p.used_count||0} used${p.max_uses?' / '+p.max_uses:''}${expired?' · EXPIRED':''}</div>
+        </div>
+        <div class="promo-toggle ${p.is_active?'on':'off'}" onclick="togglePromo('${esc(p.id)}',${p.is_active})">
+          <div class="promo-knob"></div>
+        </div>
+        <button class="btn btn-red btn-sm" onclick="deletePromo('${esc(p.id)}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('')||'<div style="color:var(--tan3);font-size:13px;padding:20px">No promo codes yet</div>';
+}
+function openAddPromo(){
+  ge('pm-code').value='';ge('pm-type').value='percent';ge('pm-value').value='';ge('pm-min').value='0';ge('pm-max').value='';ge('pm-exp').value='';ge('pm-desc').value='';ge('pm-err').textContent='';
+  updatePromoTypeUI();
+  ge('promo-modal').classList.add('on');
+}
+function updatePromoTypeUI(){ge('pm-val-label').textContent=ge('pm-type').value==='percent'?'Discount (%)':'Amount (฿)'}
+async function savePromo(){
+  const code=(ge('pm-code').value||'').trim().toUpperCase();
+  if(!code){ge('pm-err').textContent='Code required';return}
+  const val=Number(ge('pm-value').value);
+  if(!val||val<1){ge('pm-err').textContent='Discount value required';return}
+  const promo={id:'p_'+Date.now(),code,type:ge('pm-type').value,value:val,min_order:Number(ge('pm-min').value)||0,max_uses:ge('pm-max').value?Number(ge('pm-max').value):null,expires_at:ge('pm-exp').value||null,description:ge('pm-desc').value,is_active:true,used_count:0};
+  try{
+    await API.addPromo?.(promo);
+  }catch{}
+  A.promos.unshift(promo);
+  localStorage.setItem('ctb_promos_admin',JSON.stringify(A.promos));
+  closeModal('promo-modal');renderPromos();toast('Promo code '+code+' created','success');
+}
+async function togglePromo(id,current){
+  const p=A.promos.find(x=>x.id===id);if(!p)return;
+  p.is_active=!current;
+  try{await API.updatePromo?.(id,{is_active:!current})}catch{}
+  localStorage.setItem('ctb_promos_admin',JSON.stringify(A.promos));
+  renderPromos();toast(p.code+' '+(p.is_active?'enabled':'disabled'),'success');
+}
+async function deletePromo(id){
+  if(!confirm('Delete this promo code?'))return;
+  A.promos=A.promos.filter(x=>x.id!==id);
+  try{await API.deletePromo?.(id)}catch{}
+  localStorage.setItem('ctb_promos_admin',JSON.stringify(A.promos));
+  renderPromos();toast('Promo deleted','info');
+}
+
+/* ── MEMBERS ────────────────────────────────────────── */
+async function loadMembers(){
+  ge('member-tbody').innerHTML='<tr><td colspan="7" class="table-empty">Loading...</td></tr>';
+  try{
+    const res=await API.getAdminMembers();
+    A.members=res.data||[];renderMembers();
+  }catch(e){ge('member-tbody').innerHTML='<tr><td colspan="7" class="table-empty" style="color:var(--red)">Failed to load</td></tr>'}
+}
+function filterMembers(){renderMembers()}
+function renderMembers(){
+  const q=(ge('mem-search').value||'').toLowerCase();
+  const tier=ge('mem-tier-filter').value;
+  const st=ge('mem-status-filter').value;
+  const list=A.members.filter(m=>{
+    if(tier&&m.tier!==tier)return false;
+    if(st==='active'&&m.is_active===false)return false;
+    if(st==='inactive'&&m.is_active!==false)return false;
+    if(q&&!(m.name||'').toLowerCase().includes(q)&&!(m.phone||'').includes(q))return false;
+    return true;
+  });
+  if(!list.length){ge('member-tbody').innerHTML='<tr><td colspan="7" class="table-empty">No members found</td></tr>';return}
+  const tierCls={Bronze:'b-tier-bronze',Silver:'b-tier-silver',Gold:'b-tier-gold',Platinum:'b-tier-platinum',Diamond:'b-tier-diamond'};
+  ge('member-tbody').innerHTML=list.map(m=>`
+    <tr>
+      <td style="color:var(--tan);font-weight:600">${esc(m.name)}</td>
+      <td>${esc(m.phone)}</td>
+      <td style="color:var(--tan3);max-width:140px;overflow:hidden;text-overflow:ellipsis">${esc(m.email||'—')}</td>
+      <td><span class="badge ${tierCls[m.tier]||'b-pending'}">${m.tier}</span></td>
+      <td style="color:var(--gl);font-weight:600">${(m.points||0).toLocaleString()}</td>
+      <td>${m.total_orders||0}</td>
+      <td>
+        <div class="member-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openEditMember('${esc(m.id)}')">Edit</button>
+          <button class="btn ${m.is_active===false?'btn-grn':'btn-red'} btn-sm" onclick="toggleMember('${esc(m.id)}',${m.is_active!==false})">
+            ${m.is_active===false?'Restore':'Suspend'}
+          </button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+function openEditMember(id){
+  const m=A.members.find(x=>x.id===id);if(!m)return;
+  A.editMemberId=id;
+  ge('mm-title').textContent='Edit — '+m.name;
+  ge('mm-name').value=m.name||'';ge('mm-email').value=m.email||'';
+  ge('mm-phone').value=m.phone||'';ge('mm-tier').value=m.tier||'Bronze';
+  ge('mm-points').value=m.points||0;ge('mm-status').value=String(m.is_active!==false);
+  ge('mm-err').textContent='';
+  ge('member-modal').classList.add('on');
+}
+async function saveMember(){
+  if(!A.editMemberId)return;
+  const btn=ge('mm-save');btn.textContent='Saving...';btn.disabled=true;
+  const data={name:ge('mm-name').value,email:ge('mm-email').value,tier:ge('mm-tier').value,points:Number(ge('mm-points').value),is_active:ge('mm-status').value==='true'};
+  try{
+    await API.updateMemberFull?.(A.editMemberId,data)||await API.updateMemberPoints?.(A.editMemberId,data.points);
+    const m=A.members.find(x=>x.id===A.editMemberId);if(m)Object.assign(m,data);
+    btn.textContent='Save Changes';btn.disabled=false;
+    closeModal('member-modal');renderMembers();toast('Member updated','success');
+  }catch(e){btn.textContent='Save Changes';btn.disabled=false;ge('mm-err').textContent='Failed: '+e.message}
+}
+async function toggleMember(id,currentActive){
+  if(!confirm(currentActive?'Suspend this member?':'Restore this member?'))return;
+  try{
+    await API.updateMemberFull?.(id,{is_active:!currentActive});
+    const m=A.members.find(x=>x.id===id);if(m)m.is_active=!currentActive;
+    renderMembers();toast('Member '+(currentActive?'suspended':'restored'),'success');
+  }catch(e){toast('Failed','error')}
+}
+
+/* ── MODAL HELPERS ──────────────────────────────────── */
+function closeModal(id){ge(id).classList.remove('on')}
+document.querySelectorAll('.modal-backdrop').forEach(el=>{
+  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('on')});
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-backdrop.on').forEach(m=>m.classList.remove('on'))});
+
+/* ── BOOT ───────────────────────────────────────────── */
+window.onload=()=>{
+  // Auto-login if token exists (dev convenience)
+  const saved=localStorage.getItem('ctb_admin');
+  if(saved){try{A.admin=JSON.parse(saved);ge('login-overlay').style.display='none';ge('admin-name-chip').textContent=A.admin.name||'Admin';ge('admin-av').textContent=(A.admin.name||'A')[0].toUpperCase();initDashboard()}catch{}}
+};
 </script>
 </body>
 </html>
+<!-- check: file complete -->
