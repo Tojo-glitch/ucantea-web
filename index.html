@@ -1886,12 +1886,11 @@ var API = window.API || {
   createOrder:function(p){return new Promise(function(res){setTimeout(function(){res({id:'CTB-'+Date.now().toString(36).toUpperCase(),success:true})},1200)})},
   getMenu:function(){return Promise.resolve(MENUS)},
 };
-/* ── STORE STATUS (เปิด-ปิดร้าน + เวลา + Real-time) ────────────────────────── */
+/* ── STORE STATUS (เปิด-ปิดร้าน + เวลา + เตือน 30 นาที) ────────────────────────── */
 let isStoreOpen = true;
 
 function checkStoreStatus() {
   const status = localStorage.getItem('ctb_store_status');
-  // ดึงเวลาจากที่ Admin ตั้งไว้ (ถ้าไม่มีให้ใช้ค่าเริ่มต้น)
   const openTime = localStorage.getItem('ctb_open_time') || '09:00';
   const closeTime = localStorage.getItem('ctb_close_time') || '21:00';
   
@@ -1901,26 +1900,54 @@ function checkStoreStatus() {
   const txt = ge('storeStatusTxt');
   const placeBtn = ge('placeBtn');
   
-  // สร้างข้อความเวลา
-  const timeString = openTime + '–' + closeTime;
+  // --- คำนวณเวลาเหลือสำหรับเตือนร้านปิด ---
+  const now = new Date();
+  const [closeH, closeM] = closeTime.split(':').map(Number);
+  const closingDate = new Date();
+  closingDate.setHours(closeH, closeM, 0);
+  const diffMinutes = Math.round((closingDate - now) / 60000);
 
+  // --- กำหนดข้อความสถานะ ---
+  let statusText = '';
+  let dotColor = 'var(--grnl)';
+
+  if (isStoreOpen) {
+    if (diffMinutes > 0 && diffMinutes <= 30) {
+      // ⚠️ ร้านใกล้ปิด
+      statusText = `ใกล้ปิดร้านแล้ว! สั่งก่อนใน ${diffMinutes} นาที`;
+      dotColor = 'var(--red)';
+    } else if (diffMinutes <= 0) {
+      // ร้านปิดแล้ว (กรณีลืมกดปิดใน Admin)
+      statusText = 'Store Closed · ' + openTime + '–' + closeTime;
+      dotColor = 'var(--red)';
+      isStoreOpen = false;
+    } else {
+      // ร้านเปิดปกติ
+      statusText = 'Open now · ' + openTime + '–' + closeTime;
+      dotColor = 'var(--grnl)';
+    }
+  } else {
+    // ร้านปิดแล้ว
+    statusText = 'Store Closed · ' + openTime + '–' + closeTime;
+    dotColor = 'var(--red)';
+  }
+
+  // --- อัปเดตหน้าจอ ---
+  if(dot) dot.style.background = dotColor;
+  if(txt) txt.textContent = statusText;
+  
+  // --- ระบบปุ่มสั่งซื้อ ---
   if(isStoreOpen) {
-    if(dot) dot.style.background = 'var(--grnl)';
-    if(txt) txt.textContent = 'Open now · ' + timeString;
     if(placeBtn) { 
       placeBtn.disabled = false; 
       placeBtn.textContent = 'Confirm & Pay'; 
       placeBtn.style.opacity = '1'; 
     }
   } else {
-    if(dot) dot.style.background = 'var(--red)';
-    if(txt) txt.textContent = 'Store Closed · ' + timeString;
-    
-    // บังคับเปลี่ยนโหมดเป็น Pre-order ถ้าร้านปิด (ถ้าลูกค้าอยู่ในหน้าตะกร้า)
+    // ถ้าร้านปิด บังคับ Pre-order
     if(S.orderType !== 'preorder' && ge('cartOv').classList.contains('on')) {
        syncOT('preorder');
     }
-
     if(placeBtn) { 
       if(S.orderType !== 'preorder') {
         placeBtn.disabled = true; 
@@ -1938,6 +1965,7 @@ function checkStoreStatus() {
 /* ── INIT ───────────────────────────────────────────── */
 function init(){
   checkStoreStatus();
+  setInterval(checkStoreStatus, 60000);
   if(!isStoreOpen) { S.orderType = 'preorder'; } 
   applyTheme(S.theme);
   updClk();setInterval(updClk,10000);
