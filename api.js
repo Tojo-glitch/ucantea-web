@@ -53,7 +53,9 @@ const sb = {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
     Object.entries(eq).forEach(([k,v]) => url += `${k}=eq.${v}&`);
     const res = await fetch(url, {
-      method: 'PATCH', headers: sb.headers, body: JSON.stringify(data),
+      method: 'PATCH',
+      headers: sb.headers, // <--- ตรงนี้ใช้ Anon Key เดิม
+      body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
