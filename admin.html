@@ -1036,10 +1036,14 @@ tbody tr:hover{background:var(--c2)}
 <script src="/env-config.js"></script>
 <script src="/api.js"></script>
 <script>
+// 1. ประกาศตัวแปรไว้ข้างนอกสุด (Global Scope) เพื่อให้ฟังก์ชันอื่นมองเห็น
+  let supabaseClient;
+
   // ถ้าใน api.js ยังไม่ได้สร้าง supabase ให้สร้างตรงนี้ได้เลย
   // แต่ต้องมั่นใจว่า window.ENV มาครบแล้ว
   if (window.ENV && window.ENV.URL) {
-      const supabaseClient = supabase.createClient(window.ENV.URL, window.ENV.KEY);
+      // 2. เอาคำว่า const ออก เพื่อใส่ค่าลงในตัวแปรที่เราประกาศไว้ข้างบน
+      supabaseClient = supabase.createClient(window.ENV.URL, window.ENV.KEY);
       console.log("Supabase initialized!");
   } else {
       console.error("Environment variables not found!");
