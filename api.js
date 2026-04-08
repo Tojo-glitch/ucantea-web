@@ -14,7 +14,7 @@ const GAS_URL       = '';
 /* ── SUPABASE CLIENT ───────────────────────────────── */
 const sb = {
   // สร้าง function เล็กๆ สำหรับดึง headers จะได้อัปเดต token ได้ตลอด
-  getHeaders() {
+  get headers() {
     const adminToken = localStorage.getItem('ctb_admin_token');
     const clientToken = localStorage.getItem('ctb_token'); // ของฝั่งลูกค้า
     
@@ -36,7 +36,7 @@ const sb = {
     if (params.neq)     Object.entries(params.neq).forEach(([k,v]) => url += `${k}=neq.${v}&`);
     if (params.order)   url += `order=${params.order}&`;
     if (params.limit)   url += `limit=${params.limit}&`;
-    const res = await fetch(url, { headers: sb.headers });
+    const res = await fetch(url, { headers: sb.getHeaders() }); 
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   },
