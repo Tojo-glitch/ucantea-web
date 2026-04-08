@@ -1984,15 +1984,20 @@ function init(){
   var _origLogin=doLogin;
 }
 init();
-// ⚡️ REAL-TIME LISTENER: ดักจับเมื่อ Admin เปลี่ยนค่าในอีกหน้าต่าง
+/* ══════════════════════════════════════════════════════
+   ⚡️ REAL-TIME STORE STATUS LISTENER (ฟังเสียงจาก Admin)
+   ══════════════════════════════════════════════════════ */
 window.addEventListener('storage', function(e) {
-  if(e.key === 'ctb_store_status' || e.key === 'ctb_open_time' || e.key === 'ctb_close_time') {
+  // เมื่อ Admin เปลี่ยนสถานะร้าน หรือ เวลาปิด-เปิด
+  if (e.key === 'ctb_shop_open' || e.key === 'ctb_open_time' || e.key === 'ctb_close_time') {
+    
+    // เรียกฟังก์ชันอัปเดตหน้าจอทันที
     checkStoreStatus();
     
-    // เด้งแจ้งเตือนลูกค้าถ้าร้านถูกปิดกะทันหัน
-    if(e.key === 'ctb_store_status') {
-      if(e.newValue === 'closed') {
-        toast('🔴 ร้านปิดรับออเดอร์ปกติแล้ว (กรุณาสั่งล่วงหน้า)');
+    // 🔔 แจ้งเตือนลูกค้าให้รู้ตัว
+    if (e.key === 'ctb_shop_open') {
+      if (e.newValue === 'false') {
+        toast('🔴 ร้านปิดรับออเดอร์แล้ว (กรุณาสั่งล่วงหน้าแทน)');
       } else {
         toast('🟢 ร้านเปิดรับออเดอร์แล้ว!');
       }
