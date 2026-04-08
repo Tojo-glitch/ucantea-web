@@ -1089,11 +1089,15 @@ function toast(msg,type='info',dur=3000){
 
 /* ── LOGIN ──────────────────────────────────────────── */
 // --- ระบบ Login แอดมิน (เชื่อม Supabase Auth) ---
-  async function adminLogin() {
-    // ดึงค่าจาก HTML ชุดใหม่ที่เราเพิ่งแก้ (ต้องชื่อตรงกับ id เป๊ะๆ)
-    const emailInput = document.getElementById('adminEmail');
-    const passInput = document.getElementById('adminPass');
-    const btn = document.getElementById('loginBtn');
+   async function adminLogin() {
+     const email = document.getElementById('lg-user').value.trim();
+     const pass  = document.getElementById('lg-pass').value;
+     // ไม่ต้อง hash — adminSecureLogin ส่ง password ตรงไป Supabase Auth
+     const res = await API.adminSecureLogin(email, pass);
+     if (!res.success) { /* แสดง error */ return; }
+     // login สำเร็จ
+     document.getElementById('login-overlay').style.display = 'none';
+     initDashboard();
 
     // เผื่อหา element ไม่เจอ
     if (!emailInput || !passInput || !btn) {
