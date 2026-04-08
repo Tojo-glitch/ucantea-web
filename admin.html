@@ -1087,21 +1087,17 @@ function toast(msg,type='info',dur=3000){
   clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),dur);
 }
 
-/* ── LOGIN ──────────────────────────────────────────── */
-// --- ระบบ Login แอดมิน (เชื่อม Supabase Auth) ---
-   async function adminLogin() {
-     const email = document.getElementById('lg-user').value.trim();
-     const pass  = document.getElementById('lg-pass').value;
-     // ไม่ต้อง hash — adminSecureLogin ส่ง password ตรงไป Supabase Auth
-     const res = await API.adminSecureLogin(email, pass);
-     if (!res.success) { /* แสดง error */ return; }
-     // login สำเร็จ
-     document.getElementById('login-overlay').style.display = 'none';
-     initDashboard();
+/* ── ADMIN LOGIN (เชื่อม Supabase Auth) ────────────────────────── */
+  async function adminLogin() {
+    // 1. ดึงค่าจากช่อง Input (ตรวจสอบให้แน่ใจว่า ID ตรงกับ HTML ของคุณ)
+    // *หากใน HTML คุณใช้ id="lg-user" และ id="lg-pass" ให้เปลี่ยนตรงนี้ตามนะครับ*
+    const emailInput = document.getElementById('adminEmail'); 
+    const passInput = document.getElementById('adminPass');
+    const btn = document.getElementById('loginBtn');
 
     // เผื่อหา element ไม่เจอ
     if (!emailInput || !passInput || !btn) {
-      console.error('Cannot find login elements!');
+      console.error('Cannot find login elements! Please check HTML IDs.');
       return;
     }
 
@@ -1113,17 +1109,18 @@ function toast(msg,type='info',dur=3000){
       return;
     }
 
-    // เปลี่ยนปุ่มเป็นสถานะโหลด
+    // 2. เปลี่ยนสถานะปุ่มตอนกำลังโหลด
     btn.textContent = 'Authenticating...';
     btn.disabled = true;
 
     try {
-      // ยิงไปหา Supabase Auth
+      // 3. ยิงคำสั่ง Login ไปหา Supabase โดยตรง (ปลอดภัยที่สุด ไม่ต้อง Hash เอง)
       const { data, error } = await sbClient.auth.signInWithPassword({
         email: email,
         password: pass,
       });
 
+      // ถ้ารหัสผิด หรือเกิด Error
       if (error) {
         alert('Login Failed: ' + error.message);
         btn.textContent = 'Sign In to Workspace';
@@ -1131,32 +1128,41 @@ function toast(msg,type='info',dur=3000){
         return;
       }
 
-      // ถ้ารหัสถูก ปิดหน้าต่าง Login แล้วโหลดข้อมูล
+      // 4. ล็อกอินสำเร็จ! เก็บ Token ไว้ให้ api.js ไปใช้งานต่อ
+      if (data.session) {
+        localStorage.setItem('ctb_admin_token', data.session.access_token);
+      }
+
+      // 5. ปิดหน้าต่าง Login แล้วเตรียมความพร้อม Dashboard
       document.getElementById('login-overlay').style.display = 'none';
       alert('Welcome Admin!');
       
-      // เรียกฟังก์ชันเตรียมหน้า Dashboard
+      // เรียกฟังก์ชันโหลดข้อมูลต่างๆ (ตามที่คุณมี)
       loadStoreStatus(); 
       loadStoreHours(); 
       updateStoreUI();
       loadOrders();
 
     } catch (err) {
-      alert('Connection Error');
+      alert('Connection Error. Please check your internet or Supabase status.');
       console.error(err);
       btn.textContent = 'Sign In to Workspace';
       btn.disabled = false;
     }
   }
 
-  // --- เช็คตอนเปิดเว็บว่าเคยล็อกอินไว้ไหม ---
+  /* ── AUTO-LOGIN (เช็คตอนเปิดเว็บ) ──────────────────────────────── */
   window.onload = async () => { 
-    // เช็คว่ามี session ค้างอยู่ไหม (Supabase จำไว้ให้)
+    // เช็คว่ามี session ค้างอยู่ไหม (Supabase จำไว้ให้ใน LocalStorage)
     const { data: { session } } = await sbClient.auth.getSession();
     
     if (session) {
-      // ถ้าเคยล็อกอินแล้ว ซ่อนหน้าล็อกอินไปเลย
+      // ถ้าเคยล็อกอินไว้แล้ว ให้ซ่อนหน้าล็อกอินไปเลย
       document.getElementById('login-overlay').style.display = 'none';
+      // เก็บ Token ล่าสุดไว้เผื่อหมดอายุแล้วรีเฟรชใหม่
+      localStorage.setItem('ctb_admin_token', session.access_token);
+      
+      // โหลดข้อมูล Dashboard
       loadStoreStatus(); 
       loadStoreHours(); 
       updateStoreUI();
@@ -1164,11 +1170,14 @@ function toast(msg,type='info',dur=3000){
     }
   };
 
-function adminLogout(){
-  if(A.pollTimer)clearInterval(A.pollTimer);
-  localStorage.removeItem('ctb_admin');
-  location.reload();
-}
+  /* ── LOGOUT ──────────────────────────────────────────────────── */
+  async function adminLogout() {
+    // ลบ Timer (ถ้ามี)
+    if (A.pollTimer) clearInterval(A.pollTimer);
+    await sbClient.auth.signOut();
+    localStorage.removeItem('ctb_admin_token');
+    location.reload();
+  }
 
 /* ── INIT ───────────────────────────────────────────── */
 async function initDashboard(){
