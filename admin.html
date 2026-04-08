@@ -1177,6 +1177,14 @@ async function initDashboard(){
   ge('close-time').value=localStorage.getItem('ctb_close_time')||'21:00';
 }
 
+// ตรวจสอบให้แน่ใจว่าวางฟังก์ชันนี้ไว้ในระดับเดียวกับ adminLogin (ไม่อยู่ในปีกกาของ function อื่น)
+  function loadStoreHours() {
+    const open = localStorage.getItem('ctb_open_time') || '09:00';
+    const close = localStorage.getItem('ctb_close_time') || '21:00';
+    if(document.getElementById('openTime')) document.getElementById('openTime').value = open;
+    if(document.getElementById('closeTime')) document.getElementById('closeTime').value = close;
+  }
+
 function checkConnection(){
   const sbEl=ge('sb-status');
   if(!sbEl)return;
