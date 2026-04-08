@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Ceramic — Artisan Tea</title>
+<script src="/env-config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ─── TOKENS (dark default) ─── */
@@ -662,8 +663,6 @@ body, #app, .ov, #splash, #loader {
     justify-content: center !important;
 }
 </style>
-<script src="env-config.js"></script>
-<script src="js/api.js"></script> 
 </head>
 <body>
 
@@ -1895,8 +1894,8 @@ function checkStoreStatus() {
   const status = localStorage.getItem('ctb_shop_open');
   const openTime = localStorage.getItem('ctb_open_time') || '09:00';
   const closeTime = localStorage.getItem('ctb_close_time') || '21:00';
-  
-  isStoreOpen = status !== 'closed';
+
+  isStoreOpen = status === null ? true : status === 'true';
 
   const dot = ge('liveDot');
   const txt = ge('storeStatusTxt');
