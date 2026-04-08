@@ -1115,7 +1115,7 @@ function toast(msg,type='info',dur=3000){
 
     try {
       // ยิงไปหา Supabase Auth
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
+      const { data, error } = await sbClient.auth.signInWithPassword({
         email: email,
         password: pass,
       });
@@ -1148,7 +1148,7 @@ function toast(msg,type='info',dur=3000){
   // --- เช็คตอนเปิดเว็บว่าเคยล็อกอินไว้ไหม ---
   window.onload = async () => { 
     // เช็คว่ามี session ค้างอยู่ไหม (Supabase จำไว้ให้)
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const { data: { session } } = await sbClient.auth.getSession();
     
     if (session) {
       // ถ้าเคยล็อกอินแล้ว ซ่อนหน้าล็อกอินไปเลย
