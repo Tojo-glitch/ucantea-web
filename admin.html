@@ -1039,7 +1039,7 @@ tbody tr:hover{background:var(--c2)}
   // ถ้าใน api.js ยังไม่ได้สร้าง supabase ให้สร้างตรงนี้ได้เลย
   // แต่ต้องมั่นใจว่า window.ENV มาครบแล้ว
   if (window.ENV && window.ENV.URL) {
-      const supabase = supabase.createClient(window.ENV.URL, window.ENV.KEY);
+      const supabaseClient = supabase.createClient(window.ENV.URL, window.ENV.KEY);
       console.log("Supabase initialized!");
   } else {
       console.error("Environment variables not found!");
