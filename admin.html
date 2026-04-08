@@ -1226,6 +1226,11 @@ function loadStoreStatus(){
 function toggleStore(){
   A.storeOpen=!A.storeOpen;
   localStorage.setItem('ctb_shop_open',String(A.storeOpen));
+  window.dispatchEvent(new StorageEvent('storage', {
+  key: 'ctb_shop_open',
+  newValue: String(A.storeOpen)
+  }));
+  
   // Sync to Supabase store_config table if available
   if(window.API?.setStoreStatus){
     API.setStoreStatus(A.storeOpen).catch(()=>{});
