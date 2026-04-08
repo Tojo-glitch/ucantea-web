@@ -22,10 +22,10 @@ const sb = {
     const tokenToUse = adminToken || clientToken || SUPABASE_ANON;
     
     return {
-      'apikey': SUPABASE_ANON,
-      'Authorization': `Bearer ${tokenToUse}`, // << ตรงนี้แหละคือความปลอดภัย!
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation',
+      'apikey':        SUPABASE_ANON,
+      'Authorization': `Bearer ${SUPABASE_ANON}`,
+      'Content-Type':  'application/json',
+      'Prefer':        'return=representation',
     };
   },
 
