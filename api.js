@@ -115,8 +115,8 @@ const sb = {
       if (user && (user.role === 'MANAGER' || user.role === 'ADMIN')) {
         return { success: true, managerName: user.name };
       }
-      return { success: false, message: 'รหัสผ่านไม่ถูกต้อง หรือคุณไม่มีสิทธิ์ระดับผู้จัดการ' };
-    }
+     return { success: false, message: 'Invalid credentials' };
+  },
     // Mock Data
     await _delay(300);
     if(pin === '9999') return { success: true, managerName: 'Admin' };
