@@ -291,7 +291,7 @@ window.API = {
         payment_method: 'transfer',
         promo_code: promoCode || null,
         discount: disc || 0,
-        status: 'PENDING',
+        status: params.status || 'PENDING',
         delivery_address: address || null,
         delivery_phone: contactPhone || null,
         pickup_time: pickupTime || null,
