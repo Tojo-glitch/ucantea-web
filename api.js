@@ -278,6 +278,55 @@ window.API = {
     return { success: true };
   },
 
+  /* ── HR & ONBOARDING ────────────────────────────── */
+  
+  // 1. Admin สร้างตั๋วเชิญพนักงานใหม่
+  async inviteStaff(data) {
+    if (BACKEND_MODE === 'supabase') {
+      const res = await sb.insert('staff', {
+        username: data.username,
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        onboarding_status: 'PENDING'
+      });
+      return { success: true, staff: res[0] };
+    }
+    return { success: true };
+  },
+
+  // 2. อัปโหลดเอกสาร / ลายเซ็น เข้า Bucket 'hr_docs'
+  async uploadHrDoc(fileOrBlob, fileName) {
+    if (BACKEND_MODE === 'supabase') {
+      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/hr_docs/${fileName}`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Content-Type': fileOrBlob.type || 'image/png' },
+        body: fileOrBlob,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      return `${SUPABASE_URL}/storage/v1/object/public/hr_docs/${fileName}`;
+    }
+    return 'https://via.placeholder.com/150';
+  },
+
+  // 3. พนักงานกดยืนยันการสมัคร (อัปเดตข้อมูล)
+  async completeOnboarding(staffId, data) {
+    if (BACKEND_MODE === 'supabase') {
+      const passHash = await _sha256(data.password + 'CTB_SALT_2025');
+      const pinHash = await _sha256(data.pin + 'CTB_SALT_2025');
+      
+      await sb.update('staff', {
+        password_hash: passHash,
+        pos_pin_hash: pinHash,
+        id_card_url: data.idCardUrl,
+        signature_url: data.signatureUrl,
+        onboarding_status: 'COMPLETED'
+      }, { id: staffId });
+      return { success: true };
+    }
+    return { success: true };
+  },
+
   /* ── ADMIN: SECURE LOGIN (ใช้ Supabase Auth) ────────────────────────── */
   async adminSecureLogin(email, password) {
     if (BACKEND_MODE === 'supabase') {
