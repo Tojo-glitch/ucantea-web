@@ -885,6 +885,86 @@ tbody tr:hover{background:var(--c2)}
           <div class="info-val" id="om-customer">Guest</div>
         </div>
       </div>
+
+      <!-- 🛑 MODAL: INVITE STAFF -->
+<div class="modal-backdrop" id="invite-staff-modal">
+  <div class="modal" style="width: 400px;">
+    <div class="modal-head">
+      <div class="modal-title">Invite New Staff</div>
+      <div class="modal-close" onclick="document.getElementById('invite-staff-modal').classList.remove('on')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px; color:var(--tan3); margin-bottom:16px;">
+        ระบบจะสร้างลิงก์สำหรับให้พนักงานกรอกข้อมูลส่วนตัว, แนบรูปบัตร ปชช. และตั้งรหัสผ่านด้วยตัวเอง
+      </div>
+      <div class="field">
+        <label class="field-label">Full Name</label>
+        <input class="field-input" id="is-name" type="text" placeholder="ชื่อ - นามสกุล">
+      </div>
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" id="is-email" type="email" placeholder="email@example.com">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Username</label>
+          <input class="field-input" id="is-user" type="text" placeholder="สำหรับ Log in">
+        </div>
+        <div class="field">
+          <label class="field-label">Role</label>
+          <select class="field-input" id="is-role">
+            <option value="STAFF">Staff (Cashier)</option>
+            <option value="MANAGER">Manager</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- ส่วนแสดงลิงก์หลังกดสร้าง -->
+      <div id="invite-link-area" style="display:none; margin-top:16px; padding:12px; background:rgba(74,173,117,.1); border:1px solid var(--grnl); border-radius:8px;">
+        <div style="font-size:11px; color:var(--grnl); margin-bottom:4px; font-weight:bold;">✅ สร้างสำเร็จ! คัดลอกลิงก์นี้ส่งให้พนักงาน:</div>
+        <input type="text" id="invite-link-url" class="field-input" style="font-size:11px; color:var(--gl);" readonly>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" style="width:100%; justify-content:center;" id="btn-create-invite" onclick="generateInvite()">Generate Invite Link</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ฟังก์ชันสร้างตั๋วเชิญพนักงาน
+  function openInviteModal() {
+    document.getElementById('invite-link-area').style.display = 'none';
+    document.getElementById('btn-create-invite').style.display = 'flex';
+    document.getElementById('invite-staff-modal').classList.add('on');
+  }
+
+  function generateInvite() {
+    const name = document.getElementById('is-name').value;
+    const email = document.getElementById('is-email').value;
+    const user = document.getElementById('is-user').value;
+    const role = document.getElementById('is-role').value;
+
+    if(!name || !email || !user) { alert('กรุณากรอกข้อมูลให้ครบ'); return; }
+
+    const btn = document.getElementById('btn-create-invite');
+    btn.textContent = 'Generating...'; btn.disabled = true;
+
+    API.inviteStaff({ name, email, username: user, role }).then(res => {
+      if(res.success) {
+        // สร้างลิงก์ให้ Admin ก๊อปปี้ส่ง Line ให้พนักงาน
+        const link = `${window.location.origin}/onboarding.html?id=${res.staff.id}`;
+        document.getElementById('invite-link-url').value = link;
+        document.getElementById('invite-link-area').style.display = 'block';
+        btn.style.display = 'none';
+      } else {
+        alert('Error generating invite');
+        btn.textContent = 'Generate Invite Link'; btn.disabled = false;
+      }
+    });
+  }
+</script>
       <div id="om-delivery-info"></div>
       <div style="font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Order Items</div>
       <div class="order-items-list" id="om-items"></div>
