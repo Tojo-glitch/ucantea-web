@@ -101,40 +101,6 @@ const sb = {
 };
 
 /* ── POS & STAFF AUTH ─────────────────────────────── */
-  // ดึงรายชื่อสาขาทั้งหมดที่เปิดอยู่
-  async getBranches() {
-    if (BACKEND_MODE === 'supabase') {
-      const branches = await sb.query('branches', { eq: { is_open: true }, select: '*', order: 'sort_order' });
-      return { success: true, data: branches };
-    }
-    // Mock
-    return { success: true, data: [{id:'BR001', name:'Main Branch — Siam'}, {id:'BR002', name:'Thonglor Branch'}] };
-  },
-
-  // ล็อกอินพนักงานหน้าร้าน POS
-  async staffLogin(username, pin) {
-    if (BACKEND_MODE === 'supabase') {
-      // ทำการ Hash PIN ให้ตรงกับที่บันทึกในฐานข้อมูล
-      const hashed = await _sha256(pin + 'CTB_SALT_2025');
-      
-      const res = await sb.query('staff', { 
-        eq: { username: username, password_hash: hashed, is_active: true }, 
-        select: 'id, username, name, role' 
-      });
-      
-      if (res && res.length > 0) {
-        return { success: true, staff: res[0] };
-      }
-      return { success: false, message: 'Username หรือ PIN ไม่ถูกต้อง / บัญชีถูกระงับ' };
-    }
-    
-    // Mock
-    await _delay(500);
-    if(username === 'staff1' && pin === '1234') {
-      return { success: true, staff: { id: 's1', username: 'staff1', name: 'Cashier 1', role: 'STAFF' }};
-    }
-    return { success: false, message: 'Invalid credentials' };
-  },
 
 // ตรวจสอบรหัส PIN ของระดับ Manager / Admin
   async verifyManagerPin(pin) {
@@ -213,7 +179,40 @@ const _mockCats = [
    All functions return Promise<{success, ...}>
 ══════════════════════════════════════════════════════ */
 window.API = {
+    // ดึงรายชื่อสาขาทั้งหมดที่เปิดอยู่
+  async getBranches() {
+    if (BACKEND_MODE === 'supabase') {
+      const branches = await sb.query('branches', { eq: { is_open: true }, select: '*', order: 'sort_order' });
+      return { success: true, data: branches };
+    }
+    // Mock
+    return { success: true, data: [{id:'BR001', name:'Main Branch — Siam'}, {id:'BR002', name:'Thonglor Branch'}] };
+  },
 
+  // ล็อกอินพนักงานหน้าร้าน POS
+  async staffLogin(username, pin) {
+    if (BACKEND_MODE === 'supabase') {
+      // ทำการ Hash PIN ให้ตรงกับที่บันทึกในฐานข้อมูล
+      const hashed = await _sha256(pin + 'CTB_SALT_2025');
+      
+      const res = await sb.query('staff', { 
+        eq: { username: username, password_hash: hashed, is_active: true }, 
+        select: 'id, username, name, role' 
+      });
+      
+      if (res && res.length > 0) {
+        return { success: true, staff: res[0] };
+      }
+      return { success: false, message: 'Username หรือ PIN ไม่ถูกต้อง / บัญชีถูกระงับ' };
+    }
+    
+    // Mock
+    await _delay(500);
+    if(username === 'staff1' && pin === '1234') {
+      return { success: true, staff: { id: 's1', username: 'staff1', name: 'Cashier 1', role: 'STAFF' }};
+    }
+    return { success: false, message: 'Invalid credentials' };
+  },
   /* ── AUTH ─────────────────────────────────────────── */
   async login({ phone, hashedPassword }) {
     if (BACKEND_MODE === 'supabase') {
