@@ -136,6 +136,27 @@ const sb = {
     return { success: false, message: 'Invalid credentials' };
   },
 
+// ตรวจสอบรหัส PIN ของระดับ Manager / Admin
+  async verifyManagerPin(pin) {
+    if (BACKEND_MODE === 'supabase') {
+      const hashed = await _sha256(pin + 'CTB_SALT_2025');
+      // ค้นหาพนักงานที่รหัสผ่านตรง และต้องมี Role เป็น MANAGER หรือ ADMIN เท่านั้น
+      const res = await sb.query('staff', { 
+        eq: { password_hash: hashed, is_active: true }, 
+        select: 'id, name, role' 
+      });
+      const user = res[0];
+      if (user && (user.role === 'MANAGER' || user.role === 'ADMIN')) {
+        return { success: true, managerName: user.name };
+      }
+      return { success: false, message: 'รหัสผ่านไม่ถูกต้อง หรือคุณไม่มีสิทธิ์ระดับผู้จัดการ' };
+    }
+    // Mock Data
+    await _delay(300);
+    if(pin === '9999') return { success: true, managerName: 'Admin' };
+    return { success: false, message: 'Invalid PIN' };
+  },
+
 /* ── HELPERS ───────────────────────────────────────── */
 const _delay = (ms = 600) => new Promise(r => setTimeout(r, ms));
 
