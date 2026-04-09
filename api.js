@@ -36,7 +36,7 @@ const sb = {
     if (params.neq)     Object.entries(params.neq).forEach(([k,v]) => url += `${k}=neq.${v}&`);
     if (params.order)   url += `order=${params.order}&`;
     if (params.limit)   url += `limit=${params.limit}&`;
-    const res = await fetch(url, { headers: sb.getHeaders() }); 
+    const res = await fetch(url, { headers: sb.headers });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   },
