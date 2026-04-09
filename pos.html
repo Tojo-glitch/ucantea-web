@@ -181,22 +181,43 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
   let CUR_MEMBER = null;
   let ORDER_TYPE = 'dine-in';
 
+   // ตัวแปรสำหรับระบบแจ้งเตือน
+  let pendingOrders = [];
+  let checkingOrderId = null;
+  let isAudioUnlocked = false; // ป้องกันเบราว์เซอร์บล็อกเสียง
+  
   // --- INIT & LOGIN ---
   function doLogin() {
     const pin = document.getElementById('pinInp').value;
     if(pin === '1234' || pin.length >= 4) { // Mock PIN validation
       document.getElementById('loginOv').classList.remove('on');
       document.getElementById('staffName').textContent = 'Staff: Cashier 1';
+
+         // ทริคปลดล็อกเสียงของ Browser: สั่งเล่นเสียงเงียบๆ 1 ครั้งตอนกด Login
+      const audio = document.getElementById('posAlert');
+      audio.volume = 0; // ปิดเสียงชั่วคราว
+      audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 1; // คืนระดับเสียง
+        isAudioUnlocked = true;
+      }).catch(e => console.log('Audio init blocked:', e));
+      
       loadMenuData();
+
+      // เริ่มดึงข้อมูลออเดอร์ออนไลน์ (ตรวจสลิป)
+      setInterval(pollIncomingOrders, 5000);
+      pollIncomingOrders();
+      
     } else {
       alert('Invalid PIN');
     }
   }
 
-  // --- MENU ---
+  // --- 3. MENU & TICKET (ฟังก์ชันหน้าร้าน) ---
   function loadMenuData() {
     API.getMenu().then(res => {
-      MENUS = res.products || window.MENUS || []; // Fallback if API fails
+      MENUS = res.products || window.MENUS || [];
       buildCats();
       renderMenu(MENUS);
     });
@@ -229,8 +250,6 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
   function addToTicket(id) {
     const item = MENUS.find(m => m.id === id);
     if(!item) return;
-
-    // Default POS options (Regular size, Regular sweet/ice)
     const existing = TICKET.find(t => t.id === id);
     if(existing) {
       existing.qty += 1;
@@ -256,7 +275,6 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
       updateTicket();
     }
   }
-
   function updateTicket() {
     const el = document.getElementById('ticketItems');
     let subtotal = 0;
@@ -321,10 +339,10 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
   }
 
   // --- CHECKOUT ---
-  function setOrderType(type, btn) {
+function setOrderType(type, btn) {
     ORDER_TYPE = type;
-    document.getElementById('btnDineIn').style = "flex:1;";
-    document.getElementById('btnTakeaway').style = "flex:1;";
+    document.getElementById('btnDineIn').style = "flex:1; background:var(--c3); color:var(--tan2); border-color:var(--ln2);";
+    document.getElementById('btnTakeaway').style = "flex:1; background:var(--c3); color:var(--tan2); border-color:var(--ln2);";
     btn.style = "flex:1; background:rgba(212,170,106,.1); color:var(--gl); border-color:rgba(212,170,106,.3);";
   }
 
@@ -332,56 +350,65 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
   let pendingOrders = [];
   let checkingOrderId = null;
   
-  // ดึงออเดอร์ที่รอตรวจสลิปทุกๆ 5 วินาที
+ // --- 2. ONLINE ORDERS & ALERTS (ตรวจสลิป) ---
   function pollIncomingOrders() {
-    API.getAdminOrders().then(res => { // ใช้ API เดียวกับ Admin ได้เลย
+    API.getAdminOrders().then(res => {
       if(!res.success) return;
-      const newPendings = res.data.filter(o => o.status === 'PENDING');
+      // กรองเฉพาะออเดอร์ออนไลน์ที่รอตรวจสลิป (และไม่ใช่ของ POS เอง)
+      const newPendings = res.data.filter(o => o.status === 'PENDING' && o.source !== 'POS');
       
-      // ถ้ามีออเดอร์ใหม่เข้ามา (จำนวนเพิ่มขึ้น) ให้เล่นเสียงเตือน
-      if(newPendings.length > pendingOrders.length) {
-        document.getElementById('posAlert').play().catch(e => console.log('Auto-play blocked'));
+      // ถ้ามีออเดอร์ใหม่เพิ่มขึ้นจากรอบที่แล้ว -> ให้เล่นเสียง!
+      if(newPendings.length > pendingOrders.length && isAudioUnlocked) {
+        const audio = document.getElementById('posAlert');
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log('Auto-play blocked'));
       }
+      
       pendingOrders = newPendings;
       renderPendingList();
     });
   }
   
-function renderPendingList() {
-  const el = document.getElementById('pendingAlertZone');
-  if(!el) return;
+  function renderPendingList() {
+    const el = document.getElementById('pendingAlertZone');
+    if(!el) return;
 
-  if(pendingOrders.length === 0) {
-    el.innerHTML = '';
-  } else {
-    el.innerHTML = `<div style="background:rgba(212,170,106,.1); border-bottom:1px solid var(--line); padding:16px 24px;">
-      <div style="font-weight:700; color:var(--gl); margin-bottom:8px; font-size:14px;">🔔 ${pendingOrders.length} Order(s) รอตรวจสลิป!</div>
-      ${pendingOrders.map(o => `
-        <button style="width:100%; text-align:left; background:var(--c1); border:1px solid var(--gl); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openSlipCheck('${o.id}', '${o.slip_url || ''}', ${o.total_amount})">
-          <div><span style="font-weight:600; color:var(--tan);">${o.id}</span><br><span style="font-size:12px; color:var(--tan3);">ยอดโอน ฿${o.total_amount}</span></div>
-          <span style="background:var(--gl); color:var(--c0); font-size:12px; font-weight:700; padding:6px 12px; border-radius:6px;">ตรวจสลิป</span>
-        </button>
-      `).join('')}
-    </div>`;
+    if(pendingOrders.length === 0) {
+      el.innerHTML = '';
+    } else {
+      el.innerHTML = `<div style="background:rgba(212,170,106,.1); border-bottom:1px solid var(--line); padding:16px 24px;">
+        <div style="font-weight:700; color:var(--gl); margin-bottom:8px; font-size:14px; display:flex; align-items:center; gap:8px;">
+          <div style="width:10px;height:10px;background:var(--red);border-radius:50%;animation:pulse 1.5s infinite;"></div>
+          ${pendingOrders.length} ออเดอร์ออนไลน์ รอตรวจสลิป!
+        </div>
+        ${pendingOrders.map(o => `
+          <button style="width:100%; text-align:left; background:var(--c1); border:1px solid var(--gl); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openSlipCheck('${o.id}', '${o.slip_url || ''}', ${o.total_amount})">
+            <div><span style="font-weight:600; color:var(--tan);">${o.id}</span><br><span style="font-size:12px; color:var(--tan3);">ยอดโอน ฿${o.total_amount}</span></div>
+            <span style="background:var(--gl); color:var(--c0); font-size:12px; font-weight:700; padding:6px 12px; border-radius:6px;">ตรวจสลิป</span>
+          </button>
+        `).join('')}
+      </div>
+      <style>@keyframes pulse { 0%{opacity:1;} 50%{opacity:0.3;} 100%{opacity:1;} }</style>`;
+    }
   }
-}
   
   function openSlipCheck(id, slipUrl, total) {
     checkingOrderId = id;
     document.getElementById('slipOrderId').textContent = id;
     document.getElementById('slipTotal').textContent = 'ยอดโอน: ฿' + total;
-    // ใช้รูปจำลองถ้าไม่มี url เพื่อการทดสอบ
-    document.getElementById('slipImg').src = slipUrl || 'https://via.placeholder.com/300x400?text=Customer+Slip'; 
+    document.getElementById('slipImg').src = slipUrl || 'https://via.placeholder.com/300x400?text=No+Slip+Image'; 
     document.getElementById('slipOv').classList.add('on');
   }
   
-  function decideOrder(status) {
-    const actionText = status === 'CONFIRMED' ? 'Approve ออเดอร์และส่งเข้าครัว?' : 'Cancel ออเดอร์นี้ (สลิปไม่ถูกต้อง)?';
-    if(confirm(`⚠️ ยืนยันการทำงาน:\nคุณแน่ใจหรือไม่ที่จะ ${actionText}`)) {
-      API.updateOrderStatus(checkingOrderId, status).then(() => {
+ function decideOrder(status) {
+    // ถ้า Approve ให้เปลี่ยนสถานะเป็น PREPARING (เข้าครัวเลย) หรือ CONFIRMED ก็ได้
+    const newStatus = status === 'CONFIRMED' ? 'PREPARING' : 'CANCELLED';
+    const actionText = status === 'CONFIRMED' ? 'Approve ยอดเงินถูกต้อง และส่งออเดอร์เข้าครัว?' : 'Cancel ออเดอร์นี้ (สลิปไม่ถูกต้อง)?';
+    
+    if(confirm(`⚠️ ยืนยัน:\n${actionText}`)) {
+      API.updateOrderStatus(checkingOrderId, newStatus).then(() => {
         document.getElementById('slipOv').classList.remove('on');
-        pollIncomingOrders(); // โหลดใหม่ทันที
-        alert('ทำรายการสำเร็จ');
+        pollIncomingOrders(); // รีเฟรชทันทีไม่ต้องรอ 5 วิ
       });
     }
   }
@@ -389,27 +416,28 @@ function renderPendingList() {
   // เริ่มดึงข้อมูล
   setInterval(pollIncomingOrders, 5000);
 
-  function processCheckout() {
+function processCheckout() {
     if(TICKET.length === 0) return;
     
     const total = TICKET.reduce((sum, t) => sum + (t.price * t.qty), 0);
     const btn = document.getElementById('payBtn');
     btn.textContent = 'Processing...';
+    btn.disabled = true;
 
     const payload = {
       items: TICKET,
       total: total,
-      branch: { id: 'BR001', name: 'Main Branch — Siam' }, // Default POS branch
+      branch: { id: 'BR001', name: 'Main Branch — Siam' },
       type: ORDER_TYPE,
       userId: CUR_MEMBER ? CUR_MEMBER.id : null,
-      source: 'POS'
+      source: 'POS',
+      status: 'PREPARING' // *** สำคัญ: ของหน้าร้านให้พุ่งเข้าครัวเลย (KDS) ไม่ต้องรอตรวจสลิป ***
     };
 
     API.createOrder(payload).then(res => {
-      alert(`Payment Successful!\nOrder ID: ${res.id || 'N/A'}`);
+      alert(`ชำระเงินเรียบร้อยแล้ว!\nOrder ID: ${res.id || 'N/A'}`);
       
-      // Print receipt logic can go here
-      
+      // ล้างตะกร้า
       TICKET = [];
       removeMember();
       updateTicket();
@@ -417,6 +445,7 @@ function renderPendingList() {
     }).catch(err => {
       alert('Checkout failed');
       btn.textContent = `Charge ฿${total}`;
+      btn.disabled = false;
     });
   }
 </script>
