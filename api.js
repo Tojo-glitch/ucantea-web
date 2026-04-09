@@ -101,8 +101,6 @@ const sb = {
 };
 
 /* ── POS & STAFF AUTH ─────────────────────────────── */
-
-// ตรวจสอบรหัส PIN ของระดับ Manager / Admin
   async verifyManagerPin(pin) {
     if (BACKEND_MODE === 'supabase') {
       const hashed = await _sha256(pin + 'CTB_SALT_2025');
@@ -213,6 +211,7 @@ window.API = {
     }
     return { success: false, message: 'Invalid credentials' };
   },
+  
   /* ── AUTH ─────────────────────────────────────────── */
   async login({ phone, hashedPassword }) {
     if (BACKEND_MODE === 'supabase') {
