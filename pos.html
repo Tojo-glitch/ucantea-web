@@ -19,11 +19,12 @@
 * { margin:0; padding:0; box-sizing:border-box; user-select:none; }
 body { background:var(--c0); color:var(--tan); font-family:var(--sans); height:100vh; display:flex; overflow:hidden; }
 button { font-family:var(--sans); cursor:pointer; border:none; background:none; outline:none; }
+input, textarea { font-family:var(--sans); outline:none; color:var(--tan); background:var(--c1); border:1px solid var(--ln2); border-radius:8px; padding:10px; }
 
 /* ─── LAYOUT ─── */
 .pos-layout { display:flex; width:100%; height:100%; }
 .pos-main { flex:1; display:flex; flex-direction:column; background:var(--c0); }
-.pos-sidebar { width:380px; background:var(--c1); border-left:1px solid var(--line); display:flex; flex-direction:column; flex-shrink:0; }
+.pos-sidebar { width:400px; background:var(--c1); border-left:1px solid var(--line); display:flex; flex-direction:column; flex-shrink:0; position:relative; }
 
 /* ─── HEADER & CATEGORIES ─── */
 .main-header { padding:20px 24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
@@ -35,7 +36,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .ctab.on { background:var(--gold); border-color:var(--gold); color:var(--c0); }
 
 /* ─── MENU GRID ─── */
-.menu-grid { flex:1; padding:24px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px; align-content:start; }
+.menu-grid { flex:1; padding:24px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:16px; align-content:start; }
 .m-card { background:var(--c1); border:1px solid var(--ln2); border-radius:14px; padding:16px; cursor:pointer; transition:transform .1s, border-color .15s; display:flex; flex-direction:column; }
 .m-card:active { transform:scale(0.96); border-color:var(--gl); }
 .m-name { font-family:var(--serif); font-size:16px; color:var(--tan); margin-bottom:4px; line-height:1.2; }
@@ -45,22 +46,24 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 /* ─── TICKET (SIDEBAR) ─── */
 .t-header { padding:20px 24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
 .t-title { font-family:var(--serif); font-size:20px; color:var(--tan); }
-.t-clear { font-size:12px; color:#e88080; font-weight:600; cursor:pointer; }
+.t-clear { font-size:12px; color:#e88080; font-weight:600; cursor:pointer; background:rgba(212,79,79,.1); padding:6px 12px; border-radius:6px; border:1px solid rgba(212,79,79,.3); }
 
 .t-items { flex:1; overflow-y:auto; padding:12px 24px; }
-.t-item { display:flex; justify-content:space-between; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--line); }
+.t-item { padding:12px 0; border-bottom:1px dashed var(--line); display:flex; flex-direction:column; gap:8px;}
 .t-item:last-child { border-bottom:none; }
-.ti-name { font-size:14px; font-weight:600; color:var(--tan); margin-bottom:4px; }
-.ti-opt { font-size:11px; color:var(--tan3); }
-.ti-price { font-size:14px; font-weight:600; color:var(--tan); text-align:right; }
-.ti-ctrl { display:flex; align-items:center; gap:12px; margin-top:8px; background:var(--c2); border-radius:8px; padding:4px; display:inline-flex; border:1px solid var(--ln2); }
+.ti-row { display:flex; justify-content:space-between; align-items:flex-start; }
+.ti-name { font-size:15px; font-weight:600; color:var(--tan); line-height:1.2; }
+.ti-opt { font-size:12px; color:var(--tan3); margin-top:4px; line-height:1.4; }
+.ti-note { font-size:11px; color:#e88080; margin-top:2px; font-style:italic; }
+.ti-price { font-size:15px; font-weight:600; color:var(--tan); text-align:right; min-width:50px; }
+.ti-ctrl { display:flex; align-items:center; gap:12px; background:var(--c2); border-radius:8px; padding:4px; width:fit-content; border:1px solid var(--ln2); }
 .ti-btn { width:28px; height:28px; background:var(--c3); border-radius:6px; color:var(--tan); font-size:16px; display:flex; align-items:center; justify-content:center; }
 .ti-qty { font-size:14px; font-weight:600; width:20px; text-align:center; }
 
 /* ─── CUSTOMER & CHECKOUT ─── */
 .t-member { padding:16px 24px; border-top:1px solid var(--line); background:var(--c2); }
 .mem-inp-row { display:flex; gap:8px; }
-.inp { flex:1; height:44px; background:var(--c1); border:1px solid var(--ln2); border-radius:10px; padding:0 14px; color:var(--tan); font-family:var(--sans); font-size:14px; outline:none; }
+.inp { flex:1; height:44px; }
 .btn-sm { height:44px; padding:0 16px; background:var(--c3); border:1px solid var(--ln2); border-radius:10px; color:var(--tan2); font-weight:600; font-size:13px; }
 .mem-info { display:flex; justify-content:space-between; align-items:center; background:rgba(212,170,106,.1); border:1px solid rgba(212,170,106,.2); padding:12px 16px; border-radius:10px; display:none; }
 .mem-name { font-size:13px; font-weight:600; color:var(--gl); }
@@ -69,24 +72,50 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 .t-summary { padding:16px 24px 24px; border-top:1px solid var(--line); background:var(--c1); }
 .sum-row { display:flex; justify-content:space-between; font-size:14px; color:var(--tan3); margin-bottom:8px; }
 .sum-row.total { font-size:20px; font-weight:600; color:var(--tan); margin-top:12px; margin-bottom:16px; }
-.sum-row.total .val { color:var(--gl); font-family:var(--serif); font-size:24px; }
-.btn-pay { width:100%; height:60px; background:var(--tan); border-radius:14px; font-size:16px; font-weight:600; color:var(--c0); transition:transform .1s; }
+.sum-row.total .val { color:var(--gl); font-family:var(--serif); font-size:28px; }
+.btn-pay { width:100%; height:60px; background:var(--grnl); border-radius:14px; font-size:18px; font-weight:700; color:var(--c0); transition:transform .1s; }
 .btn-pay:active { transform:scale(0.98); }
+.btn-pay:disabled { opacity:0.5; background:var(--tan3); cursor:not-allowed; }
 
-/* ─── OVERLAYS ─── */
-.overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); z-index:9000; display:none; align-items:center; justify-content:center; }
+/* ─── OVERLAYS & MODALS ─── */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(4px); z-index:9000; display:none; align-items:center; justify-content:center; }
 .overlay.on { display:flex; }
-.modal { background:var(--c1); border:1px solid var(--ln2); border-radius:16px; padding:32px; width:400px; text-align:center; }
-.modal-title { font-family:var(--serif); font-size:24px; color:var(--tan); margin-bottom:8px; }
+.modal { background:var(--c1); border:1px solid var(--ln2); border-radius:16px; padding:32px; width:450px; display:flex; flex-direction:column; max-height:90vh; }
+.modal-title { font-family:var(--serif); font-size:24px; color:var(--tan); margin-bottom:16px; text-align:center; }
+
+/* ─── ITEM CUSTOMIZATION MODAL ─── */
+.opt-group { margin-bottom:16px; }
+.opt-label { font-size:12px; color:var(--tan3); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px; font-weight:600; }
+.opt-grid { display:flex; gap:8px; flex-wrap:wrap; }
+.opt-btn { padding:10px 16px; background:var(--c2); border:1px solid var(--ln2); border-radius:8px; color:var(--tan2); font-size:14px; font-weight:500; flex:1; text-align:center; }
+.opt-btn.on { background:rgba(212,170,106,.15); border-color:var(--gl); color:var(--gl); }
+.addon-btn { display:flex; justify-content:space-between; padding:12px; background:var(--c2); border:1px solid var(--ln2); border-radius:8px; color:var(--tan); width:100%; margin-bottom:8px;}
+.addon-btn.on { background:rgba(74,173,117,.1); border-color:var(--grnl); color:var(--grnl); }
+
+/* ─── CHECKOUT MODAL ─── */
+.pay-method-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:24px; }
+.pay-btn { height:80px; background:var(--c2); border:1px solid var(--ln2); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--tan2); font-size:14px; font-weight:600; }
+.pay-btn.on { background:rgba(212,170,106,.15); border-color:var(--gl); color:var(--gl); }
+.quick-cash { display:flex; gap:8px; margin-bottom:16px; }
+.qc-btn { flex:1; height:40px; background:var(--c3); border:1px solid var(--ln2); border-radius:6px; color:var(--tan); font-weight:600; }
 </style>
 </head>
 <body>
-<!-- ใส่ไว้บนสุดของ <body> ใน pos.html -->
+
 <audio id="posAlert" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
 
-<!-- เพิ่ม Modal สำหรับตรวจสลิป (ใส่ไว้ใต้ Login Overlay) -->
+<!-- 1. LOGIN OVERLAY -->
+<div class="overlay on" id="loginOv">
+  <div class="modal" style="width:380px;">
+    <div class="brand" style="margin-bottom:24px; text-align:center;">Ceramic <span>POS</span></div>
+    <input type="password" id="pinInp" class="inp" placeholder="Staff PIN (e.g. 1234)" style="text-align:center; font-size:24px; letter-spacing:8px; height:60px;" onkeydown="if(event.key==='Enter') doLogin()">
+    <button class="btn-pay" style="height:54px; margin-top:24px; background:var(--tan); color:var(--c0);" onclick="doLogin()">Unlock POS</button>
+  </div>
+</div>
+
+<!-- 2. SLIP CHECK OVERLAY (ONLINE ORDERS) -->
 <div class="overlay" id="slipOv">
-  <div class="modal" style="width:500px;">
+  <div class="modal" style="width:500px; text-align:center;">
     <div class="modal-title" id="slipOrderId">CTB-XXXX</div>
     <div style="color:var(--tan3); margin-bottom:16px;">ตรวจสอบยอดเงินเข้าบัญชีให้ตรงกับสลิปนี้</div>
     <img id="slipImg" src="" style="width:100%; max-height:400px; object-fit:contain; background:#000; border-radius:8px; margin-bottom:20px;">
@@ -96,45 +125,150 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
       <button class="btn-sm" style="flex:1; background:rgba(212,79,79,.1); color:#e88080; border-color:rgba(212,79,79,.3);" onclick="decideOrder('CANCELLED')">❌ Cancel (สลิปไม่ผ่าน)</button>
       <button class="btn-pay" style="flex:1; height:44px;" onclick="decideOrder('CONFIRMED')">✅ Approve (เงินเข้าแล้ว)</button>
     </div>
-    <button class="t-clear" style="margin-top:16px;" onclick="document.getElementById('slipOv').classList.remove('on')">ปิดหน้าต่าง</button>
-  </div>
-</div>
-  
-<!-- LOGIN OVERLAY -->
-<div class="overlay on" id="loginOv">
-  <div class="modal">
-    <div class="brand" style="margin-bottom:24px;">Ceramic <span>POS</span></div>
-    <input type="password" id="pinInp" class="inp" placeholder="Enter Staff PIN (e.g. 1234)" style="text-align:center; font-size:20px; letter-spacing:4px;" onkeydown="if(event.key==='Enter') doLogin()">
-    <button class="btn-pay" style="height:48px; margin-top:16px;" onclick="doLogin()">Unlock POS</button>
+    <button class="btn-sm" style="margin-top:16px; background:transparent; border:none; color:var(--tan3);" onclick="document.getElementById('slipOv').classList.remove('on')">ปิดหน้าต่าง</button>
   </div>
 </div>
 
+<!-- 3. ITEM CUSTOMIZATION MODAL -->
+<div class="overlay" id="itemOv">
+  <div class="modal" style="width:480px; padding:24px;">
+    <div class="modal-title" id="itemName" style="text-align:left; margin-bottom:8px;">Item Name</div>
+    <div style="font-family:var(--serif); font-size:20px; color:var(--gl); margin-bottom:24px;" id="itemPrice">฿0</div>
+    
+    <div style="overflow-y:auto; padding-right:8px; margin-bottom:20px;">
+      <div class="opt-group">
+        <div class="opt-label">Size</div>
+        <div class="opt-grid" id="optSize">
+          <button class="opt-btn" onclick="selOpt('size', 'S', 0)">S (Reg)</button>
+          <button class="opt-btn on" onclick="selOpt('size', 'M', 15)">M (+฿15)</button>
+          <button class="opt-btn" onclick="selOpt('size', 'L', 30)">L (+฿30)</button>
+        </div>
+      </div>
+      
+      <div class="opt-group">
+        <div class="opt-label">Sweetness</div>
+        <div class="opt-grid" id="optSweet">
+          <button class="opt-btn" onclick="selOpt('sweet', '0%')">0%</button>
+          <button class="opt-btn" onclick="selOpt('sweet', '25%')">25%</button>
+          <button class="opt-btn" onclick="selOpt('sweet', '50%')">50%</button>
+          <button class="opt-btn on" onclick="selOpt('sweet', 'Regular')">Reg</button>
+          <button class="opt-btn" onclick="selOpt('sweet', 'Extra')">Extra</button>
+        </div>
+      </div>
+
+      <div class="opt-group">
+        <div class="opt-label">Ice Level</div>
+        <div class="opt-grid" id="optIce">
+          <button class="opt-btn" onclick="selOpt('ice', 'No Ice')">No</button>
+          <button class="opt-btn" onclick="selOpt('ice', 'Less Ice')">Less</button>
+          <button class="opt-btn on" onclick="selOpt('ice', 'Regular Ice')">Reg</button>
+          <button class="opt-btn" onclick="selOpt('ice', 'Extra Ice')">Extra</button>
+        </div>
+      </div>
+
+      <div class="opt-group">
+        <div class="opt-label">Add-ons</div>
+        <div id="optAddons">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <div class="opt-group">
+        <div class="opt-label">Special Note</div>
+        <input type="text" id="itemNote" class="inp" placeholder="e.g., Allergy, Separate ice..." style="width:100%;">
+      </div>
+    </div>
+    
+    <div style="display:flex; gap:12px; align-items:center; border-top:1px solid var(--line); padding-top:16px;">
+      <button class="btn-sm" style="background:var(--c2);" onclick="document.getElementById('itemOv').classList.remove('on')">Cancel</button>
+      <div class="ti-ctrl" style="margin:0 12px;">
+        <button class="ti-btn" onclick="chTempQty(-1)">−</button>
+        <div class="ti-qty" id="tempQty">1</div>
+        <button class="ti-btn" onclick="chTempQty(1)">+</button>
+      </div>
+      <button class="btn-pay" style="flex:1; height:48px;" onclick="confirmItem()">Add <span id="tempTotal">฿0</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. CHECKOUT MODAL -->
+<div class="overlay" id="checkoutOv">
+  <div class="modal" style="width:500px;">
+    <div class="modal-title">Checkout</div>
+    
+    <div style="text-align:center; margin-bottom:24px;">
+      <div style="font-size:14px; color:var(--tan3);">Total Amount</div>
+      <div style="font-family:var(--serif); font-size:48px; color:var(--gl);" id="coTotal">฿0</div>
+    </div>
+
+    <div class="opt-label">Payment Method</div>
+    <div class="pay-method-grid">
+      <button class="pay-btn on" id="pm-cash" onclick="selPayMethod('cash')">💵 Cash</button>
+      <button class="pay-btn" id="pm-transfer" onclick="selPayMethod('transfer')">📱 QR Transfer</button>
+      <button class="pay-btn" id="pm-card" onclick="selPayMethod('card')">💳 Credit Card</button>
+    </div>
+
+    <!-- ส่วนรับเงินสด (ซ่อนถ้าเลือกวิธีอื่น) -->
+    <div id="cashInputArea">
+      <div class="opt-label">Amount Tendered</div>
+      <div class="quick-cash">
+        <button class="qc-btn" onclick="addCash(100)">฿100</button>
+        <button class="qc-btn" onclick="addCash(500)">฿500</button>
+        <button class="qc-btn" onclick="addCash(1000)">฿1,000</button>
+        <button class="qc-btn" onclick="exactCash()" style="background:rgba(212,170,106,.1); color:var(--gl); border-color:rgba(212,170,106,.3);">Exact</button>
+      </div>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <input type="number" id="cashRecv" class="inp" placeholder="Enter cash amount" oninput="calcChange()" style="font-size:20px; text-align:right;">
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:12px; font-size:18px;">
+        <span style="color:var(--tan3);">Change:</span>
+        <span style="color:var(--grnl); font-weight:700;" id="cashChange">฿0</span>
+      </div>
+    </div>
+
+    <!-- ส่วนลด -->
+    <div style="margin-top:16px; border-top:1px solid var(--line); padding-top:16px;">
+      <div class="opt-label">Manual Discount (Optional)</div>
+      <div style="display:flex; gap:8px;">
+        <input type="number" id="manualDisc" class="inp" placeholder="Amount (฿)" oninput="applyManualDisc()">
+      </div>
+    </div>
+
+    <div style="display:flex; gap:12px; margin-top:24px;">
+      <button class="btn-sm" style="flex:1;" onclick="document.getElementById('checkoutOv').classList.remove('on')">Back</button>
+      <button class="btn-pay" id="confirmPayBtn" style="flex:2;" onclick="processPayment()">Confirm Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MAIN LAYOUT ─── -->
 <div class="pos-layout">
   <!-- LEFT: MENU -->
   <div class="pos-main">
     <div class="main-header">
       <div class="brand">Ceramic <span>Point of Sale</span></div>
-      <div style="display:flex; gap:12px;">
+      <div style="display:flex; gap:12px; align-items:center;">
         <span style="color:var(--tan3); font-size:13px; display:flex; align-items:center;" id="staffName">Staff: —</span>
         <button class="btn-sm" onclick="location.reload()">Lock</button>
       </div>
     </div>
     
     <div class="cat-scroll" id="catBar">
-      <!-- Categories Injected Here -->
+      <!-- Categories -->
     </div>
     
     <div class="menu-grid" id="menuGrid">
-      <!-- Products Injected Here -->
+      <!-- Products -->
     </div>
   </div>
 
   <!-- RIGHT: TICKET -->
   <div class="pos-sidebar">
     <div id="pendingAlertZone"></div> 
+    
     <div class="t-header">
       <div class="t-title">Current Order</div>
-      <button class="t-clear" onclick="clearTicket()">Clear</button>
+      <button class="t-clear" onclick="clearTicket()">🗑️ Clear</button>
     </div>
     
     <div class="t-items" id="ticketItems">
@@ -144,7 +278,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
     <!-- MEMBER SECTION -->
     <div class="t-member">
       <div class="mem-inp-row" id="memInputRow">
-        <input type="tel" id="memPhone" class="inp" placeholder="Customer Phone (Opt)">
+        <input type="tel" id="memPhone" class="inp" placeholder="Customer Phone (Opt)" onkeydown="if(event.key==='Enter') findMember()">
         <button class="btn-sm" onclick="findMember()">Find</button>
       </div>
       <div class="mem-info" id="memInfoRow">
@@ -152,22 +286,22 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
           <div class="mem-name" id="memName">Khun Demo</div>
           <div class="mem-pts" id="memPts">Silver · 245 pts</div>
         </div>
-        <button class="t-clear" onclick="removeMember()">Remove</button>
+        <button class="t-clear" style="background:transparent; border:none;" onclick="removeMember()">✕</button>
       </div>
     </div>
 
     <!-- SUMMARY -->
     <div class="t-summary">
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <button class="btn-sm" style="flex:1; background:rgba(212,170,106,.1); color:var(--gl); border-color:rgba(212,170,106,.3);" onclick="setOrderType('dine-in', this)" id="btnDineIn">Dine-in</button>
+        <button class="btn-sm" style="flex:1;" onclick="setOrderType('takeaway', this)" id="btnTakeaway">Takeaway</button>
+      </div>
+
       <div class="sum-row"><span>Subtotal</span><span id="sumSub">฿0</span></div>
       <div class="sum-row" style="color:var(--grnl); display:none;" id="sumDiscRow"><span>Discount</span><span id="sumDisc">-฿0</span></div>
       <div class="sum-row total"><span>Total</span><span class="val" id="sumTotal">฿0</span></div>
       
-      <div style="display:flex; gap:8px; margin-bottom:12px;">
-        <button class="btn-sm" style="flex:1; background:rgba(212,170,106,.1); color:var(--gl); border-color:rgba(212,170,106,.3);" onclick="setOrderType('dine-in', this)" id="btnDineIn">Dine-in</button>
-        <button class="btn-sm" style="flex:1;" onclick="setOrderType('takeaway', this)" id="btnTakeaway">Takeaway</button>
-      </div>
-      
-      <button class="btn-pay" id="payBtn" onclick="processCheckout()">Charge <span id="btnTotal">฿0</span></button>
+      <button class="btn-pay" id="payBtn" onclick="openCheckout()" disabled style="opacity:0.5;">Charge <span id="btnTotal">฿0</span></button>
     </div>
   </div>
 </div>
@@ -176,50 +310,117 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 <script src="config.js"></script>
 <script src="api.js"></script>
 <script>
+  // --- GLOBALS ---
   let MENUS = [];
+  let ADDONS = [
+    { id:'a1', name:'Snow Cheese Foam', price:25 },
+    { id:'a2', name:'Brown Sugar Boba', price:15 },
+    { id:'a3', name:'Grass Jelly', price:10 },
+    { id:'a4', name:'Oat Milk', price:15 }
+  ];
   let TICKET = [];
   let CUR_MEMBER = null;
   let ORDER_TYPE = 'dine-in';
-
-   // ตัวแปรสำหรับระบบแจ้งเตือน
+  
+  // Customization Temp State
+  let TEMP_ITEM = null; 
+  
+  // Checkout State
+  let CO_SUBTOTAL = 0;
+  let CO_DISCOUNT = 0;
+  let CO_TOTAL = 0;
+  let PAY_METHOD = 'cash';
+  
   let pendingOrders = [];
   let checkingOrderId = null;
-  let isAudioUnlocked = false; // ป้องกันเบราว์เซอร์บล็อกเสียง
-  
-  // --- INIT & LOGIN ---
+  let isAudioUnlocked = false;
+
+  // --- 1. INIT & LOGIN ---
   function doLogin() {
     const pin = document.getElementById('pinInp').value;
-    if(pin === '1234' || pin.length >= 4) { // Mock PIN validation
+    if(pin === '1234' || pin.length >= 4) { 
       document.getElementById('loginOv').classList.remove('on');
       document.getElementById('staffName').textContent = 'Staff: Cashier 1';
-
-         // ทริคปลดล็อกเสียงของ Browser: สั่งเล่นเสียงเงียบๆ 1 ครั้งตอนกด Login
+      
       const audio = document.getElementById('posAlert');
-      audio.volume = 0; // ปิดเสียงชั่วคราว
+      audio.volume = 0; 
       audio.play().then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.volume = 1; // คืนระดับเสียง
+        audio.pause(); audio.currentTime = 0; audio.volume = 1; 
         isAudioUnlocked = true;
       }).catch(e => console.log('Audio init blocked:', e));
-      
-      loadMenuData();
 
-      // เริ่มดึงข้อมูลออเดอร์ออนไลน์ (ตรวจสลิป)
+      loadMenuData();
       setInterval(pollIncomingOrders, 5000);
       pollIncomingOrders();
+    } else { alert('รหัส PIN ไม่ถูกต้อง'); }
+  }
+
+  // --- 2. ONLINE ORDERS ALERTS ---
+  function pollIncomingOrders() {
+    API.getAdminOrders().then(res => {
+      if(!res.success) return;
+      const newPendings = res.data.filter(o => o.status === 'PENDING' && o.source !== 'POS');
       
-    } else {
-      alert('Invalid PIN');
+      if(newPendings.length > pendingOrders.length && isAudioUnlocked) {
+        const audio = document.getElementById('posAlert');
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log('Play blocked'));
+      }
+      pendingOrders = newPendings;
+      renderPendingList();
+    });
+  }
+
+  function renderPendingList() {
+    const el = document.getElementById('pendingAlertZone');
+    if(!el) return;
+    if(pendingOrders.length === 0) { el.innerHTML = ''; return; }
+
+    el.innerHTML = `<div style="background:rgba(212,170,106,.1); border-bottom:1px solid var(--line); padding:16px 24px;">
+      <div style="font-weight:700; color:var(--gl); margin-bottom:8px; font-size:14px; display:flex; align-items:center; gap:8px;">
+        <div style="width:10px;height:10px;background:var(--red);border-radius:50%;animation:pulse 1.5s infinite;"></div>
+        ${pendingOrders.length} ออเดอร์ออนไลน์ รอตรวจสลิป!
+      </div>
+      ${pendingOrders.map(o => `
+        <button style="width:100%; text-align:left; background:var(--c1); border:1px solid var(--gl); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openSlipCheck('${o.id}', '${o.slip_url || ''}', ${o.total_amount})">
+          <div><span style="font-weight:600; color:var(--tan);">${o.id}</span><br><span style="font-size:12px; color:var(--tan3);">ยอดโอน ฿${o.total_amount}</span></div>
+          <span style="background:var(--gl); color:var(--c0); font-size:12px; font-weight:700; padding:6px 12px; border-radius:6px;">ตรวจสลิป</span>
+        </button>
+      `).join('')}
+    </div><style>@keyframes pulse { 0%{opacity:1;} 50%{opacity:0.3;} 100%{opacity:1;} }</style>`;
+  }
+
+  function openSlipCheck(id, slipUrl, total) {
+    checkingOrderId = id;
+    document.getElementById('slipOrderId').textContent = id;
+    document.getElementById('slipTotal').textContent = 'ยอดโอน: ฿' + total;
+    document.getElementById('slipImg').src = slipUrl || 'https://via.placeholder.com/300x400?text=No+Slip+Image'; 
+    document.getElementById('slipOv').classList.add('on');
+  }
+
+  function decideOrder(status) {
+    const newStatus = status === 'CONFIRMED' ? 'PREPARING' : 'CANCELLED';
+    const actionText = status === 'CONFIRMED' ? 'Approve ยอดเงินถูกต้อง และส่งออเดอร์เข้าครัว?' : 'Cancel ออเดอร์นี้ (สลิปไม่ถูกต้อง)?';
+    if(confirm(`⚠️ ยืนยัน:\n${actionText}`)) {
+      API.updateOrderStatus(checkingOrderId, newStatus).then(() => {
+        document.getElementById('slipOv').classList.remove('on');
+        pollIncomingOrders(); 
+      });
     }
   }
 
-  // --- 3. MENU & TICKET (ฟังก์ชันหน้าร้าน) ---
+  // --- 3. MENU & CUSTOMIZATION ---
   function loadMenuData() {
     API.getMenu().then(res => {
       MENUS = res.products || window.MENUS || [];
       buildCats();
       renderMenu(MENUS);
+      // Render Add-ons in Modal
+      document.getElementById('optAddons').innerHTML = ADDONS.map(a => `
+        <button class="addon-btn" id="add-${a.id}" onclick="togAddon('${a.id}', ${a.price}, this)">
+          <span>${a.name}</span><span>+฿${a.price}</span>
+        </button>
+      `).join('');
     });
   }
 
@@ -238,7 +439,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
   function renderMenu(list) {
     const el = document.getElementById('menuGrid');
     el.innerHTML = list.map(m => `
-      <div class="m-card" onclick="addToTicket('${m.id}')">
+      <div class="m-card" onclick="openItemModal('${m.id}')">
         <div class="m-name">${m.name}</div>
         <div class="m-cat">${m.cat}</div>
         <div class="m-price">฿${m.price}</div>
@@ -246,19 +447,110 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
     `).join('');
   }
 
-  // --- TICKET MANAGEMENT ---
-  function addToTicket(id) {
+  function openItemModal(id) {
     const item = MENUS.find(m => m.id === id);
     if(!item) return;
-    const existing = TICKET.find(t => t.id === id);
-    if(existing) {
-      existing.qty += 1;
+
+    TEMP_ITEM = {
+      id: item.id,
+      name: item.name,
+      basePrice: item.price,
+      qty: 1,
+      size: 'M',
+      sizePrice: 15, // Default M
+      sweet: 'Regular',
+      ice: 'Regular Ice',
+      addons: [],
+      note: ''
+    };
+
+    document.getElementById('itemName').textContent = item.name;
+    document.getElementById('itemNote').value = '';
+    
+    // Reset Buttons
+    resetOptBtns('optSize', 'M');
+    resetOptBtns('optSweet', 'Reg');
+    resetOptBtns('optIce', 'Reg');
+    document.querySelectorAll('.addon-btn').forEach(b => b.classList.remove('on'));
+    
+    calcTempTotal();
+    document.getElementById('itemOv').classList.add('on');
+  }
+
+  function resetOptBtns(groupId, defaultText) {
+    const btns = document.getElementById(groupId).querySelectorAll('.opt-btn');
+    btns.forEach(b => {
+      b.classList.remove('on');
+      if(b.textContent.includes(defaultText)) b.classList.add('on');
+    });
+  }
+
+  function selOpt(type, val, extraPrice = 0) {
+    const e = event.target;
+    e.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('on'));
+    e.classList.add('on');
+
+    if(type === 'size') { TEMP_ITEM.size = val; TEMP_ITEM.sizePrice = extraPrice; }
+    if(type === 'sweet') TEMP_ITEM.sweet = val;
+    if(type === 'ice') TEMP_ITEM.ice = val;
+    
+    calcTempTotal();
+  }
+
+  function togAddon(id, price, btn) {
+    btn.classList.toggle('on');
+    const idx = TEMP_ITEM.addons.findIndex(a => a.id === id);
+    if(idx > -1) {
+      TEMP_ITEM.addons.splice(idx, 1);
     } else {
-      TICKET.push({ uid: Date.now(), id: item.id, name: item.name, price: item.price, qty: 1, opts: 'Regular Size · Reg Sweet' });
+      const ao = ADDONS.find(a => a.id === id);
+      TEMP_ITEM.addons.push({ name: ao.name, price: ao.price });
     }
+    calcTempTotal();
+  }
+
+  function chTempQty(d) {
+    TEMP_ITEM.qty = Math.max(1, TEMP_ITEM.qty + d);
+    calcTempTotal();
+  }
+
+  function calcTempTotal() {
+    const addonTotal = TEMP_ITEM.addons.reduce((s, a) => s + a.price, 0);
+    const unitPrice = TEMP_ITEM.basePrice + TEMP_ITEM.sizePrice + addonTotal;
+    const total = unitPrice * TEMP_ITEM.qty;
+    
+    document.getElementById('itemPrice').textContent = `฿${unitPrice} / unit`;
+    document.getElementById('tempQty').textContent = TEMP_ITEM.qty;
+    document.getElementById('tempTotal').textContent = `฿${total}`;
+  }
+
+  function confirmItem() {
+    TEMP_ITEM.note = document.getElementById('itemNote').value;
+    
+    const addonTotal = TEMP_ITEM.addons.reduce((s, a) => s + a.price, 0);
+    const unitPrice = TEMP_ITEM.basePrice + TEMP_ITEM.sizePrice + addonTotal;
+    
+    // Format options for KDS
+    let optsArr = [`Size ${TEMP_ITEM.size}`, TEMP_ITEM.sweet, TEMP_ITEM.ice];
+    TEMP_ITEM.addons.forEach(a => optsArr.push(`+ ${a.name}`));
+    const optsStr = optsArr.join(' · ');
+
+    TICKET.push({
+      uid: Date.now(),
+      id: TEMP_ITEM.id,
+      name: TEMP_ITEM.name,
+      price: unitPrice,
+      qty: TEMP_ITEM.qty,
+      opts: optsStr,
+      options: { sweetness: TEMP_ITEM.sweet, ice: TEMP_ITEM.ice }, // Structured for backend
+      note: TEMP_ITEM.note
+    });
+
+    document.getElementById('itemOv').classList.remove('on');
     updateTicket();
   }
 
+  // --- 4. TICKET MANAGEMENT ---
   function chQty(uid, d) {
     const idx = TICKET.findIndex(t => t.uid === uid);
     if(idx < 0) return;
@@ -269,55 +561,59 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
 
   function clearTicket() {
     if(TICKET.length === 0) return;
-    if(confirm('Clear current ticket?')) {
-      TICKET = [];
+    if(confirm('🗑️ ยืนยันการล้างบิลนี้?')) {
+      TICKET = []; CO_DISCOUNT = 0; document.getElementById('manualDisc').value = '';
       removeMember();
       updateTicket();
     }
   }
+
   function updateTicket() {
     const el = document.getElementById('ticketItems');
-    let subtotal = 0;
+    CO_SUBTOTAL = 0;
 
     if(TICKET.length === 0) {
       el.innerHTML = '<div style="color:var(--tan3); text-align:center; margin-top:40px; font-size:13px;">Ticket is empty</div>';
     } else {
       el.innerHTML = TICKET.map(t => {
-        subtotal += (t.price * t.qty);
+        CO_SUBTOTAL += (t.price * t.qty);
         return `
           <div class="t-item">
-            <div style="flex:1; padding-right:12px;">
-              <div class="ti-name">${t.name}</div>
-              <div class="ti-opt">${t.opts}</div>
-              <div class="ti-ctrl">
-                <button class="ti-btn" onclick="chQty(${t.uid}, -1)">−</button>
-                <div class="ti-qty">${t.qty}</div>
-                <button class="ti-btn" onclick="chQty(${t.uid}, 1)">+</button>
+            <div class="ti-row">
+              <div style="flex:1; padding-right:12px;">
+                <div class="ti-name">${t.name}</div>
+                <div class="ti-opt">${t.opts}</div>
+                ${t.note ? `<div class="ti-note">📝 ${t.note}</div>` : ''}
               </div>
+              <div class="ti-price">฿${t.price * t.qty}</div>
             </div>
-            <div class="ti-price">฿${t.price * t.qty}</div>
+            <div class="ti-ctrl">
+              <button class="ti-btn" onclick="chQty(${t.uid}, -1)">−</button>
+              <div class="ti-qty">${t.qty}</div>
+              <button class="ti-btn" onclick="chQty(${t.uid}, 1)">+</button>
+            </div>
           </div>
         `;
       }).join('');
     }
 
-    // Calculations
-    const disc = 0; // Can implement manual discount later
-    const total = subtotal - disc;
-
-    document.getElementById('sumSub').textContent = `฿${subtotal}`;
-    document.getElementById('sumTotal').textContent = `฿${total}`;
-    document.getElementById('btnTotal').textContent = `฿${total}`;
+    CO_TOTAL = CO_SUBTOTAL - CO_DISCOUNT;
     
-    document.getElementById('payBtn').disabled = TICKET.length === 0;
-    document.getElementById('payBtn').style.opacity = TICKET.length === 0 ? '0.5' : '1';
+    document.getElementById('sumSub').textContent = `฿${CO_SUBTOTAL}`;
+    document.getElementById('sumDisc').textContent = `-฿${CO_DISCOUNT}`;
+    document.getElementById('sumDiscRow').style.display = CO_DISCOUNT > 0 ? 'flex' : 'none';
+    document.getElementById('sumTotal').textContent = `฿${CO_TOTAL}`;
+    document.getElementById('btnTotal').textContent = `฿${CO_TOTAL}`;
+    
+    const payBtn = document.getElementById('payBtn');
+    payBtn.disabled = TICKET.length === 0;
+    payBtn.style.opacity = TICKET.length === 0 ? '0.5' : '1';
   }
 
-  // --- MEMBER ---
+  // --- 5. MEMBER ---
   function findMember() {
     const phone = document.getElementById('memPhone').value;
     if(!phone) return;
-    
     API.getMemberByPhone(phone).then(res => {
       if(res.success) {
         CUR_MEMBER = res.member;
@@ -325,9 +621,7 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
         document.getElementById('memInfoRow').style.display = 'flex';
         document.getElementById('memName').textContent = CUR_MEMBER.name;
         document.getElementById('memPts').textContent = `${CUR_MEMBER.tier || 'Member'} · ${CUR_MEMBER.points} pts`;
-      } else {
-        alert(res.message || 'Member not found');
-      }
+      } else { alert('ไม่พบข้อมูลสมาชิกเบอร์นี้'); }
     });
   }
 
@@ -338,115 +632,164 @@ button { font-family:var(--sans); cursor:pointer; border:none; background:none; 
     document.getElementById('memInfoRow').style.display = 'none';
   }
 
-  // --- CHECKOUT ---
-function setOrderType(type, btn) {
+  function setOrderType(type, btn) {
     ORDER_TYPE = type;
     document.getElementById('btnDineIn').style = "flex:1; background:var(--c3); color:var(--tan2); border-color:var(--ln2);";
     document.getElementById('btnTakeaway').style = "flex:1; background:var(--c3); color:var(--tan2); border-color:var(--ln2);";
     btn.style = "flex:1; background:rgba(212,170,106,.1); color:var(--gl); border-color:rgba(212,170,106,.3);";
   }
 
-    // --- โค้ด JS สำหรับ POS (เพิ่มต่อท้ายใน <script> ของ pos.html) ---
-  let pendingOrders = [];
-  let checkingOrderId = null;
-  
- // --- 2. ONLINE ORDERS & ALERTS (ตรวจสลิป) ---
-  function pollIncomingOrders() {
-    API.getAdminOrders().then(res => {
-      if(!res.success) return;
-      // กรองเฉพาะออเดอร์ออนไลน์ที่รอตรวจสลิป (และไม่ใช่ของ POS เอง)
-      const newPendings = res.data.filter(o => o.status === 'PENDING' && o.source !== 'POS');
-      
-      // ถ้ามีออเดอร์ใหม่เพิ่มขึ้นจากรอบที่แล้ว -> ให้เล่นเสียง!
-      if(newPendings.length > pendingOrders.length && isAudioUnlocked) {
-        const audio = document.getElementById('posAlert');
-        audio.currentTime = 0;
-        audio.play().catch(e => console.log('Auto-play blocked'));
-      }
-      
-      pendingOrders = newPendings;
-      renderPendingList();
-    });
+  // --- 6. CHECKOUT & PAYMENT ---
+  function openCheckout() {
+    document.getElementById('coTotal').textContent = `฿${CO_TOTAL}`;
+    selPayMethod('cash'); // Default
+    document.getElementById('cashRecv').value = '';
+    document.getElementById('cashChange').textContent = '฿0';
+    document.getElementById('checkoutOv').classList.add('on');
   }
-  
-  function renderPendingList() {
-    const el = document.getElementById('pendingAlertZone');
-    if(!el) return;
 
-    if(pendingOrders.length === 0) {
-      el.innerHTML = '';
+  function selPayMethod(method) {
+    PAY_METHOD = method;
+    document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('on'));
+    document.getElementById('pm-' + method).classList.add('on');
+    
+    document.getElementById('cashInputArea').style.display = method === 'cash' ? 'block' : 'none';
+    checkPayValid();
+  }
+
+  function addCash(amt) {
+    const inp = document.getElementById('cashRecv');
+    inp.value = (Number(inp.value) || 0) + amt;
+    calcChange();
+  }
+
+  function exactCash() {
+    document.getElementById('cashRecv').value = CO_TOTAL;
+    calcChange();
+  }
+
+  function calcChange() {
+    const recv = Number(document.getElementById('cashRecv').value) || 0;
+    const change = Math.max(0, recv - CO_TOTAL);
+    document.getElementById('cashChange').textContent = `฿${change}`;
+    checkPayValid();
+  }
+
+  function applyManualDisc() {
+    const d = Number(document.getElementById('manualDisc').value) || 0;
+    CO_DISCOUNT = Math.min(d, CO_SUBTOTAL); // ห้ามลดเกินราคาสินค้า
+    CO_TOTAL = CO_SUBTOTAL - CO_DISCOUNT;
+    
+    document.getElementById('coTotal').textContent = `฿${CO_TOTAL}`;
+    calcChange();
+    updateTicket(); // Update sidebar too
+  }
+
+  function checkPayValid() {
+    const btn = document.getElementById('confirmPayBtn');
+    if(PAY_METHOD === 'cash') {
+      const recv = Number(document.getElementById('cashRecv').value) || 0;
+      btn.disabled = recv < CO_TOTAL;
+      btn.style.opacity = recv < CO_TOTAL ? '0.5' : '1';
     } else {
-      el.innerHTML = `<div style="background:rgba(212,170,106,.1); border-bottom:1px solid var(--line); padding:16px 24px;">
-        <div style="font-weight:700; color:var(--gl); margin-bottom:8px; font-size:14px; display:flex; align-items:center; gap:8px;">
-          <div style="width:10px;height:10px;background:var(--red);border-radius:50%;animation:pulse 1.5s infinite;"></div>
-          ${pendingOrders.length} ออเดอร์ออนไลน์ รอตรวจสลิป!
-        </div>
-        ${pendingOrders.map(o => `
-          <button style="width:100%; text-align:left; background:var(--c1); border:1px solid var(--gl); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openSlipCheck('${o.id}', '${o.slip_url || ''}', ${o.total_amount})">
-            <div><span style="font-weight:600; color:var(--tan);">${o.id}</span><br><span style="font-size:12px; color:var(--tan3);">ยอดโอน ฿${o.total_amount}</span></div>
-            <span style="background:var(--gl); color:var(--c0); font-size:12px; font-weight:700; padding:6px 12px; border-radius:6px;">ตรวจสลิป</span>
-          </button>
-        `).join('')}
-      </div>
-      <style>@keyframes pulse { 0%{opacity:1;} 50%{opacity:0.3;} 100%{opacity:1;} }</style>`;
+      btn.disabled = false;
+      btn.style.opacity = '1';
     }
   }
-  
-  function openSlipCheck(id, slipUrl, total) {
-    checkingOrderId = id;
-    document.getElementById('slipOrderId').textContent = id;
-    document.getElementById('slipTotal').textContent = 'ยอดโอน: ฿' + total;
-    document.getElementById('slipImg').src = slipUrl || 'https://via.placeholder.com/300x400?text=No+Slip+Image'; 
-    document.getElementById('slipOv').classList.add('on');
-  }
-  
- function decideOrder(status) {
-    // ถ้า Approve ให้เปลี่ยนสถานะเป็น PREPARING (เข้าครัวเลย) หรือ CONFIRMED ก็ได้
-    const newStatus = status === 'CONFIRMED' ? 'PREPARING' : 'CANCELLED';
-    const actionText = status === 'CONFIRMED' ? 'Approve ยอดเงินถูกต้อง และส่งออเดอร์เข้าครัว?' : 'Cancel ออเดอร์นี้ (สลิปไม่ถูกต้อง)?';
-    
-    if(confirm(`⚠️ ยืนยัน:\n${actionText}`)) {
-      API.updateOrderStatus(checkingOrderId, newStatus).then(() => {
-        document.getElementById('slipOv').classList.remove('on');
-        pollIncomingOrders(); // รีเฟรชทันทีไม่ต้องรอ 5 วิ
-      });
-    }
-  }
-  
-  // เริ่มดึงข้อมูล
-  setInterval(pollIncomingOrders, 5000);
 
-function processCheckout() {
-    if(TICKET.length === 0) return;
-    
-    const total = TICKET.reduce((sum, t) => sum + (t.price * t.qty), 0);
-    const btn = document.getElementById('payBtn');
+  function processPayment() {
+    const btn = document.getElementById('confirmPayBtn');
     btn.textContent = 'Processing...';
     btn.disabled = true;
 
     const payload = {
       items: TICKET,
-      total: total,
+      total: CO_TOTAL,
+      discount: CO_DISCOUNT,
       branch: { id: 'BR001', name: 'Main Branch — Siam' },
       type: ORDER_TYPE,
       userId: CUR_MEMBER ? CUR_MEMBER.id : null,
       source: 'POS',
-      status: 'PREPARING' // *** สำคัญ: ของหน้าร้านให้พุ่งเข้าครัวเลย (KDS) ไม่ต้องรอตรวจสลิป ***
+      payment_method: PAY_METHOD,
+      status: 'PREPARING' // ส่งเข้าครัวทันที
     };
 
     API.createOrder(payload).then(res => {
-      alert(`ชำระเงินเรียบร้อยแล้ว!\nOrder ID: ${res.id || 'N/A'}`);
+      document.getElementById('checkoutOv').classList.remove('on');
       
-      // ล้างตะกร้า
-      TICKET = [];
+      // Print Receipt Call
+      printReceipt(res.id || 'CTB-POS-' + Date.now().toString().slice(-4), payload);
+      
+      alert(`✅ ชำระเงินเรียบร้อยแล้ว!\n(เงินทอน: ${document.getElementById('cashChange').textContent})`);
+      
+      // ล้างข้อมูล
+      TICKET = []; CO_DISCOUNT = 0; document.getElementById('manualDisc').value = '';
       removeMember();
       updateTicket();
-      btn.textContent = `Charge ฿0`;
+      
+      btn.textContent = `Confirm Payment`;
+      btn.disabled = false;
     }).catch(err => {
-      alert('Checkout failed');
-      btn.textContent = `Charge ฿${total}`;
+      alert('Checkout failed: ' + err.message);
+      btn.textContent = `Confirm Payment`;
       btn.disabled = false;
     });
+  }
+
+  // --- 7. PRINT RECEIPT ---
+  function printReceipt(orderId, data) {
+    const d = new Date();
+    const dateStr = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    
+    let itemsHtml = data.items.map(i => `
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+        <div style="flex:1;">${i.qty}x ${i.name}</div>
+        <div>${i.price * i.qty}</div>
+      </div>
+      <div style="font-size:10px; color:#555; margin-bottom:8px; padding-left:16px;">${i.opts}</div>
+    `).join('');
+
+    const html = `
+      <html><head><title>Receipt</title>
+      <style>
+        body { font-family: monospace; font-size: 12px; color: #000; max-width: 300px; margin: 0 auto; padding: 10px; }
+        .center { text-align: center; }
+        .line { border-bottom: 1px dashed #000; margin: 8px 0; }
+        .flex { display: flex; justify-content: space-between; }
+        .bold { font-weight: bold; }
+        .text-lg { font-size: 16px; }
+      </style>
+      </head><body>
+        <div class="center bold text-lg" style="margin-bottom:8px;">Ceramic Tea</div>
+        <div class="center">Main Branch — Siam</div>
+        <div class="center" style="margin-bottom:12px;">Tel: 02-123-4567</div>
+        
+        <div class="flex"><span>Order:</span><span>${orderId}</span></div>
+        <div class="flex"><span>Date:</span><span>${dateStr}</span></div>
+        <div class="flex"><span>Type:</span><span>${data.type.toUpperCase()}</span></div>
+        ${data.userId ? `<div class="flex"><span>Member:</span><span>${CUR_MEMBER.name}</span></div>` : ''}
+        
+        <div class="line"></div>
+        
+        ${itemsHtml}
+        
+        <div class="line"></div>
+        <div class="flex"><span>Subtotal:</span><span>${CO_SUBTOTAL}</span></div>
+        ${data.discount > 0 ? `<div class="flex"><span>Discount:</span><span>-${data.discount}</span></div>` : ''}
+        <div class="flex bold text-lg" style="margin-top:8px;"><span>Total:</span><span>${data.total}</span></div>
+        <div class="flex" style="margin-top:4px;"><span>Pay Method:</span><span>${data.payment_method.toUpperCase()}</span></div>
+        
+        <div class="line"></div>
+        <div class="center" style="margin-top:16px;">Thank you!</div>
+        <div class="center">wifi: ceramic_guest (pw: artisan)</div>
+      </body></html>
+    `;
+
+    const printWin = window.open('', '_blank', 'width=400,height=600');
+    printWin.document.write(html);
+    printWin.document.close();
+    printWin.focus();
+    setTimeout(() => { printWin.print(); printWin.close(); }, 500);
   }
 </script>
 </body>
