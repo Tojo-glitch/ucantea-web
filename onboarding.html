@@ -3,100 +3,172 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Staff Onboarding | Ceramic</title>
+<title>Ceramic | Staff Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body { background: #0c0b09; color: #e8e0d4; font-family: 'Plus Jakarta Sans', sans-serif; padding: 20px; }
-  .card { background: #141310; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; max-width: 500px; margin: 0 auto; }
-  .inp, .file-inp { width: 100%; padding: 12px; background: #1c1a17; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #fff; margin-top: 8px; box-sizing: border-box;}
-  .btn { width: 100%; padding: 14px; background: #d4aa6a; color: #000; font-weight: bold; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; }
+  body { background: #0c0b09; color: #e8e0d4; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .card { background: #141310; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+  h1 { color: #d4aa6a; margin: 0 0 8px 0; font-size: 24px; text-align: center; }
+  p.sub { font-size: 13px; color: #9e9080; text-align: center; margin-bottom: 24px; line-height: 1.5; }
   
-  /* กรอบสำหรับเซ็นชื่อ */
-  #signature-pad { border: 2px dashed rgba(212, 170, 106, 0.5); background: #1c1a17; border-radius: 8px; cursor: crosshair; touch-action: none; width: 100%; height: 200px; margin-top: 8px; }
+  .step-label { font-size: 12px; font-weight: 700; color: #b8ad9e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; margin-top: 24px; }
+  .inp, .file-inp { width: 100%; padding: 14px; background: #1c1a17; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border 0.2s; }
+  .inp:focus { border-color: #d4aa6a; }
+  
+  .rules-box { height: 120px; overflow-y: auto; background: #0a0a09; border: 1px solid rgba(255,255,255,0.1); padding: 12px; font-size: 12px; color: #888; border-radius: 10px; line-height: 1.6; }
+  #signature-pad { border: 1px dashed rgba(212, 170, 106, 0.4); background: #1c1a17; border-radius: 10px; cursor: crosshair; touch-action: none; width: 100%; height: 180px; margin-top: 8px; }
+  
+  .btn { width: 100%; padding: 16px; background: #d4aa6a; color: #0c0b09; font-size: 16px; font-weight: 700; border: none; border-radius: 10px; margin-top: 32px; cursor: pointer; transition: transform 0.1s; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Overlay Loading */
+  #loading { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:99; align-items:center; justify-content:center; flex-direction:column; }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(212,170,106,0.3); border-top-color: #d4aa6a; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <h2 style="color:#d4aa6a; margin-bottom: 8px;">ยินดีต้อนรับสู่ Ceramic Team</h2>
-  <p style="font-size: 12px; color: #9e9080; margin-bottom: 24px;">กรุณากรอกข้อมูลและเซ็นสัญญาอิเล็กทรอนิกส์เพื่อเริ่มงาน</p>
-
-  <label>1. อัปโหลดสำเนาบัตรประชาชน</label>
-  <input type="file" id="idCard" class="file-inp" accept="image/*" style="margin-bottom: 16px;">
-
-  <label>2. ตั้งรหัสผ่าน (Password)</label>
-  <input type="password" id="password" class="inp" placeholder="รหัสผ่านสำหรับเข้าสู่ระบบหลัก" style="margin-bottom: 16px;">
-
-  <label>3. ตั้งรหัส POS PIN (ตัวเลข 4-6 หลัก)</label>
-  <input type="password" id="posPin" class="inp" placeholder="ตัวเลขสำหรับกดเข้าเครื่อง POS" maxlength="6" inputmode="numeric" style="margin-bottom: 24px;">
-
-  <label>4. อ่านกฎระเบียบและเซ็นชื่อ</label>
-  <div style="height:100px; overflow-y:auto; background:#000; padding:10px; font-size:11px; color:#aaa; border-radius:8px; margin:8px 0;">
-    ข้อตกลงการทำงาน... (ใส่กฎระเบียบที่นี่) <br>
-    ข้าพเจ้าขอยืนยันว่าข้อมูลทั้งหมดเป็นความจริง และจะรักษาความลับของบริษัท...
-  </div>
-  
-  <!-- Canvas สำหรับเซ็นชื่อ -->
-  <canvas id="signature-pad"></canvas>
-  <button type="button" onclick="clearSignature()" style="background:transparent; border:none; color:#e88080; font-size:12px; margin-top:8px; cursor:pointer;">ลบลายเซ็น (Clear)</button>
-
-  <button class="btn" onclick="submitOnboarding()">ยืนยันข้อมูลและเริ่มงาน</button>
+<div id="loading">
+  <div class="spinner"></div>
+  <div style="color:#d4aa6a; font-weight:bold;" id="load-text">กำลังประมวลผลข้อมูล...</div>
 </div>
 
+<div class="card" id="form-card">
+  <h1>Ceramic Team</h1>
+  <p class="sub">ยินดีต้อนรับ! กรุณาส่งเอกสารและตั้งรหัสผ่าน<br>เพื่อยืนยันตัวตนเข้าสู่ระบบปฏิบัติการ</p>
+
+  <label class="step-label">1. อัปโหลดสำเนาบัตรประชาชน</label>
+  <input type="file" id="idCard" class="file-inp" accept="image/*">
+
+  <label class="step-label">2. ตั้งรหัสผ่าน (System Password)</label>
+  <input type="password" id="password" class="inp" placeholder="รหัสสำหรับ Login เข้าระบบจัดการ">
+
+  <label class="step-label">3. ตั้งรหัส PIN (POS Access)</label>
+  <input type="password" id="pin" class="inp" placeholder="ตัวเลข 4-6 หลัก สำหรับกดรับออเดอร์" maxlength="6" inputmode="numeric" style="letter-spacing: 4px; font-size: 18px; text-align:center;">
+
+  <label class="step-label">4. ข้อตกลงและลายเซ็น (E-Signature)</label>
+  <div class="rules-box">
+    <b>ข้อตกลงการรักษาความลับพนักงาน</b><br>
+    ข้าพเจ้าขอรับรองว่าเอกสารและข้อมูลที่ให้ไว้เป็นความจริงทุกประการ ข้าพเจ้าตกลงที่จะไม่เปิดเผยข้อมูลความลับ สูตรเครื่องดื่ม หรือรายได้ของร้านให้แก่บุคคลภายนอกทราบ หากฝ่าฝืนยินยอมให้บริษัทดำเนินการตามกฎหมาย และลายเซ็นอิเล็กทรอนิกส์ด้านล่างนี้ให้ถือเป็นลายเซ็นจริงทางกฎหมาย
+  </div>
+  
+  <canvas id="signature-pad"></canvas>
+  <div style="text-align:right; margin-top:8px;">
+    <button type="button" onclick="clearSignature()" style="background:transparent; border:none; color:#e88080; font-size:12px; cursor:pointer;">ลบลายเซ็น (Clear)</button>
+  </div>
+
+  <button class="btn" id="submitBtn" onclick="submitForm()">ยืนยันข้อมูลและเริ่มงาน</button>
+</div>
+
+<div class="card" id="success-card" style="display:none; text-align:center;">
+  <div style="font-size: 60px; margin-bottom: 16px;">🎉</div>
+  <h1>ลงทะเบียนสำเร็จ!</h1>
+  <p class="sub">ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว<br>คุณสามารถใช้ Username และ PIN ที่ตั้งไว้<br>ล็อกอินเข้าเครื่อง POS ที่สาขาได้ทันที</p>
+</div>
+
+<script src="/env-config.js"></script>
+<script src="/api.js"></script>
 <script>
-  // --- ระบบลายเซ็นอิเล็กทรอนิกส์ (E-Signature) ---
+  // --- รับ ID จาก URL ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const staffId = urlParams.get('id');
+
+  if(!staffId) {
+    document.getElementById('form-card').innerHTML = '<h2 style="color:#e88080; text-align:center;">❌ ลิงก์ไม่ถูกต้อง หรือหมดอายุ</h2>';
+  }
+
+  // --- ระบบลายเซ็น ---
   const canvas = document.getElementById('signature-pad');
   const ctx = canvas.getContext('2d');
   let isDrawing = false;
 
-  // ปรับขนาด Canvas ให้พอดีจอ
   function resizeCanvas() {
     canvas.width = canvas.parentElement.clientWidth;
-    // ป้องกันลายเซ็นเบลอบนจอมือถือ
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#d4aa6a'; // สีปากกาสีทอง
+    ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#d4aa6a';
   }
   window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
+  setTimeout(resizeCanvas, 100); // ดีเลย์นิดนึงให้เรนเดอร์เสร็จ
 
-  function getMousePos(e) {
+  function getPos(e) {
     const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: clientX - rect.left, y: clientY - rect.top };
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: x - rect.left, y: y - rect.top };
   }
 
-  const startDrawing = (e) => { isDrawing = true; ctx.beginPath(); const pos = getMousePos(e); ctx.moveTo(pos.x, pos.y); e.preventDefault(); };
-  const draw = (e) => { if (!isDrawing) return; const pos = getMousePos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); e.preventDefault(); };
-  const stopDrawing = () => { isDrawing = false; ctx.closePath(); };
+  canvas.addEventListener('mousedown', (e)=>{ isDrawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); e.preventDefault();});
+  canvas.addEventListener('mousemove', (e)=>{ if(!isDrawing)return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); e.preventDefault();});
+  canvas.addEventListener('mouseup', ()=>{ isDrawing=false; ctx.closePath();});
+  canvas.addEventListener('touchstart', (e)=>{ isDrawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); e.preventDefault();});
+  canvas.addEventListener('touchmove', (e)=>{ if(!isDrawing)return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); e.preventDefault();});
+  canvas.addEventListener('touchend', ()=>{ isDrawing=false; ctx.closePath();});
 
-  canvas.addEventListener('mousedown', startDrawing); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stopDrawing); canvas.addEventListener('mouseout', stopDrawing);
-  canvas.addEventListener('touchstart', startDrawing); canvas.addEventListener('touchmove', draw); canvas.addEventListener('touchend', stopDrawing);
+  function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-  function clearSignature() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // --- Helper: แปลง Base64 ลายเซ็น เป็นไฟล์ Blob เพื่ออัปโหลด ---
+  function dataURItoBlob(dataURI) {
+    const byteString = atob(dataURI.split(',')[1]);
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) { ia[i] = byteString.charCodeAt(i); }
+    return new Blob([ab], {type: mimeString});
   }
 
-  // --- ระบบ Submit ข้อมูล ---
-  function submitOnboarding() {
+  // --- SUBMIT ข้อมูล ---
+  async function submitForm() {
     const file = document.getElementById('idCard').files[0];
     const pass = document.getElementById('password').value;
-    const pin = document.getElementById('posPin').value;
+    const pin = document.getElementById('pin').value;
     
-    // แปลงลายเซ็นเป็นไฟล์รูปภาพ (Base64)
-    const signatureImage = canvas.toDataURL('image/png');
+    // ตรวจสอบความถูกต้องเบื้องต้น
+    if(!file) return alert("กรุณาแนบรูปบัตรประชาชน");
+    if(pass.length < 6) return alert("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
+    if(pin.length < 4) return alert("PIN ต้องมีตัวเลขอย่างน้อย 4 หลัก");
+    
+    // เช็คว่าเซ็นชื่อหรือยัง (ตรวจสอบว่า Canvas โล่งไหม โดยดูจากข้อมูล pixel)
+    const blankCanvas = document.createElement('canvas');
+    blankCanvas.width = canvas.width; blankCanvas.height = canvas.height;
+    if(canvas.toDataURL() === blankCanvas.toDataURL()) return alert("กรุณาเซ็นชื่อในช่องที่กำหนด");
 
-    if(!file || !pass || !pin) {
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน"); return;
+    const btn = document.getElementById('submitBtn');
+    const load = document.getElementById('loading');
+    const loadText = document.getElementById('load-text');
+    
+    btn.disabled = true; load.style.display = 'flex';
+
+    try {
+      // 1. อัปโหลดรูปบัตร ปชช.
+      loadText.textContent = "กำลังอัปโหลดเอกสาร (1/3)...";
+      const idExt = file.name.split('.').pop();
+      const idUrl = await API.uploadHrDoc(file, `idcard_${staffId}.${idExt}`);
+
+      // 2. อัปโหลดลายเซ็น
+      loadText.textContent = "กำลังบันทึกลายเซ็น (2/3)...";
+      const sigBlob = dataURItoBlob(canvas.toDataURL('image/png'));
+      const sigUrl = await API.uploadHrDoc(sigBlob, `sig_${staffId}.png`);
+
+      // 3. อัปเดตข้อมูลเข้าระบบ
+      loadText.textContent = "กำลังตั้งค่ารหัสผ่าน (3/3)...";
+      await API.completeOnboarding(staffId, {
+        password: pass,
+        pin: pin,
+        idCardUrl: idUrl,
+        signatureUrl: sigUrl
+      });
+
+      // เสร็จสิ้น! โชว์หน้า Success
+      load.style.display = 'none';
+      document.getElementById('form-card').style.display = 'none';
+      document.getElementById('success-card').style.display = 'block';
+
+    } catch (err) {
+      load.style.display = 'none';
+      btn.disabled = false;
+      alert("เกิดข้อผิดพลาด: " + err.message);
     }
-
-    alert("กำลังอัปโหลดเอกสารและลายเซ็นไปยัง Supabase...");
-    console.log("Signature Base64:", signatureImage);
-    
-    // โค้ดหลังจากนี้คือการส่ง API ไป Supabase
-    // 1. อัปโหลด file ไปที่ Bucket: hr_docs
-    // 2. อัปโหลด signatureImage ไปที่ Bucket: hr_docs
-    // 3. Update ตาราง staff ให้สถานะเป็น ACTIVE
   }
 </script>
 </body>
