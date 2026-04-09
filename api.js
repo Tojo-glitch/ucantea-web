@@ -98,7 +98,6 @@ const sb = {
     });
     return res.json();
   },
-};
 
 /* ── POS & STAFF AUTH ─────────────────────────────── */
   async verifyManagerPin(pin) {
