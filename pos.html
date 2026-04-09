@@ -105,11 +105,36 @@ input, textarea { font-family:var(--sans); outline:none; color:var(--tan); backg
 <audio id="posAlert" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
 
 <!-- 1. LOGIN OVERLAY -->
-<div class="overlay on" id="loginOv">
-  <div class="modal" style="width:380px;">
-    <div class="brand" style="margin-bottom:24px; text-align:center;">Ceramic <span>POS</span></div>
-    <input type="password" id="pinInp" class="inp" placeholder="Staff PIN (e.g. 1234)" style="text-align:center; font-size:24px; letter-spacing:8px; height:60px;" onkeydown="if(event.key==='Enter') doLogin()">
-    <button class="btn-pay" style="height:54px; margin-top:24px; background:var(--tan); color:var(--c0);" onclick="doLogin()">Unlock POS</button>
+<div class="overlay on" id="loginOv" style="z-index:9999;">
+  <div class="modal" style="width:400px; padding: 40px;">
+    <div class="brand" style="margin-bottom:8px; text-align:center;">Ceramic <span>POS</span></div>
+    <div style="font-size:12px; color:var(--tan3); text-align:center; margin-bottom:24px;">Staff Login Terminal</div>
+    
+    <form onsubmit="event.preventDefault(); doLogin();" style="width: 100%;">
+      
+      <!-- 1. เลือกสาขา -->
+      <div style="margin-bottom:16px; text-align:left;">
+        <label style="font-size:11px; color:var(--tan3); text-transform:uppercase; font-weight:700;">Select Branch</label>
+        <select id="branchSelect" class="inp" style="width:100%; margin-top:6px; cursor:pointer; appearance:none;">
+          <option value="">-- Loading Branches --</option>
+        </select>
+      </div>
+
+      <!-- 2. Username -->
+      <div style="margin-bottom:16px; text-align:left;">
+        <label style="font-size:11px; color:var(--tan3); text-transform:uppercase; font-weight:700;">Username</label>
+        <input type="text" id="staffUser" class="inp" placeholder="e.g. staff_siam01" style="width:100%; margin-top:6px;">
+      </div>
+
+      <!-- 3. PIN / Password -->
+      <div style="margin-bottom:24px; text-align:left;">
+        <label style="font-size:11px; color:var(--tan3); text-transform:uppercase; font-weight:700;">Passcode / PIN</label>
+        <input type="password" id="pinInp" class="inp" placeholder="••••" style="width:100%; margin-top:6px; font-size:24px; letter-spacing:8px; text-align:center;">
+      </div>
+
+      <button type="submit" id="loginBtn" class="btn-pay" style="height:54px; background:var(--tan); color:var(--c0); width:100%;">Access POS</button>
+      <div id="loginError" style="color:var(--red); font-size:12px; text-align:center; margin-top:12px; min-height:15px;"></div>
+    </form>
   </div>
 </div>
 
@@ -249,7 +274,7 @@ input, textarea { font-family:var(--sans); outline:none; color:var(--tan); backg
       <div class="brand">Ceramic <span>Point of Sale</span></div>
       <div style="display:flex; gap:12px; align-items:center;">
         <span style="color:var(--tan3); font-size:13px; display:flex; align-items:center;" id="staffName">Staff: —</span>
-        <button class="btn-sm" onclick="location.reload()">Lock</button>
+        <button class="btn-sm" onclick="document.getElementById('loginOv').classList.add('on'); document.getElementById('pinInp').value = ''; document.getElementById('pinInp').focus();">Lock</button>
       </div>
     </div>
     
@@ -310,6 +335,22 @@ input, textarea { font-family:var(--sans); outline:none; color:var(--tan); backg
 <script src="env-config.js"></script>
 <script src="api.js"></script>
 <script>
+  let CURRENT_STAFF = null;
+  let CURRENT_BRANCH = null;
+  
+  window.onload = () => {
+    API.getBranches().then(res => {
+      if(res.success) {
+        const sel = document.getElementById('branchSelect');
+        sel.innerHTML = res.data.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+        
+        // จำสาขาล่าสุดที่เครื่องนี้เคยเลือกไว้
+        const savedBranch = localStorage.getItem('pos_saved_branch');
+        if(savedBranch) sel.value = savedBranch;
+      }
+    });
+  };
+  
   // --- GLOBALS ---
   let MENUS = [];
   let ADDONS = [
@@ -335,24 +376,59 @@ input, textarea { font-family:var(--sans); outline:none; color:var(--tan); backg
   let checkingOrderId = null;
   let isAudioUnlocked = false;
 
-  // --- 1. INIT & LOGIN ---
+ // --- ฟังก์ชันจัดการ Login ---
   function doLogin() {
+    const branchId = document.getElementById('branchSelect').value;
+    const branchName = document.getElementById('branchSelect').options[document.getElementById('branchSelect').selectedIndex]?.text;
+    const user = document.getElementById('staffUser').value.trim();
     const pin = document.getElementById('pinInp').value;
-    if(pin === '1234' || pin.length >= 4) { 
-      document.getElementById('loginOv').classList.remove('on');
-      document.getElementById('staffName').textContent = 'Staff: Cashier 1';
-      
-      const audio = document.getElementById('posAlert');
-      audio.volume = 0; 
-      audio.play().then(() => {
-        audio.pause(); audio.currentTime = 0; audio.volume = 1; 
-        isAudioUnlocked = true;
-      }).catch(e => console.log('Audio init blocked:', e));
+    const errEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
 
-      loadMenuData();
-      setInterval(pollIncomingOrders, 5000);
-      pollIncomingOrders();
-    } else { alert('รหัส PIN ไม่ถูกต้อง'); }
+    errEl.textContent = '';
+
+    if(!branchId) { errEl.textContent = 'Please select a branch'; return; }
+    if(!user || !pin) { errEl.textContent = 'Username and Passcode required'; return; }
+
+    btn.textContent = 'Verifying...';
+    btn.disabled = true;
+
+    API.staffLogin(user, pin).then(res => {
+      btn.textContent = 'Access POS';
+      btn.disabled = false;
+
+      if(res.success) {
+        // เซฟข้อมูลลงตัวแปร
+        CURRENT_STAFF = res.staff;
+        CURRENT_BRANCH = { id: branchId, name: branchName };
+        
+        // จำสาขาไว้ใช้รอบหน้า
+        localStorage.setItem('pos_saved_branch', branchId);
+
+        // อัปเดตหน้าจอ UI
+        document.getElementById('loginOv').classList.remove('on');
+        document.getElementById('staffName').innerHTML = `
+          <div style="display:flex; flex-direction:column; align-items:flex-start;">
+            <span style="font-weight:700; color:var(--tan);">${CURRENT_STAFF.name} <span style="font-size:9px; background:var(--gl); color:var(--c0); padding:2px 4px; border-radius:4px;">${CURRENT_STAFF.role}</span></span>
+            <span style="font-size:10px; color:var(--tan3);">${CURRENT_BRANCH.name}</span>
+          </div>
+        `;
+        
+        // ทริคปลดล็อกเสียง
+        const audio = document.getElementById('posAlert');
+        audio.volume = 0; 
+        audio.play().then(() => { audio.pause(); audio.currentTime = 0; audio.volume = 1; isAudioUnlocked = true; }).catch(e=>{});
+
+        // ล้างช่องรหัสผ่านเผื่อตอนล็อกเอาท์ออกมา
+        document.getElementById('pinInp').value = '';
+
+        loadMenuData();
+        setInterval(pollIncomingOrders, 5000);
+        pollIncomingOrders();
+      } else {
+        errEl.textContent = res.message;
+      }
+    });
   }
 
   // --- 2. ONLINE ORDERS ALERTS ---
@@ -703,15 +779,16 @@ input, textarea { font-family:var(--sans); outline:none; color:var(--tan); backg
     btn.disabled = true;
 
     const payload = {
-      items: TICKET,
+items: TICKET,
       total: CO_TOTAL,
       discount: CO_DISCOUNT,
-      branch: { id: 'BR001', name: 'Main Branch — Siam' },
+      branch: CURRENT_BRANCH,           // <--- ใช้สาขาที่เลือกตอน Login
+      staff_name: CURRENT_STAFF.name,   // <--- บันทึกชื่อพนักงานที่ทำรายการ
       type: ORDER_TYPE,
       userId: CUR_MEMBER ? CUR_MEMBER.id : null,
       source: 'POS',
       payment_method: PAY_METHOD,
-      status: 'PREPARING' // ส่งเข้าครัวทันที
+      status: 'PREPARING'
     };
 
     API.createOrder(payload).then(res => {
