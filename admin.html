@@ -1075,6 +1075,8 @@ tbody tr:hover{background:var(--c2)}
         <div style="font-size:11px; color:var(--grnl); margin-bottom:4px; font-weight:bold;">✅ สร้างสำเร็จ! คัดลอกลิงก์นี้ส่งให้พนักงาน:</div>
         <input type="text" id="invite-link-url" class="field-input" style="font-size:11px; color:var(--gl);" readonly>
       </div>
+        <button class="btn btn-ghost" style="width:100%; height:40px; font-size:12px;" onclick="shareInvite()">แชร์ลิงก์ให้พนักงาน</button>
+</div>
 
     </div>
     <div class="modal-foot">
@@ -1879,33 +1881,61 @@ function openInviteModal() {
   document.getElementById('invite-staff-modal').classList.add('on');
 }
 
-function generateInvite() {
+async function generateInvite() {
   const name = document.getElementById('is-name').value.trim();
   const email = document.getElementById('is-email').value.trim();
-  const user = document.getElementById('is-user').value.trim();
+  const user = document.getElementById('is-user').value.trim(); // 🟢 เพิ่มบรรทัดนี้ เพราะตัวแปร user หายไป
   const role = document.getElementById('is-role').value;
   const branchId = document.getElementById('is-branch').value;
-
-  if(!name || !email || !user || !branchId) { alert('กรุณากรอกข้อมูลให้ครบทุกช่อง'); return; }
+  
+  if(!name || !email || !user || !branchId) { 
+    alert('กรุณากรอกข้อมูลให้ครบทุกช่อง'); 
+    return; 
+  }
 
   const btn = document.getElementById('btn-create-invite');
-  btn.textContent = 'Generating...'; btn.disabled = true;
+  btn.textContent = 'Generating...'; 
+  btn.disabled = true;
 
-  API.inviteStaff({ name, email, username: user, role, branch_id: branchId }).then(res => {
+  const shortBranch = branchId.replace('BR', '').toLowerCase();
+  const username = user + '.' + shortBranch + '.' + Math.floor(Math.random()*900 + 100);
+
+  API.inviteStaff({ name, email, username, role, branch_id: branchId }).then(res => {
     if(res.success) {
-      const link = `${window.location.origin}/onboarding.html?id=${res.staff.id}&branch=${branchId}`;
+      const link = `${window.location.origin}/onboarding.html?id=${res.staff.id}`;
       document.getElementById('invite-link-url').value = link;
       document.getElementById('invite-link-area').style.display = 'block';
       btn.style.display = 'none';
-      toast('สร้างตั๋วเชิญสำเร็จ', 'success');
+      toast('สร้างตั๋วเชิญสำเร็จ!', 'success');
     } else {
+      // 🟢 จัดปีกกาให้ครอบคลุม Else ของ res.success
       alert('Error generating invite: ' + (res.message || ''));
-      btn.textContent = 'Generate Invite Link'; btn.disabled = false;
+      btn.textContent = 'Generate Invite Link'; 
+      btn.disabled = false;
     }
   }).catch(err => {
-    alert('Connection error');
-    btn.textContent = 'Generate Invite Link'; btn.disabled = false;
+    alert('Connection error: ' + err.message);
+    btn.textContent = 'Generate Invite Link'; 
+    btn.disabled = false;
   });
+}
+   function shareInvite() {
+  const link = document.getElementById('invite-link-url').value;
+  if (navigator.share) {
+    navigator.share({ 
+      title: 'Ceramic Team Onboarding', 
+      text: 'ยินดีต้อนรับสู่ทีม Ceramic! กรุณากรอกข้อมูลและยืนยันตัวตนผ่านลิงก์นี้ครับ', 
+      url: link 
+    }).catch(err => {
+      // ถ้าพนักงานกดยกเลิกการแชร์ ให้ fallback ไป copy แทน
+      navigator.clipboard.writeText(link);
+      alert('คัดลอกลิงก์แล้ว!');
+    });
+  } else {
+    // สำหรับ Browser ที่ไม่มี navigator.share (เช่น คอมพิวเตอร์)
+    navigator.clipboard.writeText(link);
+    alert('คัดลอกลิงก์เรียบร้อยแล้ว!');
+  }
 }
 /* ── BOOT ───────────────────────────────────────────── */
 window.onload=()=>{
