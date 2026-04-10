@@ -1169,8 +1169,8 @@ async function populateBranchSelect() {
   async function adminLogin() {
     // 1. ดึงค่าจากช่อง Input (ตรวจสอบให้แน่ใจว่า ID ตรงกับ HTML ของคุณ)
     // *หากใน HTML คุณใช้ id="lg-user" และ id="lg-pass" ให้เปลี่ยนตรงนี้ตามนะครับ*
-    const emailInput = document.getElementById('adminEmail').value.trim();
-    const passInput = document.getElementById('adminPass').value;
+    const emailInput = document.getElementById('adminEmail');
+    const passInput = document.getElementById('adminPass');
     const btn = document.getElementById('loginBtn');
 
     // เผื่อหา element ไม่เจอ
