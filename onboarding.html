@@ -419,25 +419,22 @@
     }
   };
 
-  function setLang(l) {
-    lang = l;
-    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+    function setLang(l) {
+        lang = l;
+        // ปรับปรุง UI ปุ่มภาษา (ค้นหาโดยใช้ class)
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if(btn.textContent.toLowerCase() === l) {
+                btn.classList.add('active');
+            }
+        });
+        
+        // อัปเดตข้อความ... (โค้ดเดิมของคุณที่อยู่ข้างล่างนี้)
+        for (const [id, text] of Object.entries(dict[l])) {
+          const el = document.getElementById(id);
+          if(el) el.innerHTML = text;
+        }
 
-    if (btn) {
-      btn.classList.add('active');
-    } else {
-      // ค้นหาปุ่มที่ตรงกับภาษาที่เลือก (ถ้ามี)
-      document.querySelectorAll('.lang-btn').forEach(b => {
-        if(b.textContent.toLowerCase() === l) b.classList.add('active');
-      });
-    }
-    
-    // Update texts
-    for (const [id, text] of Object.entries(dict[l])) {
-      const el = document.getElementById(id);
-      if(el) el.innerHTML = text;
-    }
     
     // Update Placeholders & Err msgs based on language
     const reqMsgs = document.querySelectorAll('.err-msg');
