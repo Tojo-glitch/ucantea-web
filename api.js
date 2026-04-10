@@ -230,6 +230,7 @@ window.API = {
           email: data.email,
           name: data.name,
           role: data.role,
+          branch_id: data.branch_id,
           onboarding_status: 'PENDING'
         });
         if (res && res.length > 0) return { success: true, staff: res[0] };
