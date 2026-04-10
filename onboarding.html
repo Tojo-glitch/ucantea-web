@@ -93,8 +93,8 @@
         <p class="sub" id="t-sub">Onboarding Registration & Contract</p>
       </div>
       <div class="lang-toggle">
-        <button class="lang-btn active" onclick="setLang('th', this)">TH</button>
-        <button class="lang-btn" onclick="setLang('en', this)">EN</button>
+        <button class="lang-btn active" onclick="setLang('th')">TH</button>
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
       </div>
     </div>
 
@@ -225,8 +225,19 @@
   
   document.getElementById('sysUsername').value = sysUser;
 
-  if(!staffId) {
-    document.getElementById('form-card').innerHTML = '<h2 style="color:var(--red); text-align:center; padding:40px;">❌ Invalid or Expired Link</h2>';
+  // ตรวจสอบว่า API.getStaffOnboardingInfo ถูกโหลดมาแล้วหรือยัง
+  if (staffId) {
+    // ให้แน่ใจว่าเรียก API นี้ (ซึ่งเราเพิ่มเข้าไปใน api.js แล้ว)
+    API.getStaffOnboardingInfo(staffId).then(res => {
+      if(res.success) {
+        document.getElementById('branch-name-text').textContent = res.branchName;
+      } else {
+        document.getElementById('branch-name-text').textContent = "Branch not found";
+      }
+    }).catch(err => {
+      console.error("Error loading branch:", err);
+      document.getElementById('branch-name-text').textContent = "Connection Error";
+    });
   }
 
   // --- Real-time Validation (Green/Red Borders) ---
