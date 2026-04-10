@@ -1,949 +1,1690 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="th" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Ceramic POS</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ─── TOKENS ─── */
+/* ═══ TOKENS ═══════════════════════════════════════════ */
 :root {
   --c0:#0c0b09;--c1:#141310;--c2:#1c1a17;--c3:#252320;--c4:#2f2d29;
-  --tan:#e8e0d4;--tan2:#b8ad9e;--tan3:#9e9080;
-  --gold:#b8924a;--gl:#d4aa6a;
-  --grn:#4aad75;--grnl:#6dbb8a;
-  --red:#d44f4f;--line:rgba(255,255,255,.07);--ln2:rgba(255,255,255,.12);
+  --tan:#e8e0d4;--tan2:#b8ad9e;--tan3:#9e9080;--tan4:#6a5e52;
+  --gold:#b8924a;--gl:#d4aa6a;--gl2:rgba(212,170,106,.12);
+  --grn:#4aad75;--grnl:#6dbb8a;--grn2:rgba(74,173,117,.12);
+  --red:#d44f4f;--red2:rgba(212,79,79,.12);
+  --blue:#4a7fbf;
+  --line:rgba(255,255,255,.07);--ln2:rgba(255,255,255,.12);
   --serif:'Fraunces',Georgia,serif;
   --sans:'Plus Jakarta Sans','Helvetica Neue',sans-serif;
 }
-* { margin:0; padding:0; box-sizing:border-box; user-select:none; }
-body { background:var(--c0); color:var(--tan); font-family:var(--sans); height:100vh; display:flex; overflow:hidden; }
-button { font-family:var(--sans); cursor:pointer; border:none; background:none; outline:none; }
-input, textarea { font-family:var(--sans); outline:none; color:var(--tan); background:var(--c1); border:1px solid var(--ln2); border-radius:8px; padding:10px; }
 
-/* ─── LAYOUT ─── */
-.pos-layout { display:flex; width:100%; height:100%; }
-.pos-main { flex:1; display:flex; flex-direction:column; background:var(--c0); }
-.pos-sidebar { width:400px; background:var(--c1); border-left:1px solid var(--line); display:flex; flex-direction:column; flex-shrink:0; position:relative; }
+/* ═══ RESET ════════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box;user-select:none}
+body{background:var(--c0);color:var(--tan);font-family:var(--sans);height:100vh;display:flex;overflow:hidden}
+button{font-family:var(--sans);cursor:pointer;border:none;background:none;outline:none}
+input,select,textarea{font-family:var(--sans);outline:none;color:var(--tan);background:var(--c2);border:1px solid var(--ln2);border-radius:8px;padding:0 12px;font-size:14px;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--gl)}
+input::placeholder{color:var(--tan3)}
 
-/* ─── HEADER & CATEGORIES ─── */
-.main-header { padding:20px 24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
-.brand { font-family:var(--serif); font-size:24px; font-style:italic; color:var(--tan); }
-.brand span { color:var(--gl); font-size:11px; font-family:var(--sans); font-style:normal; letter-spacing:1px; text-transform:uppercase; margin-left:6px; }
-.cat-scroll { display:flex; gap:8px; overflow-x:auto; padding:16px 24px; scrollbar-width:none; border-bottom:1px solid var(--line); }
-.cat-scroll::-webkit-scrollbar { display:none; }
-.ctab { height:40px; padding:0 20px; background:var(--c2); border:1px solid var(--ln2); border-radius:20px; font-size:14px; font-weight:600; color:var(--tan3); cursor:pointer; white-space:nowrap; transition:all .15s; }
-.ctab.on { background:var(--gold); border-color:var(--gold); color:var(--c0); }
+/* ═══ LAYOUT ═══════════════════════════════════════════ */
+.pos-layout{display:flex;width:100%;height:100%}
+.pos-main{flex:1;display:flex;flex-direction:column;background:var(--c0);overflow:hidden}
+.pos-sidebar{width:420px;background:var(--c1);border-left:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0}
 
-/* ─── MENU GRID ─── */
-.menu-grid { flex:1; padding:24px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:16px; align-content:start; }
-.m-card { background:var(--c1); border:1px solid var(--ln2); border-radius:14px; padding:16px; cursor:pointer; transition:transform .1s, border-color .15s; display:flex; flex-direction:column; }
-.m-card:active { transform:scale(0.96); border-color:var(--gl); }
-.m-name { font-family:var(--serif); font-size:16px; color:var(--tan); margin-bottom:4px; line-height:1.2; }
-.m-cat { font-size:11px; color:var(--tan3); margin-bottom:12px; }
-.m-price { font-size:16px; font-weight:600; color:var(--gl); margin-top:auto; }
+/* ═══ HEADER ═══════════════════════════════════════════ */
+.main-header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.brand{font-family:var(--serif);font-size:22px;font-style:italic;color:var(--tan);display:flex;align-items:baseline;gap:8px}
+.brand span{color:var(--gl);font-size:10px;font-family:var(--sans);font-style:normal;letter-spacing:1px;text-transform:uppercase}
+.hdr-right{display:flex;gap:8px;align-items:center}
+.hdr-staff{display:flex;flex-direction:column;align-items:flex-end}
+.hdr-staff-name{font-size:13px;font-weight:600;color:var(--tan)}
+.hdr-staff-sub{font-size:10px;color:var(--tan3)}
+.hdr-conn{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0}
+.hdr-conn.ok{background:var(--grnl)}
 
-/* ─── TICKET (SIDEBAR) ─── */
-.t-header { padding:20px 24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
-.t-title { font-family:var(--serif); font-size:20px; color:var(--tan); }
-.t-clear { font-size:12px; color:#e88080; font-weight:600; cursor:pointer; background:rgba(212,79,79,.1); padding:6px 12px; border-radius:6px; border:1px solid rgba(212,79,79,.3); }
+/* ═══ BUTTONS ══════════════════════════════════════════ */
+.btn{height:40px;padding:0 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .15s;border:1px solid transparent;white-space:nowrap}
+.btn-ghost{background:var(--c2);color:var(--tan2);border-color:var(--ln2)}
+.btn-ghost:hover{background:var(--c3);color:var(--tan)}
+.btn-gold{background:var(--gl2);color:var(--gl);border-color:rgba(212,170,106,.25)}
+.btn-gold:hover{background:var(--gold);color:var(--c0)}
+.btn-red{background:var(--red2);color:var(--red);border-color:rgba(212,79,79,.25)}
+.btn-grn{background:var(--grn2);color:var(--grnl);border-color:rgba(74,173,117,.25)}
+.btn-primary{background:var(--tan);color:var(--c0)}
+.btn-primary:hover{background:var(--tan2)}
+.btn-sm{height:36px;padding:0 12px;font-size:12px}
+.btn-icon{width:36px;height:36px;border-radius:8px;background:var(--c2);border:1px solid var(--ln2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tan3);transition:all .15s}
+.btn-icon:hover{background:var(--c3);color:var(--tan)}
 
-.t-items { flex:1; overflow-y:auto; padding:12px 24px; }
-.t-item { padding:12px 0; border-bottom:1px dashed var(--line); display:flex; flex-direction:column; gap:8px;}
-.t-item:last-child { border-bottom:none; }
-.ti-row { display:flex; justify-content:space-between; align-items:flex-start; }
-.ti-name { font-size:15px; font-weight:600; color:var(--tan); line-height:1.2; }
-.ti-opt { font-size:12px; color:var(--tan3); margin-top:4px; line-height:1.4; }
-.ti-note { font-size:11px; color:#e88080; margin-top:2px; font-style:italic; }
-.ti-price { font-size:15px; font-weight:600; color:var(--tan); text-align:right; min-width:50px; }
-.ti-ctrl { display:flex; align-items:center; gap:12px; background:var(--c2); border-radius:8px; padding:4px; width:fit-content; border:1px solid var(--ln2); }
-.ti-btn { width:28px; height:28px; background:var(--c3); border-radius:6px; color:var(--tan); font-size:16px; display:flex; align-items:center; justify-content:center; }
-.ti-qty { font-size:14px; font-weight:600; width:20px; text-align:center; }
+/* ═══ CATEGORIES ════════════════════════════════════════ */
+.cat-scroll{display:flex;gap:8px;overflow-x:auto;padding:12px 20px;scrollbar-width:none;border-bottom:1px solid var(--line);flex-shrink:0}
+.cat-scroll::-webkit-scrollbar{display:none}
+.ctab{height:36px;padding:0 18px;background:var(--c2);border:1px solid var(--ln2);border-radius:18px;font-size:13px;font-weight:600;color:var(--tan3);cursor:pointer;white-space:nowrap;transition:all .15s}
+.ctab.on{background:var(--gold);border-color:var(--gold);color:var(--c0)}
 
-/* ─── CUSTOMER & CHECKOUT ─── */
-.t-member { padding:16px 24px; border-top:1px solid var(--line); background:var(--c2); }
-.mem-inp-row { display:flex; gap:8px; }
-.inp { flex:1; height:44px; }
-.btn-sm { height:44px; padding:0 16px; background:var(--c3); border:1px solid var(--ln2); border-radius:10px; color:var(--tan2); font-weight:600; font-size:13px; }
-.mem-info { display:flex; justify-content:space-between; align-items:center; background:rgba(212,170,106,.1); border:1px solid rgba(212,170,106,.2); padding:12px 16px; border-radius:10px; display:none; }
-.mem-name { font-size:13px; font-weight:600; color:var(--gl); }
-.mem-pts { font-size:11px; color:var(--tan3); }
+/* ═══ MENU GRID ═════════════════════════════════════════ */
+.menu-search{padding:10px 20px 0;flex-shrink:0}
+.menu-search input{width:100%;height:38px}
+.menu-grid{flex:1;padding:16px 20px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;align-content:start;scrollbar-width:thin;scrollbar-color:var(--c3) transparent}
+.menu-grid::-webkit-scrollbar{width:4px}
+.menu-grid::-webkit-scrollbar-thumb{background:var(--c3);border-radius:2px}
+.m-card{background:var(--c1);border:1px solid var(--ln2);border-radius:12px;padding:14px;cursor:pointer;transition:transform .1s,border-color .15s;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.m-card:active{transform:scale(.96);border-color:var(--gl)}
+.m-card.unavail{opacity:.4;pointer-events:none}
+.m-avail-dot{position:absolute;top:10px;right:10px;width:6px;height:6px;border-radius:50%;background:var(--grnl)}
+.m-name{font-family:var(--serif);font-size:15px;color:var(--tan);margin-bottom:3px;line-height:1.2}
+.m-cat{font-size:10px;color:var(--tan3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.m-price{font-size:16px;font-weight:700;color:var(--gl);margin-top:auto}
+.m-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;display:inline-block}
+.mb-hot{background:rgba(212,79,79,.1);color:var(--red)}
+.mb-new{background:var(--grn2);color:var(--grnl)}
 
-.t-summary { padding:16px 24px 24px; border-top:1px solid var(--line); background:var(--c1); }
-.sum-row { display:flex; justify-content:space-between; font-size:14px; color:var(--tan3); margin-bottom:8px; }
-.sum-row.total { font-size:20px; font-weight:600; color:var(--tan); margin-top:12px; margin-bottom:16px; }
-.sum-row.total .val { color:var(--gl); font-family:var(--serif); font-size:28px; }
-.btn-pay { width:100%; height:60px; background:var(--grnl); border-radius:14px; font-size:18px; font-weight:700; color:var(--c0); transition:transform .1s; }
-.btn-pay:active { transform:scale(0.98); }
-.btn-pay:disabled { opacity:0.5; background:var(--tan3); cursor:not-allowed; }
+/* ═══ TICKET ════════════════════════════════════════════ */
+.t-header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.t-title{font-family:var(--serif);font-size:18px;color:var(--tan)}
+.t-subtitle{font-size:10px;color:var(--tan3);margin-top:1px}
+.t-items{flex:1;overflow-y:auto;padding:8px 20px;scrollbar-width:thin;scrollbar-color:var(--c3) transparent}
+.t-items::-webkit-scrollbar{width:3px}
+.t-items::-webkit-scrollbar-thumb{background:var(--c3)}
+.t-item{padding:10px 0;border-bottom:1px dashed var(--line);display:flex;flex-direction:column;gap:6px}
+.t-item:last-child{border-bottom:none}
+.ti-row{display:flex;justify-content:space-between;align-items:flex-start}
+.ti-name{font-size:14px;font-weight:600;color:var(--tan);line-height:1.2}
+.ti-opt{font-size:11px;color:var(--tan3);margin-top:2px;line-height:1.4}
+.ti-note{font-size:10px;color:#e8a07a;font-style:italic}
+.ti-price{font-size:14px;font-weight:700;color:var(--tan);min-width:48px;text-align:right}
+.ti-ctrl{display:flex;align-items:center;gap:8px;background:var(--c2);border-radius:8px;padding:3px;border:1px solid var(--ln2);width:fit-content}
+.ti-btn{width:26px;height:26px;background:var(--c3);border-radius:6px;color:var(--tan);font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .1s}
+.ti-btn:hover{background:var(--c4)}
+.ti-qty{font-size:13px;font-weight:700;width:22px;text-align:center}
 
-/* ─── OVERLAYS & MODALS ─── */
-.overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(4px); z-index:9000; display:none; align-items:center; justify-content:center; }
-.overlay.on { display:flex; }
-.modal { background:var(--c1); border:1px solid var(--ln2); border-radius:16px; padding:32px; width:450px; display:flex; flex-direction:column; max-height:90vh; }
-.modal-title { font-family:var(--serif); font-size:24px; color:var(--tan); margin-bottom:16px; text-align:center; }
+/* ═══ PENDING ZONE ══════════════════════════════════════ */
+.pending-zone{flex-shrink:0}
+.pending-header{padding:10px 20px;display:flex;align-items:center;gap:8px;background:rgba(212,170,106,.08);border-bottom:1px solid var(--line)}
+.pending-dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:dot-pulse 1.2s infinite}
+@keyframes dot-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.pending-title{font-size:13px;font-weight:700;color:var(--gl)}
+.pending-list{max-height:160px;overflow-y:auto}
+.pending-item{display:flex;justify-content:space-between;align-items:center;padding:8px 20px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s}
+.pending-item:hover{background:var(--c2)}
+.pi-id{font-size:13px;font-weight:600;color:var(--tan)}
+.pi-amt{font-size:12px;color:var(--tan3)}
+.pi-tag{font-size:10px;font-weight:700;background:var(--gl);color:var(--c0);padding:3px 8px;border-radius:4px}
 
-/* ─── ITEM CUSTOMIZATION MODAL ─── */
-.opt-group { margin-bottom:16px; }
-.opt-label { font-size:12px; color:var(--tan3); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px; font-weight:600; }
-.opt-grid { display:flex; gap:8px; flex-wrap:wrap; }
-.opt-btn { padding:10px 16px; background:var(--c2); border:1px solid var(--ln2); border-radius:8px; color:var(--tan2); font-size:14px; font-weight:500; flex:1; text-align:center; }
-.opt-btn.on { background:rgba(212,170,106,.15); border-color:var(--gl); color:var(--gl); }
-.addon-btn { display:flex; justify-content:space-between; padding:12px; background:var(--c2); border:1px solid var(--ln2); border-radius:8px; color:var(--tan); width:100%; margin-bottom:8px;}
-.addon-btn.on { background:rgba(74,173,117,.1); border-color:var(--grnl); color:var(--grnl); }
+/* ═══ MEMBER SECTION ════════════════════════════════════ */
+.t-member{padding:12px 20px;border-top:1px solid var(--line);background:var(--c2);flex-shrink:0}
+.mem-inp-row{display:flex;gap:8px}
+.mem-inp-row input{flex:1;height:38px}
+.mem-info{display:none;align-items:center;gap:10px;background:var(--gl2);border:1px solid rgba(212,170,106,.2);padding:10px 14px;border-radius:8px}
+.mem-name{font-size:13px;font-weight:600;color:var(--gl)}
+.mem-pts{font-size:11px;color:var(--tan3);margin-top:1px}
+.mem-tier{font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;text-transform:uppercase}
+.mt-bronze{background:rgba(160,100,50,.15);color:#c4845a}
+.mt-silver{background:rgba(180,180,200,.1);color:#a8a8c0}
+.mt-gold{background:var(--gl2);color:var(--gl)}
 
-/* ─── CHECKOUT MODAL ─── */
-.pay-method-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:24px; }
-.pay-btn { height:80px; background:var(--c2); border:1px solid var(--ln2); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--tan2); font-size:14px; font-weight:600; }
-.pay-btn.on { background:rgba(212,170,106,.15); border-color:var(--gl); color:var(--gl); }
-.quick-cash { display:flex; gap:8px; margin-bottom:16px; }
-.qc-btn { flex:1; height:40px; background:var(--c3); border:1px solid var(--ln2); border-radius:6px; color:var(--tan); font-weight:600; }
+/* ═══ SUMMARY ═══════════════════════════════════════════ */
+.t-summary{padding:14px 20px 18px;border-top:1px solid var(--line);background:var(--c1);flex-shrink:0}
+.otype-row{display:flex;gap:6px;margin-bottom:12px}
+.otype-btn{flex:1;height:34px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--ln2);background:var(--c2);color:var(--tan3);transition:all .15s}
+.otype-btn.on{background:var(--gl2);border-color:rgba(212,170,106,.3);color:var(--gl)}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;color:var(--tan3);margin-bottom:6px}
+.sum-row .v{color:var(--tan)}
+.sum-total{display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:var(--tan);margin:10px 0 14px}
+.sum-total .v{color:var(--gl);font-family:var(--serif);font-size:26px}
+.btn-checkout{width:100%;height:58px;background:var(--grnl);border-radius:12px;font-size:17px;font-weight:700;color:var(--c0);transition:transform .1s;border:none}
+.btn-checkout:active{transform:scale(.98)}
+.btn-checkout:disabled{opacity:.45;background:var(--tan4);cursor:not-allowed;transform:none}
+
+/* ═══ OVERLAYS ══════════════════════════════════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:900;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.on{display:flex}
+.modal{background:var(--c1);border:1px solid var(--ln2);border-radius:16px;padding:28px;width:100%;max-width:480px;display:flex;flex-direction:column;max-height:92vh;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5);animation:modal-in .2s ease}
+@keyframes modal-in{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-title{font-family:var(--serif);font-size:22px;color:var(--tan);margin-bottom:16px}
+.modal-body{overflow-y:auto;flex:1;padding-right:4px}
+.modal-body::-webkit-scrollbar{width:3px}
+.modal-foot{display:flex;gap:10px;margin-top:20px;flex-shrink:0}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:8px;background:var(--c3);color:var(--tan3);display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* ═══ OPT BUTTONS ═══════════════════════════════════════ */
+.opt-group{margin-bottom:16px}
+.opt-label{font-size:10px;color:var(--tan3);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;font-weight:700;display:flex;align-items:center;gap:6px}
+.opt-grid{display:flex;gap:6px;flex-wrap:wrap}
+.opt-btn{padding:9px 14px;background:var(--c2);border:1px solid var(--ln2);border-radius:8px;color:var(--tan2);font-size:13px;font-weight:500;cursor:pointer;transition:all .12s}
+.opt-btn.on{background:var(--gl2);border-color:var(--gl);color:var(--gl)}
+.addon-btn{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:var(--c2);border:1px solid var(--ln2);border-radius:8px;color:var(--tan);width:100%;margin-bottom:7px;transition:all .12s;font-size:13px}
+.addon-btn.on{background:var(--grn2);border-color:var(--grnl);color:var(--grnl)}
+.addon-price{font-size:11px;font-weight:600;color:var(--tan3)}
+.addon-btn.on .addon-price{color:var(--grnl)}
+
+/* ═══ CHECKOUT MODAL ════════════════════════════════════ */
+.co-total-display{text-align:center;padding:16px 0 20px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.co-total-label{font-size:12px;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.co-total-val{font-family:var(--serif);font-size:52px;color:var(--gl);line-height:1}
+.pay-method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.pay-btn{height:72px;background:var(--c2);border:1px solid var(--ln2);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--tan3);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.pay-btn:hover{background:var(--c3);color:var(--tan)}
+.pay-btn.on{background:var(--gl2);border-color:var(--gl);color:var(--gl)}
+.pay-btn svg{opacity:.6}
+.pay-btn.on svg{opacity:1}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.np-btn{height:52px;background:var(--c2);border:1px solid var(--ln2);border-radius:8px;font-size:18px;font-weight:600;color:var(--tan);cursor:pointer;transition:all .12s}
+.np-btn:active{background:var(--c3);transform:scale(.96)}
+.np-btn.np-0{grid-column:1/3}
+.np-btn.np-del{background:var(--red2);color:var(--red);border-color:rgba(212,79,79,.25)}
+.change-display{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--grn2);border:1px solid rgba(74,173,117,.2);border-radius:8px;margin-bottom:16px}
+.change-lbl{font-size:13px;color:var(--grnl)}
+.change-val{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--grnl)}
+
+/* ═══ PRINTER SETTINGS ══════════════════════════════════ */
+.printer-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;border:1px solid;margin-bottom:16px;font-size:13px}
+.ps-ok{background:var(--grn2);border-color:rgba(74,173,117,.25);color:var(--grnl)}
+.ps-err{background:var(--red2);border-color:rgba(212,79,79,.25);color:var(--red)}
+.ps-wait{background:var(--gl2);border-color:rgba(212,170,106,.25);color:var(--gl)}
+.setting-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.setting-label{font-size:12px;color:var(--tan3);font-weight:600;width:90px;flex-shrink:0}
+.setting-row input{flex:1;height:38px}
+
+/* ═══ SLIP MODAL ════════════════════════════════════════ */
+.slip-img{width:100%;max-height:300px;object-fit:contain;background:var(--c0);border-radius:8px;margin-bottom:16px;display:block}
+
+/* ═══ MANAGER AUTH ══════════════════════════════════════ */
+.auth-pin-display{font-size:36px;letter-spacing:12px;text-align:center;font-weight:700;color:var(--tan);background:var(--c2);border-radius:10px;padding:14px;margin-bottom:16px;min-height:68px;border:1px solid var(--ln2)}
+.auth-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.auth-np-btn{height:56px;background:var(--c2);border:1px solid var(--ln2);border-radius:10px;font-size:20px;font-weight:600;color:var(--tan);cursor:pointer;transition:all .12s}
+.auth-np-btn:active{background:var(--c3);transform:scale(.96)}
+
+/* ═══ SHIFT REPORT ══════════════════════════════════════ */
+.shift-stat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.shift-card{background:var(--c2);border:1px solid var(--ln2);border-radius:10px;padding:14px}
+.shift-card-lbl{font-size:10px;color:var(--tan3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.shift-card-val{font-family:var(--serif);font-size:22px;color:var(--gl)}
+
+/* ═══ TOAST ═════════════════════════════════════════════ */
+#pos-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--c3);border:1px solid var(--ln2);color:var(--tan);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:10px}
+#pos-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* ═══ QUEUE NUMBER ══════════════════════════════════════ */
+.queue-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:var(--gl);color:var(--c0);font-size:13px;font-weight:700;margin-left:6px}
 </style>
 </head>
 <body>
 
 <audio id="posAlert" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
+<div id="pos-toast"><div class="toast-dot" id="toast-dot"></div><span id="toast-msg"></span></div>
 
-<!-- 1. LOGIN OVERLAY -->
-<div class="overlay on" id="loginOv" style="z-index:9999;">
-  <div class="modal" style="width:400px; padding: 40px;">
-    <div class="brand" style="margin-bottom:8px; text-align:center;">Ceramic <span>POS</span></div>
-    <div style="font-size:12px; color:var(--tan3); text-align:center; margin-bottom:24px;">Staff Login Terminal</div>
-    <!-- 🛑 MANAGER OVERRIDE MODAL -->
-<div class="overlay" id="authOv" style="z-index: 9999;">
-  <div class="modal" style="width: 350px; text-align: center;">
-    <div style="color:var(--red); margin-bottom:12px;">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+<!-- ═══════════════════════════════════════════════════
+     1. LOGIN OVERLAY
+═══════════════════════════════════════════════════ -->
+<div class="overlay on" id="loginOv" style="z-index:9999">
+  <div class="modal" style="max-width:400px;padding:36px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="brand" style="justify-content:center;margin-bottom:4px">Ceramic <span>POS</span></div>
+      <div style="font-size:11px;color:var(--tan3)">Staff Terminal — v2.0</div>
     </div>
-    <div class="modal-title" style="margin-bottom:8px;">Manager Approval</div>
-    <div style="font-size:13px; color:var(--tan3); margin-bottom:24px;">การทำรายการนี้ต้องใช้รหัสผ่านระดับผู้จัดการ</div>
-    
-    <input type="password" id="authPinInp" class="inp" placeholder="Manager PIN" style="text-align:center; font-size:24px; letter-spacing:8px; height:60px; width:100%; margin-bottom:16px;" onkeydown="if(event.key==='Enter') executeAuthorizedAction()">
-    
-    <div style="display:flex; gap:12px;">
-      <button class="btn-sm" style="flex:1; background:transparent; border:1px solid var(--ln2); color:var(--tan3);" onclick="document.getElementById('authOv').classList.remove('on')">Cancel</button>
-      <button class="btn-pay" style="flex:1; height:48px;" onclick="executeAuthorizedAction()" id="authBtn">Authorize</button>
-    </div>
-  </div>
-</div>
-    <form onsubmit="event.preventDefault(); doLogin();" style="width: 100%;">
-      
-      <!-- 1. เลือกสาขา -->
-      <div style="margin-bottom:16px; text-align:left;">
-        <label style="font-size:11px; color:var(--tan3); text-transform:uppercase; font-weight:700;">Select Branch</label>
-        <select id="branchSelect" class="inp" style="width:100%; margin-top:6px; cursor:pointer; appearance:none;">
-          <option value="">-- Loading Branches --</option>
+    <form onsubmit="event.preventDefault();doLogin()">
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;color:var(--tan3);text-transform:uppercase;font-weight:700;margin-bottom:6px">Branch</div>
+        <select id="branchSelect" style="width:100%;height:42px;cursor:pointer">
+          <option value="">— Select Branch —</option>
+          <option value="BR001">Main Branch — Siam</option>
+          <option value="BR002">Thonglor Branch</option>
+          <option value="BR003">Ari Branch</option>
         </select>
       </div>
-
-      <!-- 2. Username -->
-      <div style="margin-bottom:16px; text-align:left;">
-        <label style="font-size:11px; color:var(--tan3); text-transform:uppercase; font-weight:700;">Username</label>
-        <input type="text" id="staffUser" class="inp" placeholder="e.g. staff_siam01" style="width:100%; margin-top:6px;">
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;color:var(--tan3);text-transform:uppercase;font-weight:700;margin-bottom:6px">Username</div>
+        <input type="text" id="staffUser" placeholder="staff_siam01" style="width:100%;height:42px">
       </div>
-
-      <!-- 3. PIN / Password -->
-      <div style="margin-bottom:24px; text-align:left;">
-        <label style="font-size:11px; color:var(--tan3); text-transform:uppercase; font-weight:700;">Passcode / PIN</label>
-        <input type="password" id="pinInp" class="inp" placeholder="••••" style="width:100%; margin-top:6px; font-size:24px; letter-spacing:8px; text-align:center;">
+      <div style="margin-bottom:20px">
+        <div style="font-size:10px;color:var(--tan3);text-transform:uppercase;font-weight:700;margin-bottom:6px">PIN / Passcode</div>
+        <input type="password" id="pinInp" placeholder="••••" style="width:100%;height:42px;text-align:center;font-size:22px;letter-spacing:8px">
       </div>
-
-      <button type="submit" id="loginBtn" class="btn-pay" style="height:54px; background:var(--tan); color:var(--c0); width:100%;">Access POS</button>
-      <div id="loginError" style="color:var(--red); font-size:12px; text-align:center; margin-top:12px; min-height:15px;"></div>
+      <div id="loginError" style="color:var(--red);font-size:12px;text-align:center;min-height:18px;margin-bottom:12px"></div>
+      <button type="submit" id="loginBtn" class="btn btn-primary" style="width:100%;height:48px;font-size:15px">Access POS</button>
     </form>
   </div>
 </div>
 
-
-<!-- 2. SLIP CHECK OVERLAY (ONLINE ORDERS) -->
-<div class="overlay" id="slipOv">
-  <div class="modal" style="width:500px; text-align:center;">
-    <div class="modal-title" id="slipOrderId">CTB-XXXX</div>
-    <div style="color:var(--tan3); margin-bottom:16px;">ตรวจสอบยอดเงินเข้าบัญชีให้ตรงกับสลิปนี้</div>
-    <img id="slipImg" src="" style="width:100%; max-height:400px; object-fit:contain; background:#000; border-radius:8px; margin-bottom:20px;">
-    <div style="font-size:24px; color:var(--gl); font-family:var(--serif); margin-bottom:20px;" id="slipTotal">฿0</div>
-    
-    <div style="display:flex; gap:12px;">
-      <button class="btn-sm" style="flex:1; background:rgba(212,79,79,.1); color:#e88080; border-color:rgba(212,79,79,.3);" onclick="decideOrder('CANCELLED')">❌ Cancel (สลิปไม่ผ่าน)</button>
-      <button class="btn-pay" style="flex:1; height:44px;" onclick="decideOrder('CONFIRMED')">✅ Approve (เงินเข้าแล้ว)</button>
+<!-- ═══════════════════════════════════════════════════
+     2. MANAGER AUTH OVERLAY
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="authOv" style="z-index:9998">
+  <div class="modal" style="max-width:360px">
+    <div style="text-align:center;margin-bottom:20px">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5" style="margin-bottom:12px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <div class="modal-title" style="margin-bottom:4px">Manager Approval</div>
+      <div style="font-size:12px;color:var(--tan3)" id="authReason">กรุณาให้ผู้จัดการกรอกรหัส</div>
     </div>
-    <button class="btn-sm" style="margin-top:16px; background:transparent; border:none; color:var(--tan3);" onclick="document.getElementById('slipOv').classList.remove('on')">ปิดหน้าต่าง</button>
+    <div class="auth-pin-display" id="authDisplay">• • • •</div>
+    <div class="auth-numpad">
+      <button class="auth-np-btn" onclick="authKey('1')">1</button>
+      <button class="auth-np-btn" onclick="authKey('2')">2</button>
+      <button class="auth-np-btn" onclick="authKey('3')">3</button>
+      <button class="auth-np-btn" onclick="authKey('4')">4</button>
+      <button class="auth-np-btn" onclick="authKey('5')">5</button>
+      <button class="auth-np-btn" onclick="authKey('6')">6</button>
+      <button class="auth-np-btn" onclick="authKey('7')">7</button>
+      <button class="auth-np-btn" onclick="authKey('8')">8</button>
+      <button class="auth-np-btn" onclick="authKey('9')">9</button>
+      <button class="auth-np-btn" onclick="authKey('C')" style="background:var(--red2);color:var(--red);border-color:rgba(212,79,79,.25)">C</button>
+      <button class="auth-np-btn" onclick="authKey('0')">0</button>
+      <button class="auth-np-btn" onclick="authKey('OK')" style="background:var(--gl2);color:var(--gl);border-color:rgba(212,170,106,.25)">OK</button>
+    </div>
+    <button onclick="cancelAuth()" class="btn btn-ghost" style="width:100%;margin-top:12px">Cancel</button>
   </div>
 </div>
 
-<!-- 3. ITEM CUSTOMIZATION MODAL -->
+<!-- ═══════════════════════════════════════════════════
+     3. ITEM CUSTOMIZATION MODAL
+═══════════════════════════════════════════════════ -->
 <div class="overlay" id="itemOv">
-  <div class="modal" style="width:480px; padding:24px;">
-    <div class="modal-title" id="itemName" style="text-align:left; margin-bottom:8px;">Item Name</div>
-    <div style="font-family:var(--serif); font-size:20px; color:var(--gl); margin-bottom:24px;" id="itemPrice">฿0</div>
-    
-    <div style="overflow-y:auto; padding-right:8px; margin-bottom:20px;">
-      <div class="opt-group">
-        <div class="opt-label">Size</div>
-        <div class="opt-grid" id="optSize">
-          <button class="opt-btn" onclick="selOpt('size', 'S', 0)">S (Reg)</button>
-          <button class="opt-btn on" onclick="selOpt('size', 'M', 15)">M (+฿15)</button>
-          <button class="opt-btn" onclick="selOpt('size', 'L', 30)">L (+฿30)</button>
-        </div>
+  <div class="modal" style="max-width:500px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+      <div>
+        <div class="modal-title" id="itemName" style="margin-bottom:3px">Item Name</div>
+        <div style="font-size:14px;color:var(--gl)" id="itemPrice">฿0 / unit</div>
       </div>
-      
-      <div class="opt-group">
-        <div class="opt-label">Sweetness</div>
-        <div class="opt-grid" id="optSweet">
-          <button class="opt-btn" onclick="selOpt('sweet', '0%')">0%</button>
-          <button class="opt-btn" onclick="selOpt('sweet', '25%')">25%</button>
-          <button class="opt-btn" onclick="selOpt('sweet', '50%')">50%</button>
-          <button class="opt-btn on" onclick="selOpt('sweet', 'Regular')">Reg</button>
-          <button class="opt-btn" onclick="selOpt('sweet', 'Extra')">Extra</button>
-        </div>
-      </div>
-
-      <div class="opt-group">
-        <div class="opt-label">Ice Level</div>
-        <div class="opt-grid" id="optIce">
-          <button class="opt-btn" onclick="selOpt('ice', 'No Ice')">No</button>
-          <button class="opt-btn" onclick="selOpt('ice', 'Less Ice')">Less</button>
-          <button class="opt-btn on" onclick="selOpt('ice', 'Regular Ice')">Reg</button>
-          <button class="opt-btn" onclick="selOpt('ice', 'Extra Ice')">Extra</button>
-        </div>
-      </div>
-
-      <div class="opt-group">
-        <div class="opt-label">Add-ons</div>
-        <div id="optAddons">
-          <!-- Injected via JS -->
-        </div>
-      </div>
-
-      <div class="opt-group">
-        <div class="opt-label">Special Note</div>
-        <input type="text" id="itemNote" class="inp" placeholder="e.g., Allergy, Separate ice..." style="width:100%;">
-      </div>
-    </div>
-    
-    <div style="display:flex; gap:12px; align-items:center; border-top:1px solid var(--line); padding-top:16px;">
-      <button class="btn-sm" style="background:var(--c2);" onclick="document.getElementById('itemOv').classList.remove('on')">Cancel</button>
-      <div class="ti-ctrl" style="margin:0 12px;">
+      <div class="ti-ctrl" style="margin:0">
         <button class="ti-btn" onclick="chTempQty(-1)">−</button>
         <div class="ti-qty" id="tempQty">1</div>
         <button class="ti-btn" onclick="chTempQty(1)">+</button>
       </div>
-      <button class="btn-pay" style="flex:1; height:48px;" onclick="confirmItem()">Add <span id="tempTotal">฿0</span></button>
+    </div>
+    <div style="height:1px;background:var(--line);margin:14px 0 16px"></div>
+    <div class="modal-body">
+      <div class="opt-group">
+        <div class="opt-label">Size</div>
+        <div class="opt-grid" id="optSize">
+          <button class="opt-btn" onclick="selOpt(event,'size','S',0)">S — Regular</button>
+          <button class="opt-btn on" onclick="selOpt(event,'size','M',15)">M — +฿15</button>
+          <button class="opt-btn" onclick="selOpt(event,'size','L',30)">L — +฿30</button>
+        </div>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Sweetness</div>
+        <div class="opt-grid" id="optSweet">
+          <button class="opt-btn" onclick="selOpt(event,'sweet','0%')">0%</button>
+          <button class="opt-btn" onclick="selOpt(event,'sweet','25%')">25%</button>
+          <button class="opt-btn" onclick="selOpt(event,'sweet','50%')">50%</button>
+          <button class="opt-btn on" onclick="selOpt(event,'sweet','Regular')">Regular</button>
+          <button class="opt-btn" onclick="selOpt(event,'sweet','Extra')">Extra</button>
+        </div>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Ice Level</div>
+        <div class="opt-grid" id="optIce">
+          <button class="opt-btn" onclick="selOpt(event,'ice','No Ice')">No Ice</button>
+          <button class="opt-btn" onclick="selOpt(event,'ice','Less Ice')">Less Ice</button>
+          <button class="opt-btn on" onclick="selOpt(event,'ice','Regular Ice')">Regular Ice</button>
+          <button class="opt-btn" onclick="selOpt(event,'ice','Extra Ice')">Extra Ice</button>
+        </div>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Add-ons</div>
+        <div id="optAddons"></div>
+      </div>
+      <div class="opt-group">
+        <div class="opt-label">Note</div>
+        <input type="text" id="itemNote" placeholder="Special request, allergy info..." style="width:100%;height:40px;user-select:auto">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeOverlay('itemOv')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="confirmItem()">Add <span id="tempTotal">฿0</span></button>
     </div>
   </div>
 </div>
 
-<!-- 4. CHECKOUT MODAL -->
+<!-- ═══════════════════════════════════════════════════
+     4. CHECKOUT MODAL
+═══════════════════════════════════════════════════ -->
 <div class="overlay" id="checkoutOv">
-  <div class="modal" style="width:500px;">
-    <div class="modal-title">Checkout</div>
-    
-    <div style="text-align:center; margin-bottom:24px;">
-      <div style="font-size:14px; color:var(--tan3);">Total Amount</div>
-      <div style="font-family:var(--serif); font-size:48px; color:var(--gl);" id="coTotal">฿0</div>
+  <div class="modal" style="max-width:520px">
+    <div class="co-total-display">
+      <div class="co-total-label">Total Amount</div>
+      <div class="co-total-val" id="coTotal">฿0</div>
+      <div style="font-size:12px;color:var(--tan3);margin-top:6px" id="coBreakdown"></div>
     </div>
 
     <div class="opt-label">Payment Method</div>
-    <div class="pay-method-grid">
-      <button class="pay-btn on" id="pm-cash" onclick="selPayMethod('cash')">💵 Cash</button>
-      <button class="pay-btn" id="pm-transfer" onclick="selPayMethod('transfer')">📱 QR Transfer</button>
-      <button class="pay-btn" id="pm-card" onclick="selPayMethod('card')">💳 Credit Card</button>
+    <div class="pay-method-grid" style="margin-top:8px">
+      <button class="pay-btn on" id="pm-cash" onclick="selPayMethod('cash')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>
+        Cash
+      </button>
+      <button class="pay-btn" id="pm-transfer" onclick="selPayMethod('transfer')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        QR Transfer
+      </button>
+      <button class="pay-btn" id="pm-card" onclick="selPayMethod('card')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        Card
+      </button>
+      <button class="pay-btn" id="pm-points" onclick="selPayMethod('points')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Points
+      </button>
+      <button class="pay-btn" id="pm-comp" onclick="selPayMethod('comp')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Comp/Free
+      </button>
+      <button class="pay-btn" id="pm-split" onclick="selPayMethod('split')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Split
+      </button>
     </div>
 
-    <!-- ส่วนรับเงินสด (ซ่อนถ้าเลือกวิธีอื่น) -->
-    <div id="cashInputArea">
-      <div class="opt-label">Amount Tendered</div>
-      <div class="quick-cash">
-        <button class="qc-btn" onclick="addCash(100)">฿100</button>
-        <button class="qc-btn" onclick="addCash(500)">฿500</button>
-        <button class="qc-btn" onclick="addCash(1000)">฿1,000</button>
-        <button class="qc-btn" onclick="exactCash()" style="background:rgba(212,170,106,.1); color:var(--gl); border-color:rgba(212,170,106,.3);">Exact</button>
+    <!-- Cash numpad -->
+    <div id="cashSection">
+      <div style="font-size:13px;font-weight:700;color:var(--tan3);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">Amount Tendered</div>
+      <div style="background:var(--c2);border:1px solid var(--ln2);border-radius:10px;padding:12px;text-align:right;font-size:28px;font-weight:700;color:var(--tan);margin-bottom:10px;min-height:60px" id="cashDisplay">0</div>
+      <div class="numpad" style="margin-bottom:12px">
+        <button class="np-btn" onclick="npKey('7')">7</button>
+        <button class="np-btn" onclick="npKey('8')">8</button>
+        <button class="np-btn" onclick="npKey('9')">9</button>
+        <button class="np-btn" onclick="npKey('4')">4</button>
+        <button class="np-btn" onclick="npKey('5')">5</button>
+        <button class="np-btn" onclick="npKey('6')">6</button>
+        <button class="np-btn" onclick="npKey('1')">1</button>
+        <button class="np-btn" onclick="npKey('2')">2</button>
+        <button class="np-btn" onclick="npKey('3')">3</button>
+        <button class="np-btn np-0" onclick="npKey('0')">0</button>
+        <button class="np-btn np-del" onclick="npKey('del')">⌫</button>
       </div>
-      <div style="display:flex; gap:12px; align-items:center;">
-        <input type="number" id="cashRecv" class="inp" placeholder="Enter cash amount" oninput="calcChange()" style="font-size:20px; text-align:right;">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="quickCash(100)">฿100</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="quickCash(500)">฿500</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1" onclick="quickCash(1000)">฿1,000</button>
+        <button class="btn btn-gold btn-sm" style="flex:1" onclick="exactCash()">Exact</button>
       </div>
-      <div style="display:flex; justify-content:space-between; margin-top:12px; font-size:18px;">
-        <span style="color:var(--tan3);">Change:</span>
-        <span style="color:var(--grnl); font-weight:700;" id="cashChange">฿0</span>
+      <div class="change-display">
+        <div class="change-lbl">Change</div>
+        <div class="change-val" id="cashChange">฿0</div>
       </div>
     </div>
 
-    <!-- ส่วนลด -->
-    <div style="margin-top:16px; border-top:1px solid var(--line); padding-top:16px;">
-      <div class="opt-label">Manual Discount (Optional)</div>
-      <div style="display:flex; gap:8px;">
-        <input type="number" id="manualDisc" class="inp" placeholder="Amount (฿)" oninput="applyManualDisc()">
+    <!-- Points section -->
+    <div id="pointsSection" style="display:none">
+      <div style="padding:16px;background:var(--gl2);border:1px solid rgba(212,170,106,.2);border-radius:10px;text-align:center">
+        <div style="font-size:12px;color:var(--tan3);margin-bottom:4px">Available Points</div>
+        <div style="font-family:var(--serif);font-size:28px;color:var(--gl)" id="coMemberPts">0 pts</div>
+        <div style="font-size:12px;color:var(--tan3);margin-top:4px">= <span id="coMemberPtsVal">฿0</span> discount</div>
       </div>
     </div>
 
-    <div style="display:flex; gap:12px; margin-top:24px;">
-      <button class="btn-sm" style="flex:1;" onclick="document.getElementById('checkoutOv').classList.remove('on')">Back</button>
-      <button class="btn-pay" id="confirmPayBtn" style="flex:2;" onclick="processPayment()">Confirm Payment</button>
+    <!-- Promo code -->
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px">
+      <div style="font-size:10px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Promo / Discount</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="text" id="promoCode" placeholder="Code (e.g. NEW10)" style="flex:1;height:38px;text-transform:uppercase;user-select:auto" oninput="this.value=this.value.toUpperCase()">
+        <button class="btn btn-gold btn-sm" onclick="applyPromoCode()">Apply</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input type="number" id="manualDisc" placeholder="Manual ฿ discount" style="flex:1;height:38px;user-select:auto">
+        <button class="btn btn-ghost btn-sm" onclick="applyManualDisc()">Set</button>
+      </div>
+      <div id="discApplied" style="font-size:12px;color:var(--grnl);margin-top:6px;display:none"></div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeOverlay('checkoutOv')">Back</button>
+      <button class="btn btn-primary" style="flex:2;height:48px;font-size:15px;justify-content:center" id="confirmPayBtn" onclick="processPayment()">Confirm Payment</button>
     </div>
   </div>
 </div>
 
-<!-- ─── MAIN LAYOUT ─── -->
+<!-- ═══════════════════════════════════════════════════
+     5. SLIP VERIFY MODAL
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="slipOv">
+  <div class="modal" style="max-width:500px;text-align:center">
+    <div class="modal-title" id="slipOrderId">CTB-XXXX</div>
+    <div style="font-size:12px;color:var(--tan3);margin-bottom:14px">ตรวจสอบยอดเงินให้ตรงกับสลิป</div>
+    <img id="slipImg" src="" class="slip-img" alt="Payment Slip">
+    <div style="font-family:var(--serif);font-size:32px;color:var(--gl);margin-bottom:20px" id="slipTotal">฿0</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-red" style="flex:1;height:46px;justify-content:center" onclick="decideOrder('CANCELLED')">❌ Reject</button>
+      <button class="btn btn-grn" style="flex:1;height:46px;justify-content:center" onclick="decideOrder('CONFIRMED')">✅ Approve</button>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:10px;justify-content:center" onclick="closeOverlay('slipOv')">Close</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     6. VOID ORDER MODAL
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="voidOv">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">Void Order</div>
+    <div style="font-size:13px;color:var(--tan3);margin-bottom:14px">ใส่ Order ID ที่ต้องการยกเลิก</div>
+    <input type="text" id="voidOrderId" placeholder="CTB-XXXXXX" style="width:100%;height:44px;text-transform:uppercase;user-select:auto" oninput="this.value=this.value.toUpperCase()">
+    <div style="margin-top:12px">
+      <div style="font-size:10px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Reason</div>
+      <select id="voidReason" style="width:100%;height:40px">
+        <option value="customer_request">Customer Request</option>
+        <option value="wrong_order">Wrong Order</option>
+        <option value="quality_issue">Quality Issue</option>
+        <option value="duplicate">Duplicate Order</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div id="voidMsg" style="font-size:12px;color:var(--red);min-height:18px;margin-top:8px"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeOverlay('voidOv')">Cancel</button>
+      <button class="btn btn-red" style="flex:1;justify-content:center" onclick="processVoid()">Void Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     7. PRINTER SETTINGS MODAL
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="printerOv">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title">Printer Settings</div>
+    <div style="font-size:12px;color:var(--tan3);margin-bottom:16px">GP-C80250I Plus — 80mm Thermal · ESC/POS</div>
+
+    <div class="printer-status ps-wait" id="printerStatus">
+      <div style="width:8px;height:8px;border-radius:50%;background:currentColor;flex-shrink:0"></div>
+      <span id="printerStatusTxt">Not connected</span>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-label">Mode</div>
+      <select id="printerMode" style="flex:1;height:38px" onchange="updatePrinterMode()">
+        <option value="ethernet">Ethernet (TCP/IP) — Recommended</option>
+        <option value="browser">Browser Print (Fallback)</option>
+      </select>
+    </div>
+    <div id="ethernetSettings">
+      <div class="setting-row">
+        <div class="setting-label">IP Address</div>
+        <input type="text" id="printerIp" value="192.168.1.200" style="flex:1;height:38px;user-select:auto">
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Port</div>
+        <input type="number" id="printerPort" value="9100" style="flex:1;height:38px;user-select:auto">
+      </div>
+    </div>
+    <div style="margin-top:8px">
+      <div class="setting-row">
+        <div class="setting-label">Paper Width</div>
+        <select id="printerWidth" style="flex:1;height:38px">
+          <option value="576">576 dots — 72mm (GP-C80250I)</option>
+          <option value="512">512 dots — 64mm</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Copies</div>
+        <select id="printerCopies" style="flex:1;height:38px">
+          <option value="1">1 copy</option>
+          <option value="2">2 copies</option>
+          <option value="3">3 copies</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="testPrint()">Test Print</button>
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeOverlay('printerOv')">Close</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="savePrinterSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     8. SHIFT / Z-REPORT MODAL
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="shiftOv">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title">Shift Report</div>
+    <div style="font-size:12px;color:var(--tan3);margin-bottom:16px" id="shiftPeriod">Today's Session</div>
+    <div class="shift-stat">
+      <div class="shift-card"><div class="shift-card-lbl">Total Revenue</div><div class="shift-card-val" id="sr-rev">฿0</div></div>
+      <div class="shift-card"><div class="shift-card-lbl">Total Orders</div><div class="shift-card-val" id="sr-orders">0</div></div>
+      <div class="shift-card"><div class="shift-card-lbl">Cash</div><div class="shift-card-val" id="sr-cash">฿0</div></div>
+      <div class="shift-card"><div class="shift-card-lbl">Transfer/Card</div><div class="shift-card-val" id="sr-other">฿0</div></div>
+    </div>
+    <div style="background:var(--c2);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:16px">
+      <div style="padding:10px 14px;background:var(--c3);font-size:10px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px">Top Items</div>
+      <div id="sr-items" style="padding:10px 14px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeOverlay('shiftOv')">Close</button>
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="printShiftReport()">Print Z-Report</button>
+      <button class="btn btn-red" style="flex:1;justify-content:center" onclick="requireManager(closeShift)">Close Shift</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN POS LAYOUT
+═══════════════════════════════════════════════════ -->
 <div class="pos-layout">
+
   <!-- LEFT: MENU -->
   <div class="pos-main">
     <div class="main-header">
-      <div class="brand">Ceramic <span>Point of Sale</span></div>
-      <div style="display:flex; gap:12px; align-items:center;">
-        <span style="color:var(--tan3); font-size:13px; display:flex; align-items:center;" id="staffName">Staff: —</span>
-        <button class="btn-sm" onclick="document.getElementById('loginOv').classList.add('on'); document.getElementById('pinInp').value = ''; document.getElementById('pinInp').focus();">Lock</button>
+      <div class="brand">Ceramic <span>POS</span></div>
+      <div class="hdr-right">
+        <div class="hdr-conn" id="hdrConn" title="Supabase status"></div>
+        <div class="hdr-staff">
+          <div class="hdr-staff-name" id="staffName">—</div>
+          <div class="hdr-staff-sub" id="branchName">No branch</div>
+        </div>
+        <div class="btn-icon" onclick="openPrinterSettings()" title="Printer Settings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        </div>
+        <div class="btn-icon" onclick="openShift()" title="Shift Report">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div class="btn-icon" onclick="requireManager(openVoidModal)" title="Void Order">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="lockPOS()">Lock</button>
       </div>
     </div>
-    
-    <div class="cat-scroll" id="catBar">
-      <!-- Categories -->
+
+    <div class="menu-search">
+      <input type="text" id="menuSearch" placeholder="Search menu..." style="height:38px" oninput="searchMenu(this.value)" style="user-select:auto">
     </div>
-    
+
+    <div class="cat-scroll" id="catBar"></div>
+
     <div class="menu-grid" id="menuGrid">
-      <!-- Products -->
+      <div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--tan3)">Loading menu...</div>
     </div>
   </div>
 
-  <!-- RIGHT: TICKET -->
+  <!-- RIGHT: TICKET SIDEBAR -->
   <div class="pos-sidebar">
-    <div id="pendingAlertZone"></div> 
-    
+
+    <!-- Pending online orders alert -->
+    <div class="pending-zone" id="pendingZone" style="display:none">
+      <div class="pending-header">
+        <div class="pending-dot"></div>
+        <div class="pending-title" id="pendingTitle">0 ออเดอร์รอตรวจสลิป</div>
+      </div>
+      <div class="pending-list" id="pendingList"></div>
+    </div>
+
+    <!-- Ticket header -->
     <div class="t-header">
-      <div class="t-title">Current Order</div>
-      <button class="t-clear" onclick="clearTicket()">🗑️ Clear</button>
+      <div>
+        <div class="t-title">
+          Current Order
+          <span class="queue-badge" id="queueBadge" style="display:none"></span>
+        </div>
+        <div class="t-subtitle" id="ticketSubtitle">Tap items to add</div>
+      </div>
+      <button class="btn btn-red btn-sm" onclick="clearTicket()">Clear</button>
     </div>
-    
+
+    <!-- Ticket items -->
     <div class="t-items" id="ticketItems">
-      <div style="color:var(--tan3); text-align:center; margin-top:40px; font-size:13px;">Ticket is empty</div>
+      <div style="color:var(--tan3);text-align:center;margin-top:48px;font-size:13px">Ticket is empty</div>
     </div>
-    
-    <!-- MEMBER SECTION -->
+
+    <!-- Member -->
     <div class="t-member">
       <div class="mem-inp-row" id="memInputRow">
-        <input type="tel" id="memPhone" class="inp" placeholder="Customer Phone (Opt)" onkeydown="if(event.key==='Enter') findMember()">
-        <button class="btn-sm" onclick="findMember()">Find</button>
+        <input type="tel" id="memPhone" placeholder="Customer phone (optional)" onkeydown="if(event.key==='Enter')findMember()" style="height:38px">
+        <button class="btn btn-ghost btn-sm" onclick="findMember()">Find</button>
       </div>
       <div class="mem-info" id="memInfoRow">
-        <div>
-          <div class="mem-name" id="memName">Khun Demo</div>
-          <div class="mem-pts" id="memPts">Silver · 245 pts</div>
+        <div style="flex:1">
+          <div class="mem-name" id="memName">Member</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+            <span class="mem-tier mt-bronze" id="memTierBadge">Bronze</span>
+            <span class="mem-pts" id="memPts">0 pts</span>
+          </div>
         </div>
-        <button class="t-clear" style="background:transparent; border:none;" onclick="removeMember()">✕</button>
+        <button class="btn-icon btn-sm" style="width:30px;height:30px" onclick="removeMember()">✕</button>
       </div>
     </div>
 
-    <!-- SUMMARY -->
+    <!-- Summary -->
     <div class="t-summary">
-      <div style="display:flex; gap:8px; margin-bottom:16px;">
-        <button class="btn-sm" style="flex:1; background:rgba(212,170,106,.1); color:var(--gl); border-color:rgba(212,170,106,.3);" onclick="setOrderType('dine-in', this)" id="btnDineIn">Dine-in</button>
-        <button class="btn-sm" style="flex:1;" onclick="setOrderType('takeaway', this)" id="btnTakeaway">Takeaway</button>
+      <div class="otype-row">
+        <button class="otype-btn on" id="ot-dine" onclick="setOrderType('dine-in',this)">Dine-in</button>
+        <button class="otype-btn" id="ot-take" onclick="setOrderType('takeaway',this)">Takeaway</button>
+        <button class="otype-btn" id="ot-del" onclick="setOrderType('delivery',this)">Delivery</button>
       </div>
-
-      <div class="sum-row"><span>Subtotal</span><span id="sumSub">฿0</span></div>
-      <div class="sum-row" style="color:var(--grnl); display:none;" id="sumDiscRow"><span>Discount</span><span id="sumDisc">-฿0</span></div>
-      <div class="sum-row total"><span>Total</span><span class="val" id="sumTotal">฿0</span></div>
-      
-      <button class="btn-pay" id="payBtn" onclick="openCheckout()" disabled style="opacity:0.5;">Charge <span id="btnTotal">฿0</span></button>
+      <div class="sum-row"><span>Subtotal</span><span class="v" id="sumSub">฿0</span></div>
+      <div class="sum-row" id="sumDiscRow" style="display:none"><span>Discount</span><span class="v" style="color:var(--grnl)" id="sumDisc">−฿0</span></div>
+      <div class="sum-row" id="sumVatRow" style="display:none"><span>VAT 7%</span><span class="v" id="sumVat">฿0</span></div>
+      <div class="sum-total"><span>Total</span><span class="v" id="sumTotal">฿0</span></div>
+      <button class="btn-checkout" id="payBtn" onclick="openCheckout()" disabled>
+        Charge <span id="btnTotal">฿0</span>
+      </button>
     </div>
+
   </div>
 </div>
 
-<!-- SCRIPTS -->
+<!-- ═══════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════ -->
 <script src="env-config.js"></script>
 <script src="api.js"></script>
 <script>
-  let CURRENT_STAFF = null;
-  let CURRENT_BRANCH = null;
-  
-  window.onload = () => {
-    API.getBranches().then(res => {
-      if(res.success) {
-        const sel = document.getElementById('branchSelect');
-        sel.innerHTML = res.data.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
-        
-        // จำสาขาล่าสุดที่เครื่องนี้เคยเลือกไว้
-        const savedBranch = localStorage.getItem('pos_saved_branch');
-        if(savedBranch) sel.value = savedBranch;
-      }
+/* ═══════════════════════════════════════════════════
+   CERAMIC POS ENGINE v2.0
+   GP-C80250I Plus — ESC/POS over Ethernet (TCP 9100)
+═══════════════════════════════════════════════════ */
+
+/* ── PRINTER CONFIG ─────────────────────────────── */
+const PRINTER = {
+  mode:    localStorage.getItem('pos_printer_mode')    || 'browser',
+  ip:      localStorage.getItem('pos_printer_ip')      || '192.168.1.200',
+  port:    Number(localStorage.getItem('pos_printer_port'))   || 9100,
+  width:   Number(localStorage.getItem('pos_printer_width'))  || 576,
+  copies:  Number(localStorage.getItem('pos_printer_copies')) || 1,
+  isConnected: false,
+};
+
+/* ── STORE CONFIG ────────────────────────────────── */
+const STORE = {
+  name:    'Ceramic Tea Bar',
+  nameTH:  'เซรามิค ที บาร์',
+  taxId:   '0105565012345',         // เลขที่ผู้เสียภาษี (ตัวอย่าง)
+  tel:     '02-123-4567',
+  wifi:    'ceramic_guest | pw: artisan',
+  vatRate: 0,                       // 0 = price include VAT (set 7 for exclusive)
+  currency:'THB',
+};
+
+/* ── STATE ───────────────────────────────────────── */
+let MENUS = [];
+let ADDONS = [];
+let TICKET = [];
+let CUR_MEMBER = null;
+let ORDER_TYPE = 'dine-in';
+let CURRENT_STAFF = null;
+let CURRENT_BRANCH = null;
+let TEMP_ITEM = null;
+let CO_SUBTOTAL = 0, CO_DISCOUNT = 0, CO_TOTAL = 0;
+let PAY_METHOD = 'cash';
+let CASH_ENTERED = 0;
+let pendingOrders = [];
+let checkingOrderId = null;
+let isAudioUnlocked = false;
+let PENDING_ACTION = null;
+let AUTH_PIN_BUFFER = '';
+let LAST_ORDER = null;
+let SHIFT_START = new Date();
+let SHIFT_ORDERS = [];
+let QUEUE_NUM = 0;
+let POLL_TIMER = null;
+
+/* ── API STUBS (เพิ่มใน api.js ถ้ายังไม่มี) ────── */
+if (!window.API) window.API = {};
+// getBranches
+if (!window.API.getBranches) window.API.getBranches = function() {
+  return Promise.resolve({ success:true, data:[
+    {id:'BR001',name:'Main Branch — Siam'},
+    {id:'BR002',name:'Thonglor Branch'},
+    {id:'BR003',name:'Ari Branch'},
+  ]});
+};
+// staffLogin
+if (!window.API.staffLogin) window.API.staffLogin = function(user, pin) {
+  return new Promise(r => setTimeout(() => {
+    if (pin === '1234' || pin.length >= 4)
+      r({ success:true, staff:{ name: user || 'Cashier', role:'STAFF', id:'s1' }});
+    else
+      r({ success:false, message:'Invalid PIN' });
+  }, 600));
+};
+// verifyManagerPin
+if (!window.API.verifyManagerPin) window.API.verifyManagerPin = function(pin) {
+  return new Promise(r => setTimeout(() => {
+    if (pin === '9999' || pin === '0000')
+      r({ success:true, managerName:'Manager' });
+    else
+      r({ success:false, message:'Wrong manager PIN (try 9999)' });
+  }, 500));
+};
+// validatePromoCode
+if (!window.API.validatePromoCode) window.API.validatePromoCode = function({ code, subtotal }) {
+  const codes = { 'NEW10':{pct:10}, 'CERAMIC50':{flat:50}, 'FREESHIP':{flat:0} };
+  return new Promise(r => setTimeout(() => {
+    const c = codes[code];
+    if (!c) { r({ valid:false, message:'Invalid code' }); return; }
+    const disc = c.flat !== undefined ? c.flat : Math.round(subtotal * c.pct / 100);
+    r({ valid:true, discountAmount:disc, description: c.pct ? c.pct+'% off' : '฿'+disc+' off' });
+  }, 400));
+};
+
+/* ── UTILITIES ──────────────────────────────────── */
+const ge = id => document.getElementById(id);
+const fmt = n => '฿' + (Number(n) || 0).toLocaleString();
+let _toastT;
+function toast(msg, type='info', dur=2800) {
+  const el=ge('pos-toast'), dot=ge('toast-dot'), m=ge('toast-msg');
+  const cols={success:'#6dbb8a', error:'#d44f4f', info:'#d4aa6a', warn:'#d4aa6a'};
+  dot.style.background = cols[type]||cols.info;
+  m.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(_toastT);
+  _toastT = setTimeout(() => el.classList.remove('on'), dur);
+}
+function closeOverlay(id) { ge(id).classList.remove('on'); }
+
+/* ── LOGIN ──────────────────────────────────────── */
+window.onload = () => {
+  // Restore printer settings
+  ge('printerMode').value = PRINTER.mode;
+  ge('printerIp').value   = PRINTER.ip;
+  ge('printerPort').value = PRINTER.port;
+  ge('printerWidth').value= PRINTER.width;
+  ge('printerCopies').value = PRINTER.copies;
+  updatePrinterMode();
+
+  // Restore branch
+  const savedBranch = localStorage.getItem('pos_saved_branch');
+  if (savedBranch) ge('branchSelect').value = savedBranch;
+};
+
+function doLogin() {
+  const branchId   = ge('branchSelect').value;
+  const branchText = ge('branchSelect').options[ge('branchSelect').selectedIndex]?.text;
+  const user = ge('staffUser').value.trim();
+  const pin  = ge('pinInp').value;
+  const err  = ge('loginError');
+  const btn  = ge('loginBtn');
+  err.textContent = '';
+  if (!branchId)     { err.textContent = 'Please select a branch'; return; }
+  if (!user || !pin) { err.textContent = 'Username and PIN required'; return; }
+  btn.textContent = 'Verifying...'; btn.disabled = true;
+  API.staffLogin(user, pin).then(res => {
+    btn.textContent = 'Access POS'; btn.disabled = false;
+    if (!res.success) { err.textContent = res.message; return; }
+    CURRENT_STAFF  = res.staff;
+    CURRENT_BRANCH = { id: branchId, name: branchText };
+    localStorage.setItem('pos_saved_branch', branchId);
+    ge('staffName').textContent  = CURRENT_STAFF.name + (CURRENT_STAFF.role ? ` [${CURRENT_STAFF.role}]` : '');
+    ge('branchName').textContent = CURRENT_BRANCH.name;
+    ge('loginOv').classList.remove('on');
+    ge('pinInp').value = '';
+    SHIFT_START = new Date();
+    // Unlock audio
+    const audio = ge('posAlert');
+    audio.volume = 0;
+    audio.play().then(() => { audio.pause(); audio.currentTime = 0; audio.volume = 1; isAudioUnlocked = true; }).catch(() => {});
+    loadMenuData();
+    startPolling();
+    checkConnection();
+    toast('Welcome, ' + CURRENT_STAFF.name + '!', 'success');
+  });
+}
+
+function lockPOS() {
+  if (TICKET.length > 0 && !confirm('Ticket has items. Lock anyway?')) return;
+  stopPolling();
+  ge('loginOv').classList.add('on');
+  ge('staffUser').value = '';
+  ge('pinInp').value = '';
+  ge('loginError').textContent = '';
+}
+
+/* ── CONNECTION CHECK ───────────────────────────── */
+function checkConnection() {
+  API.getAdminOrders().then(() => {
+    ge('hdrConn').classList.add('ok');
+    ge('hdrConn').title = 'Connected to Supabase';
+  }).catch(() => {
+    ge('hdrConn').classList.remove('ok');
+    ge('hdrConn').title = 'Supabase connection error';
+  });
+}
+
+/* ── POLLING ────────────────────────────────────── */
+function startPolling() {
+  pollIncomingOrders();
+  POLL_TIMER = setInterval(pollIncomingOrders, 5000);
+}
+function stopPolling() {
+  if (POLL_TIMER) { clearInterval(POLL_TIMER); POLL_TIMER = null; }
+}
+
+function pollIncomingOrders() {
+  if (!API.getAdminOrders) return;
+  API.getAdminOrders().then(res => {
+    if (!res.success) return;
+    const newPendings = res.data.filter(o => o.status === 'PENDING' && o.source !== 'POS');
+    if (newPendings.length > pendingOrders.length && isAudioUnlocked) {
+      const audio = ge('posAlert');
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    }
+    pendingOrders = newPendings;
+    renderPendingList();
+  });
+}
+
+function renderPendingList() {
+  const zone = ge('pendingZone');
+  const list  = ge('pendingList');
+  if (!pendingOrders.length) { zone.style.display = 'none'; return; }
+  zone.style.display = 'block';
+  ge('pendingTitle').textContent = pendingOrders.length + ' ออเดอร์รอตรวจสลิป';
+  list.innerHTML = pendingOrders.map(o => `
+    <div class="pending-item" onclick="openSlipCheck('${o.id}','${o.slip_url||''}',${o.total_amount})">
+      <div>
+        <div class="pi-id">${o.id}</div>
+        <div class="pi-amt">฿${o.total_amount} · ${o.order_type}</div>
+      </div>
+      <div class="pi-tag">ตรวจสลิป</div>
+    </div>`).join('');
+}
+
+function openSlipCheck(id, slipUrl, total) {
+  checkingOrderId = id;
+  ge('slipOrderId').textContent = id;
+  ge('slipTotal').textContent = fmt(total);
+  ge('slipImg').src = slipUrl || 'https://via.placeholder.com/300x400/1c1a17/d4aa6a?text=No+Slip+Image';
+  ge('slipOv').classList.add('on');
+}
+
+function decideOrder(action) {
+  const newStatus = action === 'CONFIRMED' ? 'CONFIRMED' : 'CANCELLED';
+  const run = () => {
+    API.updateOrderStatus(checkingOrderId, newStatus).then(() => {
+      closeOverlay('slipOv');
+      toast(action === 'CONFIRMED' ? 'Order approved → Kitchen' : 'Order cancelled', action === 'CONFIRMED' ? 'success' : 'warn');
+      pollIncomingOrders();
     });
   };
-  
-  // --- GLOBALS ---
-  let MENUS = [];
-  let ADDONS = [
-    { id:'a1', name:'Snow Cheese Foam', price:25 },
-    { id:'a2', name:'Brown Sugar Boba', price:15 },
-    { id:'a3', name:'Grass Jelly', price:10 },
-    { id:'a4', name:'Oat Milk', price:15 }
-  ];
-  let TICKET = [];
-  let CUR_MEMBER = null;
-  let ORDER_TYPE = 'dine-in';
-  
-  // Customization Temp State
-  let TEMP_ITEM = null; 
-  
-  // Checkout State
-  let CO_SUBTOTAL = 0;
-  let CO_DISCOUNT = 0;
-  let CO_TOTAL = 0;
-  let PAY_METHOD = 'cash';
-  
-  let pendingOrders = [];
-  let checkingOrderId = null;
-  let isAudioUnlocked = false;
+  action === 'CANCELLED' ? requireManager(run) : run();
+}
 
- // --- ฟังก์ชันจัดการ Login ---
-  function doLogin() {
-    const branchId = document.getElementById('branchSelect').value;
-    const branchName = document.getElementById('branchSelect').options[document.getElementById('branchSelect').selectedIndex]?.text;
-    const user = document.getElementById('staffUser').value.trim();
-    const pin = document.getElementById('pinInp').value;
-    const errEl = document.getElementById('loginError');
-    const btn = document.getElementById('loginBtn');
+/* ── MANAGER AUTH ───────────────────────────────── */
+function requireManager(actionCallback) {
+  if (CURRENT_STAFF?.role === 'MANAGER' || CURRENT_STAFF?.role === 'ADMIN') {
+    actionCallback();
+    return;
+  }
+  PENDING_ACTION = actionCallback;
+  AUTH_PIN_BUFFER = '';
+  ge('authDisplay').textContent = '• • • •';
+  ge('authOv').classList.add('on');
+}
 
-    errEl.textContent = '';
+function authKey(key) {
+  if (key === 'C')   { AUTH_PIN_BUFFER = ''; ge('authDisplay').textContent = '• • • •'; return; }
+  if (key === 'OK')  { executeAuthorizedAction(); return; }
+  if (AUTH_PIN_BUFFER.length >= 6) return;
+  AUTH_PIN_BUFFER += key;
+  ge('authDisplay').textContent = AUTH_PIN_BUFFER.replace(/./g, '●');
+}
 
-    if(!branchId) { errEl.textContent = 'Please select a branch'; return; }
-    if(!user || !pin) { errEl.textContent = 'Username and Passcode required'; return; }
+function executeAuthorizedAction() {
+  if (!AUTH_PIN_BUFFER) return;
+  const btn = ge('authBtn');
+  API.verifyManagerPin(AUTH_PIN_BUFFER).then(res => {
+    if (res.success) {
+      closeOverlay('authOv');
+      AUTH_PIN_BUFFER = '';
+      if (PENDING_ACTION) { PENDING_ACTION(); PENDING_ACTION = null; }
+      toast('Authorized by ' + (res.managerName || 'Manager'), 'success');
+    } else {
+      AUTH_PIN_BUFFER = '';
+      ge('authDisplay').textContent = '• • • •';
+      toast('Wrong PIN — try again', 'error');
+    }
+  });
+}
 
-    btn.textContent = 'Verifying...';
-    btn.disabled = true;
+function cancelAuth() {
+  AUTH_PIN_BUFFER = '';
+  PENDING_ACTION = null;
+  closeOverlay('authOv');
+}
 
-    API.staffLogin(user, pin).then(res => {
-      btn.textContent = 'Access POS';
-      btn.disabled = false;
+/* ── MENU ────────────────────────────────────────── */
+function loadMenuData() {
+  API.getMenu().then(res => {
+    MENUS   = res.products   || window.MENUS || [];
+    ADDONS  = res.customization?.addons || [
+      { id:'a1', name:'Snow Cheese Foam', price:25 },
+      { id:'a2', name:'Brown Sugar Boba', price:15 },
+      { id:'a3', name:'Grass Jelly',      price:10 },
+      { id:'a4', name:'Lychee Jelly',     price:15 },
+      { id:'a5', name:'Oat Milk',         price:15 },
+    ];
+    buildCats();
+    renderMenu(MENUS);
+    buildAddonsModal();
+  });
+}
 
-      if(res.success) {
-        // เซฟข้อมูลลงตัวแปร
-        CURRENT_STAFF = res.staff;
-        CURRENT_BRANCH = { id: branchId, name: branchName };
-        
-        // จำสาขาไว้ใช้รอบหน้า
-        localStorage.setItem('pos_saved_branch', branchId);
+function buildCats() {
+  const cats = ['All', ...new Set(MENUS.map(m => m.cat || '—').filter(Boolean))];
+  ge('catBar').innerHTML = cats.map((c,i) => `<button class="ctab ${i===0?'on':''}" onclick="filterCat('${c}',this)">${c}</button>`).join('');
+}
 
-        // อัปเดตหน้าจอ UI
-        document.getElementById('loginOv').classList.remove('on');
-        document.getElementById('staffName').innerHTML = `
-          <div style="display:flex; flex-direction:column; align-items:flex-start;">
-            <span style="font-weight:700; color:var(--tan);">${CURRENT_STAFF.name} <span style="font-size:9px; background:var(--gl); color:var(--c0); padding:2px 4px; border-radius:4px;">${CURRENT_STAFF.role}</span></span>
-            <span style="font-size:10px; color:var(--tan3);">${CURRENT_BRANCH.name}</span>
+function filterCat(cat, el) {
+  document.querySelectorAll('.ctab').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  renderMenu(cat === 'All' ? MENUS : MENUS.filter(m => m.cat === cat));
+}
+
+function searchMenu(q) {
+  const filtered = q
+    ? MENUS.filter(m => m.name.toLowerCase().includes(q.toLowerCase()) || (m.cat||'').toLowerCase().includes(q.toLowerCase()))
+    : MENUS;
+  renderMenu(filtered);
+}
+
+function renderMenu(list) {
+  const el = ge('menuGrid');
+  if (!list.length) { el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--tan3)">No items found</div>'; return; }
+  el.innerHTML = list.map(m => `
+    <div class="m-card ${m.is_available===false?'unavail':''}" onclick="openItemModal('${m.id}')">
+      ${m.is_bestseller ? '<span class="m-badge mb-hot">Hot</span>' : ''}
+      ${m.is_new        ? '<span class="m-badge mb-new">New</span>' : ''}
+      ${m.is_available!==false ? '<div class="m-avail-dot"></div>' : ''}
+      <div class="m-name">${m.name}</div>
+      <div class="m-cat">${m.cat||''}</div>
+      <div class="m-price">${fmt(m.price)}</div>
+    </div>`).join('');
+}
+
+function buildAddonsModal() {
+  ge('optAddons').innerHTML = ADDONS.map(a => `
+    <button class="addon-btn" id="add-${a.id}" onclick="togAddon('${a.id}',${a.price},this)">
+      <span>${a.name}</span>
+      <span class="addon-price">+${fmt(a.price)}</span>
+    </button>`).join('');
+}
+
+/* ── ITEM MODAL ─────────────────────────────────── */
+function openItemModal(id) {
+  const item = MENUS.find(m => m.id === id);
+  if (!item) return;
+  TEMP_ITEM = { id:item.id, name:item.name, basePrice:item.price, qty:1, size:'M', sizePrice:15, sweet:'Regular', ice:'Regular Ice', addons:[], note:'' };
+  ge('itemName').textContent = item.name;
+  ge('itemNote').value = '';
+  resetOptGroup('optSize', 'M');
+  resetOptGroup('optSweet', 'Regular');
+  resetOptGroup('optIce', 'Regular Ice');
+  document.querySelectorAll('.addon-btn').forEach(b => b.classList.remove('on'));
+  calcTempTotal();
+  ge('itemOv').classList.add('on');
+}
+
+function resetOptGroup(groupId, defaultVal) {
+  document.querySelectorAll('#'+groupId+' .opt-btn').forEach(b => {
+    b.classList.toggle('on', b.textContent.trim().includes(defaultVal));
+  });
+}
+
+function selOpt(e, type, val, extraPrice=0) {
+  const btn = e.target;
+  btn.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  if (type==='size')  { TEMP_ITEM.size = val; TEMP_ITEM.sizePrice = extraPrice; }
+  if (type==='sweet') TEMP_ITEM.sweet = val;
+  if (type==='ice')   TEMP_ITEM.ice   = val;
+  calcTempTotal();
+}
+
+function togAddon(id, price, btn) {
+  btn.classList.toggle('on');
+  const idx = TEMP_ITEM.addons.findIndex(a => a.id === id);
+  if (idx > -1) TEMP_ITEM.addons.splice(idx, 1);
+  else { const a = ADDONS.find(x => x.id === id); if (a) TEMP_ITEM.addons.push({ id, name:a.name, price }); }
+  calcTempTotal();
+}
+
+function chTempQty(d) { TEMP_ITEM.qty = Math.max(1, TEMP_ITEM.qty + d); calcTempTotal(); }
+
+function calcTempTotal() {
+  const addonSum = TEMP_ITEM.addons.reduce((s,a) => s + a.price, 0);
+  const unit     = TEMP_ITEM.basePrice + TEMP_ITEM.sizePrice + addonSum;
+  const total    = unit * TEMP_ITEM.qty;
+  ge('itemPrice').textContent = fmt(unit) + ' / unit';
+  ge('tempQty').textContent   = TEMP_ITEM.qty;
+  ge('tempTotal').textContent = fmt(total);
+}
+
+function confirmItem() {
+  TEMP_ITEM.note = ge('itemNote').value;
+  const addonSum = TEMP_ITEM.addons.reduce((s,a) => s + a.price, 0);
+  const unitPrice = TEMP_ITEM.basePrice + TEMP_ITEM.sizePrice + addonSum;
+  const optsArr = [`Size ${TEMP_ITEM.size}`, TEMP_ITEM.sweet, TEMP_ITEM.ice, ...TEMP_ITEM.addons.map(a => '+'+a.name)];
+  TICKET.push({ uid:Date.now(), id:TEMP_ITEM.id, name:TEMP_ITEM.name, price:unitPrice, qty:TEMP_ITEM.qty, opts:optsArr.join(' · '), options:{ sweetness:TEMP_ITEM.sweet, ice:TEMP_ITEM.ice }, addons:[...TEMP_ITEM.addons], note:TEMP_ITEM.note });
+  closeOverlay('itemOv');
+  updateTicket();
+  toast(TEMP_ITEM.name + ' added', 'success', 1500);
+}
+
+/* ── TICKET ─────────────────────────────────────── */
+function chQty(uid, d) {
+  const idx = TICKET.findIndex(t => t.uid === uid);
+  if (idx < 0) return;
+  TICKET[idx].qty += d;
+  if (TICKET[idx].qty <= 0) TICKET.splice(idx, 1);
+  updateTicket();
+}
+
+function clearTicket() {
+  if (!TICKET.length) return;
+  if (!confirm('Clear current ticket?')) return;
+  TICKET = []; CO_DISCOUNT = 0;
+  removeMember();
+  updateTicket();
+}
+
+function updateTicket() {
+  const el = ge('ticketItems');
+  CO_SUBTOTAL = 0;
+  if (!TICKET.length) {
+    el.innerHTML = '<div style="color:var(--tan3);text-align:center;margin-top:48px;font-size:13px">Ticket is empty</div>';
+  } else {
+    el.innerHTML = TICKET.map(t => {
+      CO_SUBTOTAL += t.price * t.qty;
+      return `<div class="t-item">
+        <div class="ti-row">
+          <div style="flex:1;padding-right:10px">
+            <div class="ti-name">${t.name}</div>
+            <div class="ti-opt">${t.opts}</div>
+            ${t.note ? `<div class="ti-note">📝 ${t.note}</div>` : ''}
           </div>
-        `;
-        
-        // ทริคปลดล็อกเสียง
-        const audio = document.getElementById('posAlert');
-        audio.volume = 0; 
-        audio.play().then(() => { audio.pause(); audio.currentTime = 0; audio.volume = 1; isAudioUnlocked = true; }).catch(e=>{});
-
-        // ล้างช่องรหัสผ่านเผื่อตอนล็อกเอาท์ออกมา
-        document.getElementById('pinInp').value = '';
-
-        loadMenuData();
-        setInterval(pollIncomingOrders, 5000);
-        pollIncomingOrders();
-      } else {
-        errEl.textContent = res.message;
-      }
-    });
+          <div class="ti-price">${fmt(t.price * t.qty)}</div>
+        </div>
+        <div class="ti-ctrl">
+          <button class="ti-btn" onclick="chQty(${t.uid},-1)">−</button>
+          <div class="ti-qty">${t.qty}</div>
+          <button class="ti-btn" onclick="chQty(${t.uid},1)">+</button>
+        </div>
+      </div>`;
+    }).join('');
   }
+  CO_TOTAL = CO_SUBTOTAL - CO_DISCOUNT;
+  ge('sumSub').textContent   = fmt(CO_SUBTOTAL);
+  ge('sumDisc').textContent  = '−' + fmt(CO_DISCOUNT);
+  ge('sumDiscRow').style.display = CO_DISCOUNT > 0 ? 'flex' : 'none';
+  ge('sumTotal').textContent = fmt(CO_TOTAL);
+  ge('btnTotal').textContent = fmt(CO_TOTAL);
+  ge('payBtn').disabled = TICKET.length === 0;
+  ge('ticketSubtitle').textContent = TICKET.length ? TICKET.reduce((s,t) => s+t.qty, 0) + ' item(s)' : 'Tap items to add';
+}
 
-  // --- 2. ONLINE ORDERS ALERTS ---
-  function pollIncomingOrders() {
-    API.getAdminOrders().then(res => {
-      if(!res.success) return;
-      const newPendings = res.data.filter(o => o.status === 'PENDING' && o.source !== 'POS');
-      
-      if(newPendings.length > pendingOrders.length && isAudioUnlocked) {
-        const audio = document.getElementById('posAlert');
-        audio.currentTime = 0;
-        audio.play().catch(e => console.log('Play blocked'));
-      }
-      pendingOrders = newPendings;
-      renderPendingList();
-    });
-  }
-
-  function renderPendingList() {
-    const el = document.getElementById('pendingAlertZone');
-    if(!el) return;
-    if(pendingOrders.length === 0) { el.innerHTML = ''; return; }
-
-    el.innerHTML = `<div style="background:rgba(212,170,106,.1); border-bottom:1px solid var(--line); padding:16px 24px;">
-      <div style="font-weight:700; color:var(--gl); margin-bottom:8px; font-size:14px; display:flex; align-items:center; gap:8px;">
-        <div style="width:10px;height:10px;background:var(--red);border-radius:50%;animation:pulse 1.5s infinite;"></div>
-        ${pendingOrders.length} ออเดอร์ออนไลน์ รอตรวจสลิป!
-      </div>
-      ${pendingOrders.map(o => `
-        <button style="width:100%; text-align:left; background:var(--c1); border:1px solid var(--gl); border-radius:8px; padding:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openSlipCheck('${o.id}', '${o.slip_url || ''}', ${o.total_amount})">
-          <div><span style="font-weight:600; color:var(--tan);">${o.id}</span><br><span style="font-size:12px; color:var(--tan3);">ยอดโอน ฿${o.total_amount}</span></div>
-          <span style="background:var(--gl); color:var(--c0); font-size:12px; font-weight:700; padding:6px 12px; border-radius:6px;">ตรวจสลิป</span>
-        </button>
-      `).join('')}
-    </div><style>@keyframes pulse { 0%{opacity:1;} 50%{opacity:0.3;} 100%{opacity:1;} }</style>`;
-  }
-
-  function openSlipCheck(id, slipUrl, total) {
-    checkingOrderId = id;
-    document.getElementById('slipOrderId').textContent = id;
-    document.getElementById('slipTotal').textContent = 'ยอดโอน: ฿' + total;
-    document.getElementById('slipImg').src = slipUrl || 'https://via.placeholder.com/300x400?text=No+Slip+Image'; 
-    document.getElementById('slipOv').classList.add('on');
-  }
-
-  let PENDING_ACTION = null; // ตัวแปรเก็บฟังก์ชันที่รอการอนุมัติ
-
-  // ฟังก์ชันพระเอก: ใช้ครอบคำสั่งที่ต้องการสิทธิ์
-  function requireManager(actionCallback) {
-    // 1. ถ้าคนที่ล็อกอินอยู่เป็น MANAGER หรือ ADMIN อยู่แล้ว ให้ทำรายการได้เลยไม่ต้องถามรหัส
-    if (CURRENT_STAFF.role === 'MANAGER' || CURRENT_STAFF.role === 'ADMIN') {
-      actionCallback();
-    } 
-    // 2. ถ้าเป็นแค่ STAFF ต้องเด้งหน้าต่างถามรหัสผู้จัดการ
-    else {
-      PENDING_ACTION = actionCallback; // จำฟังก์ชันเป้าหมายเอาไว้ก่อน
-      document.getElementById('authPinInp').value = '';
-      document.getElementById('authOv').classList.add('on');
-      setTimeout(() => document.getElementById('authPinInp').focus(), 100);
+/* ── MEMBER ─────────────────────────────────────── */
+function findMember() {
+  const phone = ge('memPhone').value.trim();
+  if (!phone) return;
+  API.getMemberByPhone(phone).then(res => {
+    if (res.success) {
+      CUR_MEMBER = res.member;
+      ge('memInputRow').style.display = 'none';
+      ge('memInfoRow').style.display  = 'flex';
+      ge('memName').textContent = CUR_MEMBER.name;
+      ge('memPts').textContent  = (CUR_MEMBER.points || 0) + ' pts';
+      const tierMap = { Bronze:'mt-bronze', Silver:'mt-silver', Gold:'mt-gold', Platinum:'mt-gold', Diamond:'mt-gold' };
+      const badge = ge('memTierBadge');
+      badge.textContent = CUR_MEMBER.tier || 'Member';
+      badge.className   = 'mem-tier ' + (tierMap[CUR_MEMBER.tier] || 'mt-bronze');
+      toast('Member found: ' + CUR_MEMBER.name, 'success');
+    } else {
+      toast('Member not found', 'warn');
     }
+  });
+}
+
+function removeMember() {
+  CUR_MEMBER = null;
+  ge('memPhone').value = '';
+  ge('memInputRow').style.display = 'flex';
+  ge('memInfoRow').style.display  = 'none';
+}
+
+/* ── ORDER TYPE ─────────────────────────────────── */
+function setOrderType(type, btn) {
+  ORDER_TYPE = type;
+  document.querySelectorAll('.otype-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+/* ── CHECKOUT ────────────────────────────────────── */
+function openCheckout() {
+  ge('coTotal').textContent = fmt(CO_TOTAL);
+  // Breakdown
+  let bd = [];
+  if (CO_SUBTOTAL !== CO_TOTAL || CO_DISCOUNT > 0) {
+    if (CO_DISCOUNT > 0) bd.push('Discount −' + fmt(CO_DISCOUNT));
   }
-
-  // ฟังก์ชันเมื่อผู้จัดการกรอกรหัสและกด Authorize
-  function executeAuthorizedAction() {
-    const pin = document.getElementById('authPinInp').value;
-    const btn = document.getElementById('authBtn');
-    
-    btn.textContent = 'Verifying...';
-    btn.disabled = true;
-
-    API.verifyManagerPin(pin).then(res => {
-      btn.textContent = 'Authorize';
-      btn.disabled = false;
-
-      if(res.success) {
-        // อนุมัติผ่าน! ปิดหน้าต่างและรันคำสั่งที่จำเอาไว้
-        document.getElementById('authOv').classList.remove('on');
-        if(PENDING_ACTION) PENDING_ACTION(); // <--- สั่งทำงาน!
-        PENDING_ACTION = null;
-        
-        // (Option) แจ้งเตือนว่าใครเป็นคนอนุมัติ
-        console.log(`Action Authorized by: ${res.managerName}`);
-      } else {
-        alert(res.message);
-        document.getElementById('authPinInp').value = '';
-        document.getElementById('authPinInp').focus();
-      }
-    });
+  ge('coBreakdown').textContent = bd.join(' · ');
+  selPayMethod('cash');
+  CASH_ENTERED = 0;
+  ge('cashDisplay').textContent = '0';
+  ge('cashChange').textContent  = '฿0';
+  ge('promoCode').value    = '';
+  ge('manualDisc').value   = '';
+  ge('discApplied').style.display = 'none';
+  // Points
+  if (CUR_MEMBER) {
+    ge('coMemberPts').textContent    = (CUR_MEMBER.points || 0) + ' pts';
+    ge('coMemberPtsVal').textContent = fmt(Math.floor((CUR_MEMBER.points || 0) / 10));
   }
+  ge('checkoutOv').classList.add('on');
+}
 
-  function decideOrder(status) {
-    const newStatus = status === 'CONFIRMED' ? 'PREPARING' : 'CANCELLED';
-    const actionText = status === 'CONFIRMED' ? 'Approve ยอดเงินถูกต้อง และส่งออเดอร์เข้าครัว?' : 'Cancel ออเดอร์นี้ (สลิปไม่ถูกต้อง)?';
-    const executeDecide = () => {
-    if(confirm(`⚠️ ยืนยัน:\n${actionText}`)) {
-      API.updateOrderStatus(checkingOrderId, newStatus).then(() => {
-        document.getElementById('slipOv').classList.remove('on');
-        pollIncomingOrders(); 
-      });
+function selPayMethod(method) {
+  PAY_METHOD = method;
+  document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('on'));
+  ge('pm-' + method)?.classList.add('on');
+  ge('cashSection').style.display    = method === 'cash'   ? 'block' : 'none';
+  ge('pointsSection').style.display  = method === 'points' ? 'block' : 'none';
+  // Comp needs manager
+  if (method === 'comp') { requireManager(() => {}); }
+  updateConfirmBtn();
+}
+
+/* Numpad */
+function npKey(key) {
+  const el = ge('cashDisplay');
+  if (key === 'del') { CASH_ENTERED = Math.floor(CASH_ENTERED / 10); }
+  else if (CASH_ENTERED.toString().length < 7) { CASH_ENTERED = Number(CASH_ENTERED.toString() + key); }
+  el.textContent = CASH_ENTERED.toLocaleString();
+  const change = Math.max(0, CASH_ENTERED - CO_TOTAL);
+  ge('cashChange').textContent = fmt(change);
+  updateConfirmBtn();
+}
+function quickCash(amt) { CASH_ENTERED += amt; ge('cashDisplay').textContent = CASH_ENTERED.toLocaleString(); const c=Math.max(0,CASH_ENTERED-CO_TOTAL); ge('cashChange').textContent=fmt(c); updateConfirmBtn(); }
+function exactCash() { CASH_ENTERED = CO_TOTAL; ge('cashDisplay').textContent=CASH_ENTERED.toLocaleString(); ge('cashChange').textContent='฿0'; updateConfirmBtn(); }
+
+function updateConfirmBtn() {
+  const btn = ge('confirmPayBtn');
+  const ok  = PAY_METHOD !== 'cash' || CASH_ENTERED >= CO_TOTAL;
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '.5';
+}
+
+/* Promo code */
+function applyPromoCode() {
+  const code = ge('promoCode').value.trim().toUpperCase();
+  if (!code) return;
+  API.validatePromoCode({ code, subtotal: CO_SUBTOTAL }).then(res => {
+    if (res.valid) {
+      CO_DISCOUNT = res.discountAmount;
+      CO_TOTAL    = Math.max(0, CO_SUBTOTAL - CO_DISCOUNT);
+      ge('coTotal').textContent  = fmt(CO_TOTAL);
+      ge('discApplied').textContent = '✓ Code applied: ' + res.description + ' (−' + fmt(CO_DISCOUNT) + ')';
+      ge('discApplied').style.display = 'block';
+      updateConfirmBtn();
+      toast('Promo applied!', 'success');
+    } else {
+      toast(res.message || 'Invalid code', 'error');
     }
+  });
+}
+
+/* Manual discount (manager required) */
+function applyManualDisc() {
+  requireManager(() => {
+    const d = Number(ge('manualDisc').value) || 0;
+    CO_DISCOUNT = Math.min(d, CO_SUBTOTAL);
+    CO_TOTAL    = Math.max(0, CO_SUBTOTAL - CO_DISCOUNT);
+    ge('coTotal').textContent = fmt(CO_TOTAL);
+    if (CO_DISCOUNT > 0) {
+      ge('discApplied').textContent = '✓ Manual discount −' + fmt(CO_DISCOUNT);
+      ge('discApplied').style.display = 'block';
+    }
+    updateConfirmBtn();
+    updateTicket();
+    toast('Discount applied: −' + fmt(CO_DISCOUNT), 'success');
+  });
+}
+
+/* ── PROCESS PAYMENT ────────────────────────────── */
+function processPayment() {
+  const btn = ge('confirmPayBtn');
+  btn.textContent = 'Processing...'; btn.disabled = true;
+
+  const queueNum = ++QUEUE_NUM;
+  const payload = {
+    items:          TICKET,
+    total:          CO_TOTAL,
+    discount:       CO_DISCOUNT,
+    branch:         CURRENT_BRANCH,
+    staff_name:     CURRENT_STAFF?.name,
+    type:           ORDER_TYPE,
+    userId:         CUR_MEMBER?.id || null,
+    source:         'POS',
+    payment_method: PAY_METHOD,
+    status:         'PREPARING',
+    queue_number:   queueNum,
   };
 
-   // ถ้ากด Cancel บังคับขอรหัสผู้จัดการ
-    if (status === 'CANCELLED') {
-      requireManager(executeDecide);
-    } else {
-      executeDecide(); // ถ้ากด Approve ปล่อยผ่านเลย
-    }
-  }
+  API.createOrder(payload).then(res => {
+    const orderId = res.id || ('CTB-POS-' + Date.now().toString(36).toUpperCase());
+    LAST_ORDER = { ...payload, id: orderId, created_at: new Date().toISOString(), queueNum };
 
-  // --- 3. MENU & CUSTOMIZATION ---
-  function loadMenuData() {
-    API.getMenu().then(res => {
-      MENUS = res.products || window.MENUS || [];
-      buildCats();
-      renderMenu(MENUS);
-      // Render Add-ons in Modal
-      document.getElementById('optAddons').innerHTML = ADDONS.map(a => `
-        <button class="addon-btn" id="add-${a.id}" onclick="togAddon('${a.id}', ${a.price}, this)">
-          <span>${a.name}</span><span>+฿${a.price}</span>
-        </button>
-      `).join('');
-    });
-  }
+    // Add to shift log
+    SHIFT_ORDERS.push(LAST_ORDER);
 
-  function buildCats() {
-    const cats = ['All', ...new Set(MENUS.map(m => m.cat))];
-    const el = document.getElementById('catBar');
-    el.innerHTML = cats.map((c, i) => `<button class="ctab ${i===0?'on':''}" onclick="filterCat('${c}', this)">${c}</button>`).join('');
-  }
+    closeOverlay('checkoutOv');
+    // Show queue number on ticket header
+    ge('queueBadge').textContent = '#' + queueNum;
+    ge('queueBadge').style.display = 'inline-flex';
+    // Print
+    printReceipt(LAST_ORDER, Number(PRINTER.copies));
+    toast('Payment successful! Order ' + orderId, 'success', 4000);
 
-  function filterCat(cat, el) {
-    document.querySelectorAll('.ctab').forEach(b => b.classList.remove('on'));
-    el.classList.add('on');
-    renderMenu(cat === 'All' ? MENUS : MENUS.filter(m => m.cat === cat));
-  }
-
-  function renderMenu(list) {
-    const el = document.getElementById('menuGrid');
-    el.innerHTML = list.map(m => `
-      <div class="m-card" onclick="openItemModal('${m.id}')">
-        <div class="m-name">${m.name}</div>
-        <div class="m-cat">${m.cat}</div>
-        <div class="m-price">฿${m.price}</div>
-      </div>
-    `).join('');
-  }
-
-  function openItemModal(id) {
-    const item = MENUS.find(m => m.id === id);
-    if(!item) return;
-
-    TEMP_ITEM = {
-      id: item.id,
-      name: item.name,
-      basePrice: item.price,
-      qty: 1,
-      size: 'M',
-      sizePrice: 15, // Default M
-      sweet: 'Regular',
-      ice: 'Regular Ice',
-      addons: [],
-      note: ''
-    };
-
-    document.getElementById('itemName').textContent = item.name;
-    document.getElementById('itemNote').value = '';
-    
-    // Reset Buttons
-    resetOptBtns('optSize', 'M');
-    resetOptBtns('optSweet', 'Reg');
-    resetOptBtns('optIce', 'Reg');
-    document.querySelectorAll('.addon-btn').forEach(b => b.classList.remove('on'));
-    
-    calcTempTotal();
-    document.getElementById('itemOv').classList.add('on');
-  }
-
-  function resetOptBtns(groupId, defaultText) {
-    const btns = document.getElementById(groupId).querySelectorAll('.opt-btn');
-    btns.forEach(b => {
-      b.classList.remove('on');
-      if(b.textContent.includes(defaultText)) b.classList.add('on');
-    });
-  }
-
-  function selOpt(type, val, extraPrice = 0) {
-    const e = event.target;
-    e.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('on'));
-    e.classList.add('on');
-
-    if(type === 'size') { TEMP_ITEM.size = val; TEMP_ITEM.sizePrice = extraPrice; }
-    if(type === 'sweet') TEMP_ITEM.sweet = val;
-    if(type === 'ice') TEMP_ITEM.ice = val;
-    
-    calcTempTotal();
-  }
-
-  function togAddon(id, price, btn) {
-    btn.classList.toggle('on');
-    const idx = TEMP_ITEM.addons.findIndex(a => a.id === id);
-    if(idx > -1) {
-      TEMP_ITEM.addons.splice(idx, 1);
-    } else {
-      const ao = ADDONS.find(a => a.id === id);
-      TEMP_ITEM.addons.push({ name: ao.name, price: ao.price });
-    }
-    calcTempTotal();
-  }
-
-  function chTempQty(d) {
-    TEMP_ITEM.qty = Math.max(1, TEMP_ITEM.qty + d);
-    calcTempTotal();
-  }
-
-  function calcTempTotal() {
-    const addonTotal = TEMP_ITEM.addons.reduce((s, a) => s + a.price, 0);
-    const unitPrice = TEMP_ITEM.basePrice + TEMP_ITEM.sizePrice + addonTotal;
-    const total = unitPrice * TEMP_ITEM.qty;
-    
-    document.getElementById('itemPrice').textContent = `฿${unitPrice} / unit`;
-    document.getElementById('tempQty').textContent = TEMP_ITEM.qty;
-    document.getElementById('tempTotal').textContent = `฿${total}`;
-  }
-
-  function confirmItem() {
-    TEMP_ITEM.note = document.getElementById('itemNote').value;
-    
-    const addonTotal = TEMP_ITEM.addons.reduce((s, a) => s + a.price, 0);
-    const unitPrice = TEMP_ITEM.basePrice + TEMP_ITEM.sizePrice + addonTotal;
-    
-    // Format options for KDS
-    let optsArr = [`Size ${TEMP_ITEM.size}`, TEMP_ITEM.sweet, TEMP_ITEM.ice];
-    TEMP_ITEM.addons.forEach(a => optsArr.push(`+ ${a.name}`));
-    const optsStr = optsArr.join(' · ');
-
-    TICKET.push({
-      uid: Date.now(),
-      id: TEMP_ITEM.id,
-      name: TEMP_ITEM.name,
-      price: unitPrice,
-      qty: TEMP_ITEM.qty,
-      opts: optsStr,
-      options: { sweetness: TEMP_ITEM.sweet, ice: TEMP_ITEM.ice }, // Structured for backend
-      note: TEMP_ITEM.note
-    });
-
-    document.getElementById('itemOv').classList.remove('on');
+    // Reset
+    TICKET = []; CO_DISCOUNT = 0;
+    removeMember();
     updateTicket();
-  }
+    setTimeout(() => { ge('queueBadge').style.display = 'none'; }, 8000);
+    btn.textContent = 'Confirm Payment'; btn.disabled = false;
+  }).catch(err => {
+    toast('Checkout failed: ' + err.message, 'error');
+    btn.textContent = 'Confirm Payment'; btn.disabled = false;
+  });
+}
 
-  // --- 4. TICKET MANAGEMENT ---
-  function chQty(uid, d) {
-    const idx = TICKET.findIndex(t => t.uid === uid);
-    if(idx < 0) return;
-    TICKET[idx].qty += d;
-    if(TICKET[idx].qty <= 0) TICKET.splice(idx, 1);
-    updateTicket();
-  }
+/* ── VOID ORDER ─────────────────────────────────── */
+function openVoidModal() {
+  ge('voidOrderId').value = '';
+  ge('voidMsg').textContent = '';
+  ge('voidOv').classList.add('on');
+}
 
-  function clearTicket() {
-    if(TICKET.length === 0) return;
-    if(confirm('🗑️ ยืนยันการล้างบิลนี้?')) {
-      TICKET = []; CO_DISCOUNT = 0; document.getElementById('manualDisc').value = '';
-      removeMember();
-      updateTicket();
-    }
-  }
-
-  function updateTicket() {
-    const el = document.getElementById('ticketItems');
-    CO_SUBTOTAL = 0;
-
-    if(TICKET.length === 0) {
-      el.innerHTML = '<div style="color:var(--tan3); text-align:center; margin-top:40px; font-size:13px;">Ticket is empty</div>';
+function processVoid() {
+  const id = ge('voidOrderId').value.trim().toUpperCase();
+  const reason = ge('voidReason').value;
+  if (!id) { ge('voidMsg').textContent = 'Enter order ID'; return; }
+  API.updateOrderStatus(id, 'CANCELLED').then(res => {
+    if (res.success) {
+      closeOverlay('voidOv');
+      toast('Order ' + id + ' voided', 'warn');
     } else {
-      el.innerHTML = TICKET.map(t => {
-        CO_SUBTOTAL += (t.price * t.qty);
-        return `
-          <div class="t-item">
-            <div class="ti-row">
-              <div style="flex:1; padding-right:12px;">
-                <div class="ti-name">${t.name}</div>
-                <div class="ti-opt">${t.opts}</div>
-                ${t.note ? `<div class="ti-note">📝 ${t.note}</div>` : ''}
-              </div>
-              <div class="ti-price">฿${t.price * t.qty}</div>
-            </div>
-            <div class="ti-ctrl">
-              <button class="ti-btn" onclick="chQty(${t.uid}, -1)">−</button>
-              <div class="ti-qty">${t.qty}</div>
-              <button class="ti-btn" onclick="chQty(${t.uid}, 1)">+</button>
-            </div>
-          </div>
-        `;
-      }).join('');
+      ge('voidMsg').textContent = 'Order not found or cannot be voided';
     }
+  }).catch(() => {
+    ge('voidMsg').textContent = 'Connection error';
+  });
+}
 
-    CO_TOTAL = CO_SUBTOTAL - CO_DISCOUNT;
-    
-    document.getElementById('sumSub').textContent = `฿${CO_SUBTOTAL}`;
-    document.getElementById('sumDisc').textContent = `-฿${CO_DISCOUNT}`;
-    document.getElementById('sumDiscRow').style.display = CO_DISCOUNT > 0 ? 'flex' : 'none';
-    document.getElementById('sumTotal').textContent = `฿${CO_TOTAL}`;
-    document.getElementById('btnTotal').textContent = `฿${CO_TOTAL}`;
-    
-    const payBtn = document.getElementById('payBtn');
-    payBtn.disabled = TICKET.length === 0;
-    payBtn.style.opacity = TICKET.length === 0 ? '0.5' : '1';
+/* ── SHIFT REPORT ───────────────────────────────── */
+function openShift() {
+  const now = new Date();
+  ge('shiftPeriod').textContent = 'Shift: ' + SHIFT_START.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) + ' → ' + now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  const cashOrders    = SHIFT_ORDERS.filter(o => o.payment_method === 'cash');
+  const nonCashOrders = SHIFT_ORDERS.filter(o => o.payment_method !== 'cash');
+  const totalRev  = SHIFT_ORDERS.reduce((s, o) => s + (o.total || 0), 0);
+  const cashRev   = cashOrders.reduce((s, o) => s + (o.total || 0), 0);
+  const nonCash   = nonCashOrders.reduce((s, o) => s + (o.total || 0), 0);
+  ge('sr-rev').textContent    = fmt(totalRev);
+  ge('sr-orders').textContent = SHIFT_ORDERS.length;
+  ge('sr-cash').textContent   = fmt(cashRev);
+  ge('sr-other').textContent  = fmt(nonCash);
+  // Top items
+  const itemMap = {};
+  SHIFT_ORDERS.forEach(o => (o.items || []).forEach(i => {
+    if (!itemMap[i.name]) itemMap[i.name] = 0;
+    itemMap[i.name] += i.qty || 1;
+  }));
+  const topItems = Object.entries(itemMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  ge('sr-items').innerHTML = topItems.map(([name, qty]) =>
+    `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px"><span>${name}</span><span style="color:var(--gl)">${qty}x</span></div>`
+  ).join('') || '<div style="font-size:13px;color:var(--tan3)">No sales this shift</div>';
+  ge('shiftOv').classList.add('on');
+}
+
+function closeShift() {
+  printShiftReport();
+  SHIFT_ORDERS = [];
+  SHIFT_START  = new Date();
+  QUEUE_NUM    = 0;
+  closeOverlay('shiftOv');
+  toast('Shift closed & Z-Report printed', 'success');
+}
+
+/* ── PRINTER SETTINGS ───────────────────────────── */
+function openPrinterSettings() {
+  ge('printerMode').value    = PRINTER.mode;
+  ge('printerIp').value      = PRINTER.ip;
+  ge('printerPort').value    = PRINTER.port;
+  ge('printerWidth').value   = PRINTER.width;
+  ge('printerCopies').value  = PRINTER.copies;
+  updatePrinterMode();
+  pingPrinter();
+  ge('printerOv').classList.add('on');
+}
+
+function updatePrinterMode() {
+  ge('ethernetSettings').style.display = ge('printerMode').value === 'ethernet' ? 'block' : 'none';
+}
+
+function savePrinterSettings() {
+  PRINTER.mode    = ge('printerMode').value;
+  PRINTER.ip      = ge('printerIp').value;
+  PRINTER.port    = Number(ge('printerPort').value);
+  PRINTER.width   = Number(ge('printerWidth').value);
+  PRINTER.copies  = Number(ge('printerCopies').value);
+  localStorage.setItem('pos_printer_mode',   PRINTER.mode);
+  localStorage.setItem('pos_printer_ip',     PRINTER.ip);
+  localStorage.setItem('pos_printer_port',   PRINTER.port);
+  localStorage.setItem('pos_printer_width',  PRINTER.width);
+  localStorage.setItem('pos_printer_copies', PRINTER.copies);
+  closeOverlay('printerOv');
+  toast('Printer settings saved', 'success');
+}
+
+async function pingPrinter() {
+  const st = ge('printerStatus'), txt = ge('printerStatusTxt');
+  st.className = 'printer-status ps-wait';
+  txt.textContent = 'Testing connection...';
+  if (PRINTER.mode === 'browser') {
+    st.className = 'printer-status ps-ok';
+    txt.textContent = 'Browser print ready (no driver needed)';
+    return;
+  }
+  // Ethernet ping via fetch (CORS will block — this is expected in browser)
+  // Real TCP connection requires a local proxy or Electron/NW.js
+  try {
+    await fetch(`http://${PRINTER.ip}:${PRINTER.port}`, { method:'HEAD', mode:'no-cors', signal: AbortSignal.timeout(2000) });
+    st.className = 'printer-status ps-ok';
+    txt.textContent = 'Printer reachable at ' + PRINTER.ip + ':' + PRINTER.port;
+    PRINTER.isConnected = true;
+  } catch (e) {
+    st.className = 'printer-status ps-err';
+    txt.textContent = 'Cannot reach ' + PRINTER.ip + ':' + PRINTER.port + ' (check LAN/IP)';
+    PRINTER.isConnected = false;
+  }
+}
+
+function testPrint() {
+  const testData = {
+    id: 'TEST-PRINT',
+    items: [{ name: 'White Peach Oolong', price: 120, qty: 1, opts: 'M · Regular · Regular Ice' }],
+    total: 120, discount: 0, payment_method: 'cash', type: 'dine-in',
+    created_at: new Date().toISOString(), queueNum: 0,
+  };
+  printReceipt(testData, 1);
+  toast('Test print sent', 'info');
+}
+
+/* ══════════════════════════════════════════════════════
+   RECEIPT ENGINE
+   Thai/International Standard — ESC/POS + Browser fallback
+══════════════════════════════════════════════════════ */
+
+/* ── ESC/POS COMMANDS ───────────────────────────── */
+const ESC = 0x1B, GS = 0x1D;
+const ESC_POS = {
+  INIT:        [ESC, 0x40],
+  CUT:         [GS,  0x56, 0x41, 0x05],  // Partial cut + feed
+  BOLD_ON:     [ESC, 0x45, 0x01],
+  BOLD_OFF:    [ESC, 0x45, 0x00],
+  ALIGN_L:     [ESC, 0x61, 0x00],
+  ALIGN_C:     [ESC, 0x61, 0x01],
+  ALIGN_R:     [ESC, 0x61, 0x02],
+  FONT_NORMAL: [ESC, 0x21, 0x00],
+  FONT_DOUBLE: [ESC, 0x21, 0x11],  // Double width + height
+  LF:          [0x0A],
+  CASH_DRAWER: [ESC, 0x70, 0x00, 0x19, 0xFA], // Open drawer pin 2
+};
+
+function esc_bytes(...cmds) {
+  const arr = [];
+  cmds.forEach(c => arr.push(...c));
+  return new Uint8Array(arr);
+}
+
+function text_bytes(str) {
+  return new TextEncoder().encode(str);
+}
+
+function build_receipt_escpos(order) {
+  const chunks = [];
+  const push = (...cmds) => cmds.forEach(c => chunks.push(c));
+  const txt = s => chunks.push(text_bytes(s));
+
+  const d = new Date(order.created_at || Date.now());
+  const dateStr = d.toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }) + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  const lineW = 42; // chars at 72mm / ~1.7mm per char
+
+  const line = (char='-') => txt(char.repeat(lineW) + '\n');
+  const pad  = (left, right, total=lineW) => { const sp = Math.max(1, total - left.length - right.length); return left + ' '.repeat(sp) + right; };
+  const center = (s) => { const sp = Math.max(0, Math.floor((lineW - s.length) / 2)); return ' '.repeat(sp) + s; };
+
+  // INIT
+  push(esc_bytes(ESC_POS.INIT));
+
+  // HEADER
+  push(esc_bytes(ESC_POS.ALIGN_C, ESC_POS.FONT_DOUBLE, ESC_POS.BOLD_ON));
+  txt(STORE.name + '\n');
+  push(esc_bytes(ESC_POS.FONT_NORMAL, ESC_POS.BOLD_OFF));
+  txt(STORE.nameTH + '\n');
+  if (CURRENT_BRANCH) txt(CURRENT_BRANCH.name + '\n');
+  txt('Tel: ' + STORE.tel + '\n');
+  txt('TAX ID: ' + STORE.taxId + '\n');
+
+  push(esc_bytes(ESC_POS.ALIGN_L));
+  line('─');
+
+  // ORDER INFO
+  push(esc_bytes(ESC_POS.BOLD_ON));
+  txt('Order #: ' + order.id + '\n');
+  push(esc_bytes(ESC_POS.BOLD_OFF));
+  txt('Date  : ' + dateStr + '\n');
+  txt('Type  : ' + (order.type || order.order_type || '').toUpperCase() + '\n');
+  txt('Staff : ' + (order.staff_name || CURRENT_STAFF?.name || '—') + '\n');
+  if (order.queueNum) { push(esc_bytes(ESC_POS.BOLD_ON)); txt('Queue : #' + order.queueNum + '\n'); push(esc_bytes(ESC_POS.BOLD_OFF)); }
+  if (CUR_MEMBER || order.member_name) txt('Member: ' + (CUR_MEMBER?.name || order.member_name || '—') + '\n');
+
+  line('─');
+
+  // ITEMS
+  push(esc_bytes(ESC_POS.BOLD_ON));
+  txt(pad('Item', 'Amt') + '\n');
+  push(esc_bytes(ESC_POS.BOLD_OFF));
+  line();
+
+  (order.items || []).forEach(item => {
+    const itemTotal = (item.price * (item.qty || 1)).toString();
+    txt(pad(item.qty + 'x ' + item.name, '฿' + itemTotal) + '\n');
+    if (item.opts) txt('   ' + item.opts + '\n');
+    if (item.note) txt('   >> ' + item.note + '\n');
+  });
+
+  line();
+
+  // SUMMARY
+  const sub = (order.items || []).reduce((s, i) => s + i.price * (i.qty||1), 0);
+  txt(pad('Subtotal', fmt(sub)) + '\n');
+  if (order.discount > 0) txt(pad('Discount', '−' + fmt(order.discount)) + '\n');
+  if (STORE.vatRate > 0) {
+    const vatAmt = Math.round(order.total * STORE.vatRate / (100 + STORE.vatRate));
+    txt(pad('VAT ' + STORE.vatRate + '%', fmt(vatAmt)) + '\n');
   }
 
-  // --- 5. MEMBER ---
-  function findMember() {
-    const phone = document.getElementById('memPhone').value;
-    if(!phone) return;
-    API.getMemberByPhone(phone).then(res => {
-      if(res.success) {
-        CUR_MEMBER = res.member;
-        document.getElementById('memInputRow').style.display = 'none';
-        document.getElementById('memInfoRow').style.display = 'flex';
-        document.getElementById('memName').textContent = CUR_MEMBER.name;
-        document.getElementById('memPts').textContent = `${CUR_MEMBER.tier || 'Member'} · ${CUR_MEMBER.points} pts`;
-      } else { alert('ไม่พบข้อมูลสมาชิกเบอร์นี้'); }
+  line('═');
+  push(esc_bytes(ESC_POS.BOLD_ON, ESC_POS.FONT_DOUBLE));
+  txt(pad('TOTAL', fmt(order.total)) + '\n');
+  push(esc_bytes(ESC_POS.FONT_NORMAL, ESC_POS.BOLD_OFF));
+
+  txt(pad('Payment', (order.payment_method || '').toUpperCase()) + '\n');
+  if (order.payment_method === 'cash' && CASH_ENTERED >= order.total) {
+    txt(pad('Tendered', fmt(CASH_ENTERED)) + '\n');
+    txt(pad('Change',   fmt(CASH_ENTERED - order.total)) + '\n');
+  }
+
+  line('─');
+
+  // FOOTER
+  push(esc_bytes(ESC_POS.ALIGN_C));
+  txt('Thank you for visiting!\n');
+  txt('ขอบคุณที่ใช้บริการ\n');
+  txt(STORE.wifi + '\n');
+  push(esc_bytes(ESC_POS.LF, ESC_POS.LF, ESC_POS.LF));
+
+  // CUT + CASH DRAWER
+  push(esc_bytes(ESC_POS.CUT, ESC_POS.CASH_DRAWER));
+
+  // Combine all chunks
+  const totalLen = chunks.reduce((s, c) => s + c.length, 0);
+  const result   = new Uint8Array(totalLen);
+  let offset = 0;
+  chunks.forEach(c => { result.set(c, offset); offset += c.length; });
+  return result;
+}
+
+/* ── SEND TO PRINTER ────────────────────────────── */
+async function sendToEthernetPrinter(data) {
+  // Browser cannot open raw TCP sockets — requires a local proxy.
+  // This sends to a localhost proxy if running (e.g. Node/Python bridge).
+  try {
+    await fetch(`http://localhost:9001/print`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream' },
+      body: data,
     });
+    return true;
+  } catch (e) {
+    // Fallback to browser print
+    return false;
   }
+}
 
-  function removeMember() {
-    CUR_MEMBER = null;
-    document.getElementById('memPhone').value = '';
-    document.getElementById('memInputRow').style.display = 'flex';
-    document.getElementById('memInfoRow').style.display = 'none';
-  }
+/* ── BROWSER PRINT FALLBACK ─────────────────────── */
+function browserPrint(order) {
+  const d = new Date(order.created_at || Date.now());
+  const dateStr = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  const sub = (order.items || []).reduce((s, i) => s + i.price * (i.qty||1), 0);
+  const vatAmt = STORE.vatRate > 0 ? Math.round(order.total * STORE.vatRate / (100 + STORE.vatRate)) : 0;
+  const itemsHtml = (order.items || []).map(i => `
+    <div class="row"><div class="left">${i.qty}x ${i.name}</div><div class="right">฿${i.price * i.qty}</div></div>
+    <div class="sub">${i.opts || ''}${i.note ? ' 📝 '+i.note : ''}</div>`).join('');
 
-  function setOrderType(type, btn) {
-    ORDER_TYPE = type;
-    document.getElementById('btnDineIn').style = "flex:1; background:var(--c3); color:var(--tan2); border-color:var(--ln2);";
-    document.getElementById('btnTakeaway').style = "flex:1; background:var(--c3); color:var(--tan2); border-color:var(--ln2);";
-    btn.style = "flex:1; background:rgba(212,170,106,.1); color:var(--gl); border-color:rgba(212,170,106,.3);";
-  }
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt ${order.id}</title>
+  <style>
+    @page { margin:2mm; size:80mm auto }
+    * { margin:0; padding:0; box-sizing:border-box }
+    body { font-family:'Courier New',monospace; font-size:11px; color:#000; max-width:72mm; padding:4mm }
+    .center { text-align:center }
+    .right  { text-align:right }
+    .bold   { font-weight:bold }
+    .lg     { font-size:15px }
+    .xl     { font-size:20px }
+    .line   { border-top:1px dashed #000; margin:5px 0 }
+    .double { border-top:2px solid #000; margin:5px 0 }
+    .row    { display:flex; justify-content:space-between; margin:3px 0 }
+    .left   { flex:1 }
+    .sub    { font-size:9px; color:#555; padding-left:12px; margin-bottom:4px; white-space:pre-wrap }
+    .total-row { display:flex; justify-content:space-between; font-size:16px; font-weight:bold; margin:4px 0 }
+    .total-row .right { font-size:18px }
+  </style></head><body>
+  <div class="center bold lg">${STORE.name}</div>
+  <div class="center">${STORE.nameTH}</div>
+  <div class="center">${CURRENT_BRANCH?.name || ''}</div>
+  <div class="center">Tel: ${STORE.tel}</div>
+  <div class="center" style="font-size:9px">TAX ID: ${STORE.taxId}</div>
+  <div class="line"></div>
+  <div class="row bold"><div>Order:</div><div>${order.id}</div></div>
+  <div class="row"><div>Date:</div><div>${dateStr}</div></div>
+  <div class="row"><div>Type:</div><div>${(order.type||order.order_type||'').toUpperCase()}</div></div>
+  <div class="row"><div>Staff:</div><div>${order.staff_name||CURRENT_STAFF?.name||'—'}</div></div>
+  ${order.queueNum ? `<div class="row bold"><div>Queue:</div><div>#${order.queueNum}</div></div>` : ''}
+  ${CUR_MEMBER ? `<div class="row"><div>Member:</div><div>${CUR_MEMBER.name}</div></div>` : ''}
+  <div class="line"></div>
+  <div class="row bold"><div>Item</div><div>Amt</div></div>
+  <div class="line"></div>
+  ${itemsHtml}
+  <div class="line"></div>
+  <div class="row"><div>Subtotal</div><div>฿${sub}</div></div>
+  ${order.discount > 0 ? `<div class="row"><div>Discount</div><div>−฿${order.discount}</div></div>` : ''}
+  ${vatAmt > 0 ? `<div class="row"><div>VAT ${STORE.vatRate}%</div><div>฿${vatAmt}</div></div>` : ''}
+  <div class="double"></div>
+  <div class="total-row"><div>TOTAL</div><div class="right">฿${order.total}</div></div>
+  <div class="row"><div>Payment</div><div>${(order.payment_method||'').toUpperCase()}</div></div>
+  ${order.payment_method==='cash'&&CASH_ENTERED>=order.total ? `<div class="row"><div>Tendered</div><div>฿${CASH_ENTERED}</div></div><div class="row bold"><div>Change</div><div>฿${CASH_ENTERED-order.total}</div></div>` : ''}
+  <div class="line"></div>
+  <div class="center" style="margin-top:8px">Thank you! ขอบคุณที่ใช้บริการ</div>
+  <div class="center" style="font-size:9px;margin-top:4px">${STORE.wifi}</div>
+  <div style="height:12mm"></div>
+  <script>window.onload=function(){window.print();setTimeout(window.close,300)}<\/script>
+  </body></html>`;
 
-  // --- 6. CHECKOUT & PAYMENT ---
-  function openCheckout() {
-    document.getElementById('coTotal').textContent = `฿${CO_TOTAL}`;
-    selPayMethod('cash'); // Default
-    document.getElementById('cashRecv').value = '';
-    document.getElementById('cashChange').textContent = '฿0';
-    document.getElementById('checkoutOv').classList.add('on');
-  }
+  const w = window.open('', '_blank', 'width=320,height=600,menubar=no,toolbar=no');
+  if (!w) { toast('Popup blocked — allow popups for printing', 'error'); return; }
+  w.document.write(html);
+  w.document.close();
+}
 
-  function selPayMethod(method) {
-    PAY_METHOD = method;
-    document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('on'));
-    document.getElementById('pm-' + method).classList.add('on');
-    
-    document.getElementById('cashInputArea').style.display = method === 'cash' ? 'block' : 'none';
-    checkPayValid();
-  }
-
-  function addCash(amt) {
-    const inp = document.getElementById('cashRecv');
-    inp.value = (Number(inp.value) || 0) + amt;
-    calcChange();
-  }
-
-  function exactCash() {
-    document.getElementById('cashRecv').value = CO_TOTAL;
-    calcChange();
-  }
-
-  function calcChange() {
-    const recv = Number(document.getElementById('cashRecv').value) || 0;
-    const change = Math.max(0, recv - CO_TOTAL);
-    document.getElementById('cashChange').textContent = `฿${change}`;
-    checkPayValid();
-  }
-
-  function applyManualDisc() {
-
-    //รงไหนที่คุณไม่อยากให้ STAFF ทั่วไปกดมั่วซั่ว คุณแค่เอา requireManager(() => { ... }) ไปครอบฟังก์ชันเดิมครับ
-    requireManager(() => {
-    // โค้ดเดิมทั้งหมดเอามาใส่ในนี้
-    const d = Number(document.getElementById('manualDisc').value) || 0;
-    CO_DISCOUNT = Math.min(d, CO_SUBTOTAL); // ห้ามลดเกินราคาสินค้า
-    CO_TOTAL = CO_SUBTOTAL - CO_DISCOUNT;
-    
-    document.getElementById('coTotal').textContent = `฿${CO_TOTAL}`;
-    calcChange();
-    updateTicket(); // Update sidebar too
-    });
-  }
-
-  function checkPayValid() {
-    const btn = document.getElementById('confirmPayBtn');
-    if(PAY_METHOD === 'cash') {
-      const recv = Number(document.getElementById('cashRecv').value) || 0;
-      btn.disabled = recv < CO_TOTAL;
-      btn.style.opacity = recv < CO_TOTAL ? '0.5' : '1';
+/* ── PRINT RECEIPT (main entry) ─────────────────── */
+async function printReceipt(order, copies=1) {
+  for (let i = 0; i < copies; i++) {
+    if (PRINTER.mode === 'ethernet') {
+      const data = build_receipt_escpos(order);
+      const sent = await sendToEthernetPrinter(data);
+      if (!sent) {
+        // Auto-fallback to browser
+        browserPrint(order);
+        if (i === 0) toast('Printer offline — using browser print', 'warn');
+      }
     } else {
-      btn.disabled = false;
-      btn.style.opacity = '1';
+      browserPrint(order);
     }
+    if (copies > 1 && i < copies - 1) await new Promise(r => setTimeout(r, 800));
   }
+}
 
-  function processPayment() {
-    const btn = document.getElementById('confirmPayBtn');
-    btn.textContent = 'Processing...';
-    btn.disabled = true;
+/* ── REPRINT LAST RECEIPT ───────────────────────── */
+function reprintLast() {
+  if (!LAST_ORDER) { toast('No recent receipt to reprint', 'warn'); return; }
+  requireManager(() => {
+    printReceipt(LAST_ORDER, 1);
+    toast('Reprinting last receipt...', 'info');
+  });
+}
 
-    const payload = {
-items: TICKET,
-      total: CO_TOTAL,
-      discount: CO_DISCOUNT,
-      branch: CURRENT_BRANCH,           // <--- ใช้สาขาที่เลือกตอน Login
-      staff_name: CURRENT_STAFF.name,   // <--- บันทึกชื่อพนักงานที่ทำรายการ
-      type: ORDER_TYPE,
-      userId: CUR_MEMBER ? CUR_MEMBER.id : null,
-      source: 'POS',
-      payment_method: PAY_METHOD,
-      status: 'PREPARING'
-    };
+/* ── SHIFT Z-REPORT PRINT ───────────────────────── */
+function printShiftReport() {
+  const now = new Date();
+  const totalRev  = SHIFT_ORDERS.reduce((s, o) => s + (o.total||0), 0);
+  const cashRev   = SHIFT_ORDERS.filter(o => o.payment_method==='cash').reduce((s,o) => s+(o.total||0), 0);
+  const nonCash   = totalRev - cashRev;
+  const itemMap   = {};
+  SHIFT_ORDERS.forEach(o => (o.items||[]).forEach(i => { itemMap[i.name] = (itemMap[i.name]||0) + (i.qty||1); }));
+  const topItems  = Object.entries(itemMap).sort((a,b) => b[1]-a[1]).slice(0,5);
 
-    API.createOrder(payload).then(res => {
-      document.getElementById('checkoutOv').classList.remove('on');
-      
-      // Print Receipt Call
-      printReceipt(res.id || 'CTB-POS-' + Date.now().toString().slice(-4), payload);
-      
-      alert(`✅ ชำระเงินเรียบร้อยแล้ว!\n(เงินทอน: ${document.getElementById('cashChange').textContent})`);
-      
-      // ล้างข้อมูล
-      TICKET = []; CO_DISCOUNT = 0; document.getElementById('manualDisc').value = '';
-      removeMember();
-      updateTicket();
-      
-      btn.textContent = `Confirm Payment`;
-      btn.disabled = false;
-    }).catch(err => {
-      alert('Checkout failed: ' + err.message);
-      btn.textContent = `Confirm Payment`;
-      btn.disabled = false;
-    });
-  }
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Z-Report</title>
+  <style>@page{margin:2mm;size:80mm auto}*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Courier New',monospace;font-size:11px;max-width:72mm;padding:4mm}.c{text-align:center}.r{display:flex;justify-content:space-between;margin:3px 0}.line{border-top:1px dashed #000;margin:5px 0}.bold{font-weight:bold}</style></head><body>
+  <div class="c bold" style="font-size:15px">*** Z-REPORT ***</div>
+  <div class="c">${STORE.name}</div>
+  <div class="c">${CURRENT_BRANCH?.name||''}</div>
+  <div class="c">Date: ${now.toLocaleDateString('en-GB')} ${now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+  <div class="line"></div>
+  <div class="c bold">SHIFT SUMMARY</div>
+  <div class="line"></div>
+  <div class="r"><div>Shift Start</div><div>${SHIFT_START.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div></div>
+  <div class="r"><div>Shift End</div><div>${now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div></div>
+  <div class="r"><div>Total Orders</div><div>${SHIFT_ORDERS.length}</div></div>
+  <div class="r bold"><div>Total Revenue</div><div>฿${totalRev}</div></div>
+  <div class="r"><div>  Cash</div><div>฿${cashRev}</div></div>
+  <div class="r"><div>  Transfer/Card</div><div>฿${nonCash}</div></div>
+  <div class="line"></div>
+  <div class="c bold">TOP ITEMS</div>
+  <div class="line"></div>
+  ${topItems.map(([n,q]) => `<div class="r"><div>${n}</div><div>${q}x</div></div>`).join('')}
+  <div class="line"></div>
+  <div class="c">Closed by: ${CURRENT_STAFF?.name||'—'}</div>
+  <div style="height:10mm"></div>
+  <script>window.onload=function(){window.print();setTimeout(window.close,300)}<\/script>
+  </body></html>`;
 
-  // --- 7. PRINT RECEIPT ---
-  function printReceipt(orderId, data) {
-    const d = new Date();
-    const dateStr = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    
-    let itemsHtml = data.items.map(i => `
-      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-        <div style="flex:1;">${i.qty}x ${i.name}</div>
-        <div>${i.price * i.qty}</div>
-      </div>
-      <div style="font-size:10px; color:#555; margin-bottom:8px; padding-left:16px;">${i.opts}</div>
-    `).join('');
-
-    const html = `
-      <html><head><title>Receipt</title>
-      <style>
-        body { font-family: monospace; font-size: 12px; color: #000; max-width: 300px; margin: 0 auto; padding: 10px; }
-        .center { text-align: center; }
-        .line { border-bottom: 1px dashed #000; margin: 8px 0; }
-        .flex { display: flex; justify-content: space-between; }
-        .bold { font-weight: bold; }
-        .text-lg { font-size: 16px; }
-      </style>
-      </head><body>
-        <div class="center bold text-lg" style="margin-bottom:8px;">Ceramic Tea</div>
-        <div class="center">Main Branch — Siam</div>
-        <div class="center" style="margin-bottom:12px;">Tel: 02-123-4567</div>
-        
-        <div class="flex"><span>Order:</span><span>${orderId}</span></div>
-        <div class="flex"><span>Date:</span><span>${dateStr}</span></div>
-        <div class="flex"><span>Type:</span><span>${data.type.toUpperCase()}</span></div>
-        ${data.userId ? `<div class="flex"><span>Member:</span><span>${CUR_MEMBER.name}</span></div>` : ''}
-        
-        <div class="line"></div>
-        
-        ${itemsHtml}
-        
-        <div class="line"></div>
-        <div class="flex"><span>Subtotal:</span><span>${CO_SUBTOTAL}</span></div>
-        ${data.discount > 0 ? `<div class="flex"><span>Discount:</span><span>-${data.discount}</span></div>` : ''}
-        <div class="flex bold text-lg" style="margin-top:8px;"><span>Total:</span><span>${data.total}</span></div>
-        <div class="flex" style="margin-top:4px;"><span>Pay Method:</span><span>${data.payment_method.toUpperCase()}</span></div>
-        
-        <div class="line"></div>
-        <div class="center" style="margin-top:16px;">Thank you!</div>
-        <div class="center">wifi: ceramic_guest (pw: artisan)</div>
-      </body></html>
-    `;
-
-    const printWin = window.open('', '_blank', 'width=400,height=600');
-    printWin.document.write(html);
-    printWin.document.close();
-    printWin.focus();
-    setTimeout(() => { printWin.print(); printWin.close(); }, 500);
-  }
+  const w = window.open('', '_blank', 'width=320,height=700,menubar=no');
+  if (w) { w.document.write(html); w.document.close(); }
+}
 </script>
 </body>
 </html>
