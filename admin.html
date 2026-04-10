@@ -1811,6 +1811,23 @@ async function toggleMember(id,currentActive){
     renderMembers();toast('Member '+(currentActive?'suspended':'restored'),'success');
   }catch(e){toast('Failed','error')}
 }
+   
+// ฟังก์ชันดึงสาขาจาก Supabase มาใส่ใน Dropdown
+async function loadBranchesIntoInvite() {
+  const select = document.getElementById('is-branch');
+  select.innerHTML = '<option value="">Loading...</option>';
+  
+  try {
+    const res = await API.getBranches(); // ฟังก์ชันนี้เราเขียนไว้ใน api.js แล้ว
+    if (res.success) {
+      select.innerHTML = res.data.map(b => 
+        `<option value="${b.id}">${b.name}</option>`
+      ).join('');
+    }
+  } catch (err) {
+    select.innerHTML = '<option value="">Error loading branches</option>';
+  }
+}
 
 /* ── MODAL HELPERS ──────────────────────────────────── */
 function closeModal(id){ge(id).classList.remove('on')}
@@ -1836,6 +1853,8 @@ function openInviteModal() {
   document.getElementById('is-name').value = '';
   document.getElementById('is-email').value = '';
   document.getElementById('is-user').value = '';
+
+  loadBranchesIntoInvite();
   
   document.getElementById('invite-staff-modal').classList.add('on');
 }
