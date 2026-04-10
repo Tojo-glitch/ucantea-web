@@ -353,7 +353,7 @@ window.API = {
     }
     
     // MOCK DATA
-    await _mockDelay(800);
+    await _delay(800);
     if (email === 'admin@test.com' && password === '123456') {
       return { success: true, admin: { email: 'admin@test.com' } };
     }
