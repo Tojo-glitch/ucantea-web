@@ -1037,62 +1037,48 @@ tbody tr:hover{background:var(--c2)}
     </div>
   </div>
 </div>
-     <!-- 🛑 MODAL: INVITE STAFF -->
+
+<!-- 🛑 MODAL: INVITE STAFF -->
 <div class="modal-backdrop" id="invite-staff-modal">
   <div class="modal" style="width: 400px;">
     <div class="modal-head">
-      <div class="modal-title">Invite New Staff</div>
-      <div class="modal-close" onclick="document.getElementById('invite-staff-modal').classList.remove('on')">✕</div>
+      <div class="modal-title">Create Onboarding Link</div>
+      <div class="modal-close" onclick="closeModal('invite-staff-modal')">✕</div>
     </div>
     <div class="modal-body">
-      <div style="font-size:12px; color:var(--tan3); margin-bottom:16px;">
-        ระบบจะสร้างลิงก์สำหรับให้พนักงานกรอกข้อมูลส่วนตัว, แนบรูปบัตร ปชช. และตั้งรหัสผ่านด้วยตัวเอง
+      <div style="font-size:12px; color:var(--tan3); margin-bottom:24px;">
+        เลือกระดับสิทธิ์และสาขา ระบบจะสร้างลิงก์ให้พนักงานไปกรอกประวัติส่วนตัวและตั้งรหัสผ่านด้วยตัวเอง
+      </div>
+      
+      <!-- ให้ Admin เลือกแค่ 2 อย่างนี้ -->
+      <div class="field">
+        <label class="field-label">Assign to Branch</label>
+        <select class="field-input" id="is-branch">
+          <option value="">Loading branches...</option>
+        </select>
       </div>
       <div class="field">
-        <label class="field-label">Full Name</label>
-        <input class="field-input" id="is-name" type="text" placeholder="ชื่อ - นามสกุล">
-      </div>
-      <div class="field">
-        <label class="field-label">Email</label>
-        <input class="field-input" id="is-email" type="email" placeholder="email@example.com">
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label class="field-label">Username</label>
-          <input class="field-input" id="is-user" type="text" placeholder="สำหรับ Log in">
-        </div>
-         <!-- ในส่วน modal-body ของ invite-staff-modal -->
-         <div class="field">
-           <label class="field-label">Assign to Branch</label>
-           <select class="field-input" id="is-branch">
-             <!-- เดี๋ยว Script จะมาเติมรายชื่อสาขาจาก Supabase ให้เอง -->
-             <option value="">Loading branches...</option>
-           </select>
-         </div>
-        <div class="field">
-          <label class="field-label">Role</label>
-          <select class="field-input" id="is-role">
-            <option value="STAFF">Staff (Cashier)</option>
-            <option value="MANAGER">Manager</option>
-          </select>
-        </div>
+        <label class="field-label">Role / Position</label>
+        <select class="field-input" id="is-role">
+          <option value="STAFF">Staff (รับออเดอร์/แคชเชียร์)</option>
+          <option value="MANAGER">Manager (ผู้จัดการร้าน)</option>
+        </select>
       </div>
       
       <!-- ส่วนแสดงลิงก์หลังกดสร้าง -->
-      <div id="invite-link-area" style="display:none; margin-top:16px; padding:12px; background:rgba(74,173,117,.1); border:1px solid var(--grnl); border-radius:8px;">
-        <div style="font-size:11px; color:var(--grnl); margin-bottom:4px; font-weight:bold;">✅ สร้างสำเร็จ! คัดลอกลิงก์นี้ส่งให้พนักงาน:</div>
-        <input type="text" id="invite-link-url" class="field-input" style="font-size:11px; color:var(--gl);" readonly>
-         <!-- แยกปุ่มออกมาจากช่อง Input -->
-  <button class="btn btn-gold" style="margin-top:10px; padding:10px;" onclick="shareInvite()">แชร์ลิงก์ให้พนักงาน</button>
+      <div id="invite-link-area" style="display:none; margin-top:24px; padding:16px; background:rgba(74,173,117,.1); border:1px solid var(--grnl); border-radius:8px;">
+        <div style="font-size:12px; color:var(--grnl); margin-bottom:8px; font-weight:bold;">✅ สร้างตั๋วเชิญสำเร็จ!</div>
+        <input type="text" id="invite-link-url" class="field-input" style="font-size:11px; color:var(--gl); margin-bottom: 12px; background:var(--c0);" readonly>
+        <button class="btn btn-ghost" style="width:100%; justify-content:center;" onclick="shareInvite()">แชร์ลิงก์ให้พนักงาน</button>
       </div>
-   
+
     </div>
     <div class="modal-foot">
       <button class="btn btn-primary" style="width:100%; justify-content:center;" id="btn-create-invite" onclick="generateInvite()">Generate Invite Link</button>
     </div>
   </div>
 </div>
-
+   
 <!-- TOAST -->
 <div id="admin-toast">
   <div class="toast-dot" id="toast-dot"></div>
@@ -1929,51 +1915,63 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
 
 
 // 🟢 2. นำ JAVASCRIPT ของ Invite Staff มาวางตรงนี้ (ล่างสุดของสคริปต์) 🟢
+/* ── STAFF ONBOARDING LOGIC ──────────────────────────── */
+
+// 1. เปิดหน้าต่างสร้างลิงก์เชิญพนักงาน
 function openInviteModal() {
   document.getElementById('invite-link-area').style.display = 'none';
-  document.getElementById('btn-create-invite').style.display = 'flex';
-  document.getElementById('btn-create-invite').textContent = 'Generate Invite Link';
-  document.getElementById('btn-create-invite').disabled = false;
-  
-  document.getElementById('is-name').value = '';
-  document.getElementById('is-email').value = '';
-  document.getElementById('is-user').value = '';
+  const btn = document.getElementById('btn-create-invite');
+  btn.style.display = 'flex';
+  btn.textContent = 'Generate Invite Link';
+  btn.disabled = false;
 
-  loadBranchesIntoInvite();
-  populateBranchSelect(); 
+  // โหลดรายชื่อสาขาจาก Supabase มาใส่ Dropdown
+  API.getBranches().then(res => {
+    const select = document.getElementById('is-branch');
+    if (res.success && res.data.length > 0) {
+      select.innerHTML = res.data.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+    } else {
+      select.innerHTML = '<option value="">No branches found</option>';
+    }
+  });
   
   document.getElementById('invite-staff-modal').classList.add('on');
 }
 
+// 2. กดสร้างลิงก์ (จองที่ไว้ใน Database)
 async function generateInvite() {
-  const name = document.getElementById('is-name').value.trim();
-  const email = document.getElementById('is-email').value.trim();
-  const user = document.getElementById('is-user').value.trim(); // 🟢 เพิ่มบรรทัดนี้ เพราะตัวแปร user หายไป
   const role = document.getElementById('is-role').value;
   const branchId = document.getElementById('is-branch').value;
   
-  if(!name || !email || !user || !branchId) { 
-    alert('กรุณากรอกข้อมูลให้ครบทุกช่อง'); 
-    return; 
+  if(!branchId) { 
+    alert('กรุณาเลือกสาขาครับ'); return; 
   }
 
   const btn = document.getElementById('btn-create-invite');
   btn.textContent = 'Generating...'; 
   btn.disabled = true;
 
-  const shortBranch = branchId.replace('BR', '').toLowerCase();
-  const username = user + '.' + shortBranch + '.' + Math.floor(Math.random()*900 + 100);
+  // 💡 ทริค: เราส่งข้อมูล Dummy (ชั่วคราว) ไปจองที่ไว้ก่อน เพราะ Database บังคับห้ามว่าง
+  // เดี๋ยวพนักงานกรอก Onboarding เสร็จ ข้อมูลจริงจะไปทับข้อมูล Dummy พวกนี้เองครับ
+  const tempId = Math.random().toString(36).substr(2, 8);
+  const dummyData = {
+    name: 'Pending Staff',
+    email: `pending_${tempId}@ceramic.co`,
+    username: `user_${tempId}`,
+    role: role,
+    branch_id: branchId
+  };
 
-  API.inviteStaff({ name, email, username, role, branch_id: branchId }).then(res => {
+  API.inviteStaff(dummyData).then(res => {
     if(res.success) {
+      // สร้างลิงก์ที่มี ID อ้างอิง
       const link = `${window.location.origin}/onboarding.html?id=${res.staff.id}&branch=${branchId}`;
       document.getElementById('invite-link-url').value = link;
       document.getElementById('invite-link-area').style.display = 'block';
       btn.style.display = 'none';
-      toast('สร้างตั๋วเชิญสำเร็จ!', 'success');
+      toast('สร้างลิงก์เชิญสำเร็จ!', 'success');
     } else {
-      // 🟢 จัดปีกกาให้ครอบคลุม Else ของ res.success
-      alert('Error generating invite: ' + (res.message || ''));
+      alert('Error: ' + (res.message || ''));
       btn.textContent = 'Generate Invite Link'; 
       btn.disabled = false;
     }
@@ -1983,20 +1981,20 @@ async function generateInvite() {
     btn.disabled = false;
   });
 }
-   function shareInvite() {
+
+// 3. ฟังก์ชันแชร์ลิงก์
+function shareInvite() {
   const link = document.getElementById('invite-link-url').value;
   if (navigator.share) {
     navigator.share({ 
       title: 'Ceramic Team Onboarding', 
       text: 'ยินดีต้อนรับสู่ทีม Ceramic! กรุณากรอกข้อมูลและยืนยันตัวตนผ่านลิงก์นี้ครับ', 
       url: link 
-    }).catch(err => {
-      // ถ้าพนักงานกดยกเลิกการแชร์ ให้ fallback ไป copy แทน
+    }).catch(() => {
       navigator.clipboard.writeText(link);
       alert('คัดลอกลิงก์แล้ว!');
     });
   } else {
-    // สำหรับ Browser ที่ไม่มี navigator.share (เช่น คอมพิวเตอร์)
     navigator.clipboard.writeText(link);
     alert('คัดลอกลิงก์เรียบร้อยแล้ว!');
   }
