@@ -1145,6 +1145,26 @@ function toast(msg,type='info',dur=3000){
   clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),dur);
 }
 
+async function populateBranchSelect() {
+  const select = document.getElementById('is-branch');
+  
+  try {
+    // ใช้ API ที่เราเขียนไว้ใน api.js
+    const res = await API.getBranches(); 
+    
+    if (res.success && res.data) {
+      select.innerHTML = res.data.map(b => 
+        `<option value="${b.id}">${b.name}</option>`
+      ).join('');
+    } else {
+      select.innerHTML = '<option value="">No branches found</option>';
+    }
+  } catch (err) {
+    console.error("Error loading branches:", err);
+    select.innerHTML = '<option value="">Error loading</option>';
+  }
+}
+
 /* ── ADMIN LOGIN (เชื่อม Supabase Auth) ────────────────────────── */
   async function adminLogin() {
     // 1. ดึงค่าจากช่อง Input (ตรวจสอบให้แน่ใจว่า ID ตรงกับ HTML ของคุณ)
@@ -1854,6 +1874,7 @@ function openInviteModal() {
   document.getElementById('is-user').value = '';
 
   loadBranchesIntoInvite();
+  populateBranchSelect(); 
   
   document.getElementById('invite-staff-modal').classList.add('on');
 }
