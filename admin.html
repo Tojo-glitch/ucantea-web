@@ -410,6 +410,113 @@ tbody tr:hover{background:var(--c2)}
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
 .sidebar-overlay.on{display:block}
 
+/* ── SECTION DIVIDER ────────────────── */
+.people-divider{
+  font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--tan4);padding:14px 12px 4px;margin-top:4px;
+  border-top:1px solid var(--line);
+}
+
+/* ── ROLE BADGES ────────────────────── */
+.role-badge{
+  display:inline-flex;align-items:center;
+  padding:2px 8px;border-radius:4px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+}
+.role-admin   {background:rgba(150,100,255,.1);color:#c0a8f0;border:1px solid rgba(150,100,255,.2)}
+.role-manager {background:var(--gl2);color:var(--gl);border:1px solid rgba(212,170,106,.2)}
+.role-staff   {background:var(--blue2);color:var(--blue);border:1px solid rgba(74,127,191,.2)}
+
+/* ── STAFF CARDS GRID ───────────────── */
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.staff-card{
+  background:var(--c1);border:1px solid var(--ln2);border-radius:12px;
+  padding:18px 20px;display:flex;flex-direction:column;gap:12px;
+  transition:border-color .15s;
+}
+.staff-card:hover{border-color:rgba(212,170,106,.25)}
+.staff-card.suspended{opacity:.55}
+.sc-head{display:flex;align-items:flex-start;gap:12px}
+.sc-av{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--gold);color:var(--c0);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:700;flex-shrink:0;
+}
+.sc-av.mgr{background:var(--gl)}
+.sc-av.susp{background:var(--tan4)}
+.sc-name{font-size:14px;font-weight:600;color:var(--tan);margin-bottom:3px}
+.sc-meta{font-size:11px;color:var(--tan3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sc-foot{display:flex;gap:6px;align-items:center;border-top:1px solid var(--line);padding-top:12px}
+.sc-branch{
+  flex:1;font-size:11px;color:var(--tan3);
+  display:flex;align-items:center;gap:4px;
+}
+
+/* ── INVITE STATUS TRACKER ──────────── */
+.invite-tracker{
+  background:var(--c2);border:1px solid var(--line);border-radius:8px;
+  overflow:hidden;margin-top:16px;
+}
+.it-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;
+}
+.it-row:last-child{border-bottom:none}
+.it-status{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.its-pending{background:var(--gl2);color:var(--gl);border:1px solid rgba(212,170,106,.2)}
+.its-active {background:var(--grn2);color:var(--grnl);border:1px solid rgba(74,173,117,.2)}
+
+/* ── ADD-ONS SECTION ────────────────── */
+.addon-list-item{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 16px;background:var(--c1);
+  border:1px solid var(--ln2);border-radius:10px;
+  margin-bottom:8px;transition:border-color .15s;
+}
+.addon-list-item:hover{border-color:rgba(212,170,106,.2)}
+.ali-name{flex:1;font-size:14px;font-weight:500;color:var(--tan)}
+.ali-price{font-family:var(--serif);font-size:15px;color:var(--gl);min-width:60px}
+.ali-avail{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+.ali-on {background:var(--grn2);color:var(--grnl)}
+.ali-off{background:var(--red2);color:var(--red)}
+
+/* ── BRANCHES SECTION ───────────────── */
+.branch-card{
+  background:var(--c1);border:1px solid var(--ln2);border-radius:12px;
+  padding:18px 20px;display:flex;gap:16px;align-items:flex-start;
+  margin-bottom:12px;transition:border-color .15s;
+}
+.branch-card:hover{border-color:rgba(212,170,106,.2)}
+.bc-icon{
+  width:44px;height:44px;border-radius:10px;background:var(--c2);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:var(--tan3);
+}
+.bc-body{flex:1}
+.bc-name{font-size:15px;font-weight:600;color:var(--tan);margin-bottom:3px}
+.bc-addr{font-size:12px;color:var(--tan3);margin-bottom:8px}
+.bc-tags{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.bc-tag{font-size:10px;padding:2px 8px;border-radius:4px;background:var(--c2);color:var(--tan3);border:1px solid var(--line)}
+.bc-open {background:var(--grn2);color:var(--grnl);border-color:rgba(74,173,117,.2)}
+.bc-closed{background:var(--red2);color:var(--red);border-color:rgba(212,79,79,.2)}
+.bc-foot{display:flex;gap:8px;align-items:center;margin-top:12px}
+
+/* ── CUSTOMER SECTION HEADER ────────── */
+.customer-stat-strip{
+  display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;
+}
+.cs-pill{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 14px;background:var(--c1);border:1px solid var(--ln2);border-radius:8px;
+  font-size:12px;font-weight:500;color:var(--tan2);
+}
+.cs-pill strong{font-family:var(--serif);font-size:16px;color:var(--gl)}
+
 /* ─── PREMIUM LOGIN OVERLAY ─── */
 #login-overlay {
   position: fixed; inset: 0;
@@ -530,6 +637,10 @@ tbody tr:hover{background:var(--c2)}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
         Menu Manager
       </div>
+      <div class="nav-item" id="nav-addons" onclick="nav('addons',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Add-ons
+      </div>
       <div class="nav-item" id="nav-promos" onclick="nav('promos',this)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         Promo Codes
@@ -537,16 +648,28 @@ tbody tr:hover{background:var(--c2)}
     </div>
 
     <div class="nav-group">
-      <div class="nav-group-label">People</div>
-      <div class="nav-item" id="nav-members" onclick="nav('members',this)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Members
+      <div class="nav-group-label">Customers</div>
+      <div class="nav-item" id="nav-customers" onclick="nav('customers',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+        Customer List
       </div>
     </div>
-     
+
+    <div class="nav-group">
+      <div class="nav-group-label">Staff</div>
+      <div class="nav-item" id="nav-staff" onclick="nav('staff',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Staff List
+        <div class="nav-badge" id="nav-staff-badge">0</div>
+      </div>
+    </div>
 
     <div class="nav-group">
       <div class="nav-group-label">System</div>
+      <div class="nav-item" id="nav-branches" onclick="nav('branches',this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Branches
+      </div>
       <div class="nav-item" id="nav-settings" onclick="nav('settings',this)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Settings
@@ -743,19 +866,23 @@ tbody tr:hover{background:var(--c2)}
         </div>
       </div>
 
-      <!-- ═══ MEMBERS ══════════════════════════════════ -->
-      <div class="section" id="sec-members">
+      <!-- ═══ CUSTOMERS ════════════════════════════════ -->
+      <div class="section" id="sec-customers">
         <div class="sec-head">
-          <div class="sec-title">Members</div>
+          <div class="sec-title">Customers</div>
           <div class="sec-actions">
-             <button class="btn btn-gold" onclick="openInviteModal()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Invite Staff</button>
             <button class="btn btn-ghost btn-sm" onclick="exportMembersCSV()">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Export
+              Export CSV
             </button>
           </div>
+        </div>
+        <!-- Quick stats strip -->
+        <div class="customer-stat-strip" id="customer-stat-strip">
+          <div class="cs-pill"><strong id="cs-total">0</strong>Total Members</div>
+          <div class="cs-pill"><strong id="cs-active">0</strong>Active</div>
+          <div class="cs-pill"><strong id="cs-points">0</strong>Avg Points</div>
+          <div class="cs-pill" style="background:var(--gl2);border-color:rgba(212,170,106,.2)"><strong id="cs-diamond" style="color:var(--gl)">0</strong>Diamond+</div>
         </div>
         <div class="filter-bar">
           <input class="filter-search" id="mem-search" placeholder="Search name or phone..." oninput="filterMembers()">
@@ -776,12 +903,87 @@ tbody tr:hover{background:var(--c2)}
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>Name</th><th>Phone</th><th>Email</th><th>Tier</th><th>Points</th><th>Orders</th><th>Actions</th></tr>
+              <tr><th>Name</th><th>Phone</th><th>Email</th><th>Tier</th><th>Points</th><th>Orders</th><th>Joined</th><th>Actions</th></tr>
             </thead>
             <tbody id="member-tbody">
-              <tr><td colspan="7" class="table-empty">Loading members...</td></tr>
+              <tr><td colspan="8" class="table-empty">Loading customers...</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- ═══ STAFF ════════════════════════════════════ -->
+      <div class="section" id="sec-staff">
+        <div class="sec-head">
+          <div class="sec-title">Staff Management</div>
+          <div class="sec-actions">
+            <button class="btn btn-ghost btn-sm" onclick="loadStaff()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Refresh
+            </button>
+            <button class="btn btn-gold" onclick="openInviteModal()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Invite Staff
+            </button>
+          </div>
+        </div>
+
+        <!-- Pending invites tracker -->
+        <div id="pending-invites-wrap" style="display:none;margin-bottom:20px">
+          <div style="font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Pending Invitations</div>
+          <div class="invite-tracker" id="pending-invites-list"></div>
+        </div>
+
+        <!-- Staff filter -->
+        <div class="filter-bar" style="margin-bottom:20px">
+          <input class="filter-search" id="staff-search" placeholder="Search staff name..." oninput="filterStaff()">
+          <select class="filter-sel" id="staff-role-filter" onchange="filterStaff()">
+            <option value="">All Roles</option>
+            <option value="ADMIN">Admin</option>
+            <option value="MANAGER">Manager</option>
+            <option value="STAFF">Staff</option>
+          </select>
+          <select class="filter-sel" id="staff-branch-filter" onchange="filterStaff()">
+            <option value="">All Branches</option>
+          </select>
+        </div>
+
+        <!-- Staff cards grid -->
+        <div class="staff-grid" id="staff-grid">
+          <div style="color:var(--tan3);font-size:13px">Loading staff...</div>
+        </div>
+      </div>
+
+      <!-- ═══ ADD-ONS ═══════════════════════════════════ -->
+      <div class="section" id="sec-addons">
+        <div class="sec-head">
+          <div class="sec-title">Add-ons Manager</div>
+          <div class="sec-actions">
+            <button class="btn btn-gold" onclick="openAddAddon()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Topping
+            </button>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--tan3);margin-bottom:16px">Toppings and add-ons available across all menu items. Toggle to hide from customers.</div>
+        <div id="addon-list">
+          <div style="color:var(--tan3);font-size:13px">Loading add-ons...</div>
+        </div>
+      </div>
+
+      <!-- ═══ BRANCHES ══════════════════════════════════ -->
+      <div class="section" id="sec-branches">
+        <div class="sec-head">
+          <div class="sec-title">Branch Management</div>
+          <div class="sec-actions">
+            <button class="btn btn-gold" onclick="openAddBranch()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Branch
+            </button>
+          </div>
+        </div>
+        <div id="branch-list">
+          <div style="color:var(--tan3);font-size:13px">Loading branches...</div>
         </div>
       </div>
 
@@ -1079,6 +1281,113 @@ tbody tr:hover{background:var(--c2)}
   </div>
 </div>
    
+<!-- STAFF EDIT MODAL -->
+<div class="modal-backdrop" id="staff-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="sm-title">Edit Staff</div>
+      <div class="modal-close" onclick="closeModal('staff-modal')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label class="field-label">Full Name</label><input class="field-input" id="sm-name" type="text"></div>
+        <div class="field"><label class="field-label">Username</label><input class="field-input" id="sm-username" type="text" readonly style="opacity:.5"></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Role</label>
+          <select class="field-input" id="sm-role">
+            <option value="STAFF">Staff</option>
+            <option value="MANAGER">Manager</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Branch</label>
+          <select class="field-input" id="sm-branch"></select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">Status</label>
+          <select class="field-input" id="sm-status">
+            <option value="true">Active</option>
+            <option value="false">Suspended</option>
+          </select>
+        </div>
+        <div class="field"><label class="field-label">Reset PIN (leave blank to keep)</label><input class="field-input" id="sm-pin" type="password" placeholder="New PIN"></div>
+      </div>
+      <div class="field-err" id="sm-err"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('staff-modal')">Cancel</button>
+      <button class="btn btn-primary" id="sm-save" onclick="saveStaff()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT ADDON MODAL -->
+<div class="modal-backdrop" id="addon-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-title" id="ao-title">Add Topping</div>
+      <div class="modal-close" onclick="closeModal('addon-modal')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label class="field-label">Name</label><input class="field-input" id="ao-name" type="text" placeholder="Snow Cheese Foam"></div>
+      <div class="field"><label class="field-label">Price (฿)</label><input class="field-input" id="ao-price" type="number" min="0" placeholder="25"></div>
+      <div class="field">
+        <label class="field-label">Status</label>
+        <select class="field-input" id="ao-status">
+          <option value="true">Available</option>
+          <option value="false">Hidden</option>
+        </select>
+      </div>
+      <div class="field-err" id="ao-err"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('addon-modal')">Cancel</button>
+      <button class="btn btn-primary" id="ao-save" onclick="saveAddon()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT BRANCH MODAL -->
+<div class="modal-backdrop" id="branch-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="br-modal-title">Add Branch</div>
+      <div class="modal-close" onclick="closeModal('branch-modal')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label class="field-label">Branch ID</label><input class="field-input" id="br-id" type="text" placeholder="BR004" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="field"><label class="field-label">Branch Name</label><input class="field-input" id="br-name" type="text" placeholder="Asok Branch"></div>
+      </div>
+      <div class="field"><label class="field-label">Address</label><input class="field-input" id="br-addr" type="text" placeholder="123 Sukhumvit Road, Asok"></div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Phone</label><input class="field-input" id="br-tel" type="tel" placeholder="02-XXX-XXXX"></div>
+        <div class="field">
+          <label class="field-label">Status</label>
+          <select class="field-input" id="br-open">
+            <option value="true">Open</option>
+            <option value="false">Closed</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label class="field-label">Latitude</label><input class="field-input" id="br-lat" type="number" step="any" placeholder="13.7466"></div>
+        <div class="field"><label class="field-label">Longitude</label><input class="field-input" id="br-lng" type="number" step="any" placeholder="100.5340"></div>
+      </div>
+      <div class="field-err" id="br-err"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('branch-modal')">Cancel</button>
+      <button class="btn btn-primary" id="br-save" onclick="saveBranch()">Save Branch</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="admin-toast">
   <div class="toast-dot" id="toast-dot"></div>
@@ -1340,28 +1649,40 @@ function checkConnection(){
 }
 
 /* ── NAVIGATION ─────────────────────────────────────── */
-const SECTION_TITLES={orders:'Live Orders',analytics:'Analytics',menu:'Menu Manager',promos:'Promo Codes',members:'Members',settings:'Settings'};
+const SECTION_TITLES={
+  orders:'Live Orders', analytics:'Analytics',
+  menu:'Menu Manager', addons:'Add-ons Manager', promos:'Promo Codes',
+  customers:'Customers', staff:'Staff Management',
+  branches:'Branch Management', settings:'Settings'
+};
 function nav(section,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   el&&el.classList.add('active');
-  ge('sec-'+section).classList.add('active');
+  const sec=ge('sec-'+section);
+  if(sec)sec.classList.add('active');
   ge('page-title').textContent=SECTION_TITLES[section]||section;
   A.currentSection=section;
   closeSidebar();
-  if(section==='orders')loadOrders();
+  if(section==='orders')   loadOrders();
   if(section==='analytics')loadAnalytics();
-  if(section==='menu')loadMenu();
-  if(section==='promos')loadPromos();
-  if(section==='members')loadMembers();
+  if(section==='menu')     loadMenu();
+  if(section==='addons')   loadAddons();
+  if(section==='promos')   loadPromos();
+  if(section==='customers')loadMembers();
+  if(section==='staff')    loadStaff();
+  if(section==='branches') loadBranches();
 }
 function openOrdersSection(){nav('orders',ge('nav-orders'));ge('notif-dot').classList.remove('on')}
 function refreshCurrent(){
-  if(A.currentSection==='orders')loadOrders();
-  else if(A.currentSection==='analytics')loadAnalytics();
-  else if(A.currentSection==='menu')loadMenu();
-  else if(A.currentSection==='members')loadMembers();
-  else if(A.currentSection==='promos')loadPromos();
+  if(A.currentSection==='orders')    loadOrders();
+  else if(A.currentSection==='analytics') loadAnalytics();
+  else if(A.currentSection==='menu')      loadMenu();
+  else if(A.currentSection==='addons')    loadAddons();
+  else if(A.currentSection==='customers') loadMembers();
+  else if(A.currentSection==='staff')     loadStaff();
+  else if(A.currentSection==='branches')  loadBranches();
+  else if(A.currentSection==='promos')    loadPromos();
 }
 
 /* ── MOBILE SIDEBAR ─────────────────────────────────── */
@@ -1813,13 +2134,22 @@ async function deletePromo(id){
   renderPromos();toast('Promo deleted','info');
 }
 
-/* ── MEMBERS ────────────────────────────────────────── */
+/* ── MEMBERS (CUSTOMERS) ─────────────────────────────── */
 async function loadMembers(){
-  ge('member-tbody').innerHTML='<tr><td colspan="7" class="table-empty">Loading...</td></tr>';
+  ge('member-tbody').innerHTML='<tr><td colspan="8" class="table-empty">Loading...</td></tr>';
   try{
     const res=await API.getAdminMembers();
-    A.members=res.data||[];renderMembers();
-  }catch(e){ge('member-tbody').innerHTML='<tr><td colspan="7" class="table-empty" style="color:var(--red)">Failed to load</td></tr>'}
+    A.members=res.data||[];
+    // Update stats strip
+    const active=A.members.filter(m=>m.is_active!==false).length;
+    const avgPts=A.members.length?Math.round(A.members.reduce((s,m)=>s+(m.points||0),0)/A.members.length):0;
+    const diamond=A.members.filter(m=>m.tier==='Diamond'||m.tier==='Platinum').length;
+    ge('cs-total')&&(ge('cs-total').textContent=A.members.length);
+    ge('cs-active')&&(ge('cs-active').textContent=active);
+    ge('cs-points')&&(ge('cs-points').textContent=avgPts+' pts');
+    ge('cs-diamond')&&(ge('cs-diamond').textContent=diamond);
+    renderMembers();
+  }catch(e){ge('member-tbody').innerHTML='<tr><td colspan="8" class="table-empty" style="color:var(--red)">Failed to load</td></tr>'}
 }
 function filterMembers(){renderMembers()}
 function renderMembers(){
@@ -1833,16 +2163,17 @@ function renderMembers(){
     if(q&&!(m.name||'').toLowerCase().includes(q)&&!(m.phone||'').includes(q))return false;
     return true;
   });
-  if(!list.length){ge('member-tbody').innerHTML='<tr><td colspan="7" class="table-empty">No members found</td></tr>';return}
+  if(!list.length){ge('member-tbody').innerHTML='<tr><td colspan="8" class="table-empty">No customers found</td></tr>';return}
   const tierCls={Bronze:'b-tier-bronze',Silver:'b-tier-silver',Gold:'b-tier-gold',Platinum:'b-tier-platinum',Diamond:'b-tier-diamond'};
   ge('member-tbody').innerHTML=list.map(m=>`
     <tr>
       <td style="color:var(--tan);font-weight:600">${esc(m.name)}</td>
       <td>${esc(m.phone)}</td>
-      <td style="color:var(--tan3);max-width:140px;overflow:hidden;text-overflow:ellipsis">${esc(m.email||'—')}</td>
-      <td><span class="badge ${tierCls[m.tier]||'b-pending'}">${m.tier}</span></td>
+      <td style="color:var(--tan3);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.email||'—')}</td>
+      <td><span class="badge ${tierCls[m.tier]||'b-pending'}">${m.tier||'Bronze'}</span></td>
       <td style="color:var(--gl);font-weight:600">${(m.points||0).toLocaleString()}</td>
       <td>${m.total_orders||0}</td>
+      <td style="font-size:11px;color:var(--tan3)">${m.created_at?new Date(m.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'}):'—'}</td>
       <td>
         <div class="member-actions">
           <button class="btn btn-ghost btn-sm" onclick="openEditMember('${esc(m.id)}')">Edit</button>
@@ -1882,36 +2213,316 @@ async function toggleMember(id,currentActive){
     renderMembers();toast('Member '+(currentActive?'suspended':'restored'),'success');
   }catch(e){toast('Failed','error')}
 }
-   
-// ฟังก์ชันดึงสาขาจาก Supabase มาใส่ใน Dropdown
-async function loadBranchesIntoInvite() {
-  const select = document.getElementById('is-branch');
-  select.innerHTML = '<option value="">Loading...</option>';
-  
-  try {
-    const res = await API.getBranches(); // ฟังก์ชันนี้เราเขียนไว้ใน api.js แล้ว
-    if (res.success) {
-      select.innerHTML = res.data.map(b => 
-        `<option value="${b.id}">${b.name}</option>`
-      ).join('');
+/* ══════════════════════════════════════════════════════
+   STAFF MANAGEMENT
+══════════════════════════════════════════════════════ */
+const MOCK_STAFF = [
+  {id:'s1',name:'Khun Nong',username:'nong_siam',role:'MANAGER',branch_id:'BR001',branch_name:'Main Branch — Siam',is_active:true,created_at:new Date(Date.now()-86400000*90).toISOString()},
+  {id:'s2',name:'Khun Arm',username:'arm_siam',role:'STAFF',branch_id:'BR001',branch_name:'Main Branch — Siam',is_active:true,created_at:new Date(Date.now()-86400000*60).toISOString()},
+  {id:'s3',name:'Khun Mint',username:'mint_tgl',role:'STAFF',branch_id:'BR002',branch_name:'Thonglor Branch',is_active:false,created_at:new Date(Date.now()-86400000*30).toISOString()},
+];
+const PENDING_INVITES = [];
+let A_staff = [];
+let A_editStaffId = null;
+
+async function loadStaff(){
+  ge('staff-grid').innerHTML='<div style="color:var(--tan3);font-size:13px">Loading...</div>';
+  try{
+    const res = await API.getStaff?.();
+    A_staff = res?.data || MOCK_STAFF;
+  }catch(e){ A_staff = MOCK_STAFF; }
+  // Load pending invites
+  const pendWrap = ge('pending-invites-wrap');
+  if(PENDING_INVITES.length){
+    pendWrap.style.display='block';
+    ge('pending-invites-list').innerHTML = PENDING_INVITES.map(inv=>`
+      <div class="it-row">
+        <span class="it-status its-pending">Pending</span>
+        <div style="flex:1;font-size:13px;color:var(--tan)">${inv.role} — ${inv.branchName}</div>
+        <div style="font-size:11px;color:var(--tan3)">${new Date(inv.created).toLocaleDateString('en-GB')}</div>
+        <button class="btn btn-ghost btn-sm" onclick="copyInviteText('${inv.link}')">Copy Link</button>
+      </div>`).join('');
+  } else { pendWrap.style.display='none'; }
+  // Badge
+  const badge=ge('nav-staff-badge');
+  if(badge){badge.textContent=PENDING_INVITES.length;badge.classList.toggle('on',PENDING_INVITES.length>0);}
+  // Populate branch filter
+  populateStaffBranchFilter();
+  filterStaff();
+}
+
+function populateStaffBranchFilter(){
+  const sel=ge('staff-branch-filter');
+  if(!sel)return;
+  const branches=[...new Set(A_staff.map(s=>s.branch_name).filter(Boolean))];
+  sel.innerHTML='<option value="">All Branches</option>'+branches.map(b=>`<option value="${esc(b)}">${esc(b)}</option>`).join('');
+}
+
+function filterStaff(){
+  const q=(ge('staff-search')?.value||'').toLowerCase();
+  const role=ge('staff-role-filter')?.value||'';
+  const branch=ge('staff-branch-filter')?.value||'';
+  const list=A_staff.filter(s=>{
+    if(role&&s.role!==role)return false;
+    if(branch&&s.branch_name!==branch)return false;
+    if(q&&!(s.name||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+  renderStaffGrid(list);
+}
+
+function renderStaffGrid(list){
+  const el=ge('staff-grid');
+  if(!list.length){el.innerHTML='<div style="color:var(--tan3);font-size:13px">No staff found</div>';return}
+  const roleCls={ADMIN:'role-admin',MANAGER:'role-manager',STAFF:'role-staff'};
+  const avCls={ADMIN:'',MANAGER:'mgr',STAFF:''};
+  el.innerHTML=list.map(s=>`
+    <div class="staff-card ${s.is_active===false?'suspended':''}">
+      <div class="sc-head">
+        <div class="sc-av ${avCls[s.role]||''} ${s.is_active===false?'susp':''}">${(s.name||'?')[0].toUpperCase()}</div>
+        <div style="flex:1">
+          <div class="sc-name">${esc(s.name)}</div>
+          <div class="sc-meta">
+            <span class="role-badge ${roleCls[s.role]||'role-staff'}">${s.role}</span>
+            ${s.is_active===false?'<span style="font-size:10px;color:var(--red)">Suspended</span>':''}
+          </div>
+        </div>
+      </div>
+      <div class="sc-branch">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        ${esc(s.branch_name||'—')}
+      </div>
+      <div class="sc-foot">
+        <div style="font-size:10px;color:var(--tan3);flex:1">Since ${s.created_at?new Date(s.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}):'—'}</div>
+        <button class="btn btn-ghost btn-sm" onclick="openEditStaff('${esc(s.id)}')">Edit</button>
+        <button class="btn ${s.is_active===false?'btn-grn':'btn-red'} btn-sm" onclick="toggleStaff('${esc(s.id)}',${s.is_active!==false})">
+          ${s.is_active===false?'Restore':'Suspend'}
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+async function openEditStaff(id){
+  const s=A_staff.find(x=>x.id===id);if(!s)return;
+  A_editStaffId=id;
+  ge('sm-title').textContent='Edit — '+s.name;
+  ge('sm-name').value=s.name||'';
+  ge('sm-username').value=s.username||'';
+  ge('sm-role').value=s.role||'STAFF';
+  ge('sm-pin').value='';
+  ge('sm-err').textContent='';
+  // Populate branch select
+  const brSel=ge('sm-branch');
+  brSel.innerHTML='<option value="">Loading...</option>';
+  try{
+    const res=await API.getBranches?.();
+    brSel.innerHTML=(res?.data||[{id:'BR001',name:'Main Branch — Siam'},{id:'BR002',name:'Thonglor Branch'},{id:'BR003',name:'Ari Branch'}]).map(b=>`<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');
+    brSel.value=s.branch_id||'';
+  }catch{brSel.innerHTML='<option value="BR001">Main Branch</option>'}
+  ge('sm-status').value=String(s.is_active!==false);
+  ge('staff-modal').classList.add('on');
+}
+
+async function saveStaff(){
+  if(!A_editStaffId)return;
+  const btn=ge('sm-save');btn.textContent='Saving...';btn.disabled=true;
+  const data={name:ge('sm-name').value,role:ge('sm-role').value,branch_id:ge('sm-branch').value,is_active:ge('sm-status').value==='true'};
+  try{
+    await API.updateStaff?.(A_editStaffId,data);
+    const s=A_staff.find(x=>x.id===A_editStaffId);if(s)Object.assign(s,data);
+    btn.textContent='Save Changes';btn.disabled=false;
+    closeModal('staff-modal');filterStaff();toast('Staff updated','success');
+  }catch(e){btn.textContent='Save Changes';btn.disabled=false;ge('sm-err').textContent='Failed: '+e.message}
+}
+
+async function toggleStaff(id,currentActive){
+  if(!confirm(currentActive?'Suspend this staff member?':'Restore this staff member?'))return;
+  try{
+    await API.updateStaff?.(id,{is_active:!currentActive});
+    const s=A_staff.find(x=>x.id===id);if(s)s.is_active=!currentActive;
+    filterStaff();toast('Staff '+(currentActive?'suspended':'restored'),'success');
+  }catch(e){toast('Failed','error')}
+}
+
+function copyInviteText(link){
+  navigator.clipboard?.writeText(link).then(()=>toast('Link copied!','success')).catch(()=>toast('Copy failed','error'));
+}
+
+/* ══════════════════════════════════════════════════════
+   ADD-ONS MANAGER
+══════════════════════════════════════════════════════ */
+const MOCK_ADDONS = [
+  {id:'a1',name:'Snow Cheese Foam',price:25,is_active:true},
+  {id:'a2',name:'Brown Sugar Boba',price:15,is_active:true},
+  {id:'a3',name:'Grass Jelly',price:10,is_active:true},
+  {id:'a4',name:'Lychee Jelly',price:15,is_active:true},
+  {id:'a5',name:'Oat Milk Upgrade',price:15,is_active:false},
+];
+let A_addons = [];
+let A_editAddonId = null;
+
+async function loadAddons(){
+  ge('addon-list').innerHTML='<div style="color:var(--tan3);font-size:13px">Loading...</div>';
+  try{
+    const res=await API.getAddons?.();
+    A_addons=res?.data||MOCK_ADDONS;
+  }catch(e){A_addons=MOCK_ADDONS;}
+  renderAddons();
+}
+
+function renderAddons(){
+  ge('addon-list').innerHTML=A_addons.map(a=>`
+    <div class="addon-list-item">
+      <div class="ali-name">${esc(a.name)}</div>
+      <div class="ali-price">+฿${a.price}</div>
+      <span class="ali-avail ${a.is_active?'ali-on':'ali-off'}">${a.is_active?'Available':'Hidden'}</span>
+      <button class="btn btn-ghost btn-sm" onclick="openEditAddon('${esc(a.id)}')">Edit</button>
+      <button class="btn ${a.is_active?'btn-red':'btn-grn'} btn-sm" onclick="toggleAddon('${esc(a.id)}',${a.is_active})">
+        ${a.is_active?'Hide':'Show'}
+      </button>
+    </div>`).join('')||'<div style="color:var(--tan3);font-size:13px">No add-ons yet</div>';
+}
+
+function openAddAddon(){
+  A_editAddonId=null;
+  ge('ao-title').textContent='Add Topping';
+  ge('ao-name').value='';ge('ao-price').value='';ge('ao-status').value='true';ge('ao-err').textContent='';
+  ge('addon-modal').classList.add('on');
+}
+
+function openEditAddon(id){
+  const a=A_addons.find(x=>x.id===id);if(!a)return;
+  A_editAddonId=id;
+  ge('ao-title').textContent='Edit — '+a.name;
+  ge('ao-name').value=a.name||'';ge('ao-price').value=a.price||0;ge('ao-status').value=String(a.is_active!==false);ge('ao-err').textContent='';
+  ge('addon-modal').classList.add('on');
+}
+
+async function saveAddon(){
+  const name=(ge('ao-name').value||'').trim();
+  const price=Number(ge('ao-price').value);
+  if(!name){ge('ao-err').textContent='Name required';return}
+  if(isNaN(price)||price<0){ge('ao-err').textContent='Valid price required';return}
+  const btn=ge('ao-save');btn.textContent='Saving...';btn.disabled=true;
+  const data={name,price,is_active:ge('ao-status').value==='true'};
+  try{
+    if(A_editAddonId){
+      await API.updateAddon?.(A_editAddonId,data);
+      const a=A_addons.find(x=>x.id===A_editAddonId);if(a)Object.assign(a,data);
+    } else {
+      const res=await API.addAddon?.(data)||{data:{id:'a_'+Date.now(),...data}};
+      A_addons.unshift(res?.data||{id:'a_'+Date.now(),...data});
     }
-  } catch (err) {
-    select.innerHTML = '<option value="">Error loading branches</option>';
-  }
+    btn.textContent='Save';btn.disabled=false;
+    closeModal('addon-modal');renderAddons();toast('Add-on saved','success');
+  }catch(e){btn.textContent='Save';btn.disabled=false;ge('ao-err').textContent='Failed: '+e.message}
+}
+
+async function toggleAddon(id,currentActive){
+  try{
+    await API.updateAddon?.(id,{is_active:!currentActive});
+    const a=A_addons.find(x=>x.id===id);if(a)a.is_active=!currentActive;
+    renderAddons();toast((currentActive?'Add-on hidden':'Add-on visible'),'success');
+  }catch(e){toast('Failed','error')}
+}
+
+/* ══════════════════════════════════════════════════════
+   BRANCH MANAGEMENT
+══════════════════════════════════════════════════════ */
+const MOCK_BRANCHES = [
+  {id:'BR001',name:'Main Branch — Siam',address:'123 Rama I Rd, Pathum Wan',tel:'02-123-4567',is_open:true,lat:13.7466,lng:100.5340,sort_order:1},
+  {id:'BR002',name:'Thonglor Branch',address:'55 Sukhumvit Soi 55',tel:'02-234-5678',is_open:true,lat:13.7266,lng:100.5873,sort_order:2},
+  {id:'BR003',name:'Ari Branch',address:'44 Phahon Yothin Soi 7',tel:'02-345-6789',is_open:false,lat:13.7774,lng:100.5341,sort_order:3},
+];
+let A_branches = [];
+let A_editBranchId = null;
+
+async function loadBranches(){
+  ge('branch-list').innerHTML='<div style="color:var(--tan3);font-size:13px">Loading...</div>';
+  try{
+    const res=await API.getBranches?.();
+    A_branches=res?.data||MOCK_BRANCHES;
+  }catch(e){A_branches=MOCK_BRANCHES;}
+  renderBranches();
+}
+
+function renderBranches(){
+  ge('branch-list').innerHTML=A_branches.map(b=>`
+    <div class="branch-card">
+      <div class="bc-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div class="bc-body">
+        <div class="bc-name">${esc(b.name)}</div>
+        <div class="bc-addr">${esc(b.address||'—')}</div>
+        <div class="bc-tags">
+          <span class="bc-tag ${b.is_open?'bc-open':'bc-closed'}">${b.is_open?'Open':'Closed'}</span>
+          ${b.tel?`<span class="bc-tag">☎ ${esc(b.tel)}</span>`:''}
+          <span class="bc-tag">ID: ${esc(b.id)}</span>
+        </div>
+        <div class="bc-foot">
+          <button class="btn btn-ghost btn-sm" onclick="openEditBranch('${esc(b.id)}')">Edit Details</button>
+          <button class="btn ${b.is_open?'btn-red':'btn-grn'} btn-sm" onclick="toggleBranchStatus('${esc(b.id)}',${b.is_open})">
+            ${b.is_open?'Close Branch':'Open Branch'}
+          </button>
+        </div>
+      </div>
+    </div>`).join('')||'<div style="color:var(--tan3);font-size:13px">No branches found</div>';
+}
+
+function openAddBranch(){
+  A_editBranchId=null;
+  ge('br-modal-title').textContent='Add Branch';
+  ge('br-id').value='';ge('br-id').readOnly=false;
+  ge('br-name').value='';ge('br-addr').value='';ge('br-tel').value='';ge('br-lat').value='';ge('br-lng').value='';ge('br-open').value='true';ge('br-err').textContent='';
+  ge('branch-modal').classList.add('on');
+}
+
+function openEditBranch(id){
+  const b=A_branches.find(x=>x.id===id);if(!b)return;
+  A_editBranchId=id;
+  ge('br-modal-title').textContent='Edit — '+b.name;
+  ge('br-id').value=b.id;ge('br-id').readOnly=true;
+  ge('br-name').value=b.name||'';ge('br-addr').value=b.address||'';ge('br-tel').value=b.tel||'';ge('br-lat').value=b.lat||'';ge('br-lng').value=b.lng||'';ge('br-open').value=String(b.is_open!==false);ge('br-err').textContent='';
+  ge('branch-modal').classList.add('on');
+}
+
+async function saveBranch(){
+  const brId=(ge('br-id').value||'').trim().toUpperCase();
+  const brName=(ge('br-name').value||'').trim();
+  if(!brId){ge('br-err').textContent='Branch ID required';return}
+  if(!brName){ge('br-err').textContent='Branch name required';return}
+  const btn=ge('br-save');btn.textContent='Saving...';btn.disabled=true;
+  const data={id:brId,name:brName,address:ge('br-addr').value,tel:ge('br-tel').value,lat:Number(ge('br-lat').value)||null,lng:Number(ge('br-lng').value)||null,is_open:ge('br-open').value==='true'};
+  try{
+    if(A_editBranchId){
+      await API.updateBranch?.(A_editBranchId,data);
+      const b=A_branches.find(x=>x.id===A_editBranchId);if(b)Object.assign(b,data);
+    } else {
+      await API.addBranch?.(data);
+      A_branches.push(data);
+    }
+    btn.textContent='Save Branch';btn.disabled=false;
+    closeModal('branch-modal');renderBranches();toast('Branch saved','success');
+  }catch(e){btn.textContent='Save Branch';btn.disabled=false;ge('br-err').textContent='Failed: '+e.message}
+}
+
+async function toggleBranchStatus(id,currentOpen){
+  try{
+    await API.updateBranch?.(id,{is_open:!currentOpen});
+    const b=A_branches.find(x=>x.id===id);if(b)b.is_open=!currentOpen;
+    renderBranches();toast(b?.name+' '+(currentOpen?'closed':'opened'),'success');
+  }catch(e){toast('Failed','error')}
 }
 
 /* ── MODAL HELPERS ──────────────────────────────────── */
-function closeModal(id){ge(id).classList.remove('on')}
-document.querySelectorAll('.modal-backdrop').forEach(el=>{
-  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('on')});
+function closeModal(id){ge(id)?.classList.remove('on')}
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('modal-backdrop'))e.target.classList.remove('on');
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-backdrop.on').forEach(m=>m.classList.remove('on'))});
-/* ── MODAL HELPERS ──────────────────────────────────── */
-function closeModal(id){ge(id).classList.remove('on')}
-document.querySelectorAll('.modal-backdrop').forEach(el=>{
-  el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('on')});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')document.querySelectorAll('.modal-backdrop.on').forEach(m=>m.classList.remove('on'));
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-backdrop.on').forEach(m=>m.classList.remove('on'))});
 
 
 // 🟢 2. นำ JAVASCRIPT ของ Invite Staff มาวางตรงนี้ (ล่างสุดของสคริปต์) 🟢
@@ -2000,11 +2611,22 @@ function shareInvite() {
   }
 }
 /* ── BOOT ───────────────────────────────────────────── */
-window.onload=()=>{
-  // Auto-login if token exists (dev convenience)
-  const saved=localStorage.getItem('ctb_admin');
-  if(saved){try{A.admin=JSON.parse(saved);ge('login-overlay').style.display='none';ge('admin-name-chip').textContent=A.admin.name||'Admin';ge('admin-av').textContent=(A.admin.name||'A')[0].toUpperCase();initDashboard()}catch{}}
-};
+// window.onload is handled by adminLogin block above (Supabase auto-session check)
+// This is the fallback for dev mode without Supabase
+if(typeof sbClient === 'undefined' || !window.ENV?.URL) {
+  window.addEventListener('load', () => {
+    const saved=localStorage.getItem('ctb_admin');
+    if(saved){
+      try{
+        A.admin=JSON.parse(saved);
+        ge('login-overlay').style.display='none';
+        ge('admin-name-chip').textContent=A.admin.name||'Admin';
+        ge('admin-av').textContent=(A.admin.name||'A')[0].toUpperCase();
+        initDashboard();
+      }catch(e){}
+    }
+  });
+}
 
 </script>
 </body>
