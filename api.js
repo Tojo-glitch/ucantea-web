@@ -41,11 +41,21 @@ const sb = {
     return res.json();
   },
 
-  async insert(table, data) {
+async insert(table, data) {
+    const headerData = sb.headers; // ดูค่า Headers
+    console.log("Sending POST to:", table, "Headers:", headerData); // 🟢 เช็คตรงนี้ใน Console
+    
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-      method: 'POST', headers: sb.headers, body: JSON.stringify(data),
+      method: 'POST', 
+      headers: headerData, 
+      body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error(await res.text());
+    
+    if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Supabase Insert Error:", errorText); // 🟢 ดู Error จริงๆ ว่ามันด่าว่าอะไร
+        throw new Error(errorText);
+    }
     return res.json();
   },
 
