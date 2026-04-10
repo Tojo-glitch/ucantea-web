@@ -1074,10 +1074,10 @@ tbody tr:hover{background:var(--c2)}
       <div id="invite-link-area" style="display:none; margin-top:16px; padding:12px; background:rgba(74,173,117,.1); border:1px solid var(--grnl); border-radius:8px;">
         <div style="font-size:11px; color:var(--grnl); margin-bottom:4px; font-weight:bold;">✅ สร้างสำเร็จ! คัดลอกลิงก์นี้ส่งให้พนักงาน:</div>
         <input type="text" id="invite-link-url" class="field-input" style="font-size:11px; color:var(--gl);" readonly>
+         <!-- แยกปุ่มออกมาจากช่อง Input -->
+  <button class="btn btn-gold" style="margin-top:10px; padding:10px;" onclick="shareInvite()">แชร์ลิงก์ให้พนักงาน</button>
       </div>
-        <button class="btn btn-ghost" style="width:100%; height:40px; font-size:12px;" onclick="shareInvite()">แชร์ลิงก์ให้พนักงาน</button>
-</div>
-
+   
     </div>
     <div class="modal-foot">
       <button class="btn btn-primary" style="width:100%; justify-content:center;" id="btn-create-invite" onclick="generateInvite()">Generate Invite Link</button>
