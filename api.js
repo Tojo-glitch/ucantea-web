@@ -113,13 +113,13 @@ const sb = {
         return { success: true, managerName: user.name };
       }
      return { success: false, message: 'Invalid credentials' };
-  },
+  }
     // Mock Data
     await _delay(300);
     if(pin === '9999') return { success: true, managerName: 'Admin' };
     return { success: false, message: 'Invalid PIN' };
   },
-
+};
 /* ── HELPERS ───────────────────────────────────────── */
 const _delay = (ms = 600) => new Promise(r => setTimeout(r, ms));
 
