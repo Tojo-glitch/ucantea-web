@@ -210,6 +210,26 @@ window.API = {
     }
     return { success: false, message: 'Invalid credentials' };
   },
+
+  /* ── HR & ONBOARDING ────────────────────────────── */
+  async inviteStaff(data) {
+    if (BACKEND_MODE === 'supabase') {
+      try {
+        const res = await sb.insert('staff', {
+          username: data.username,
+          email: data.email,
+          name: data.name,
+          role: data.role,
+          onboarding_status: 'PENDING'
+        });
+        if (res && res.length > 0) return { success: true, staff: res[0] };
+        return { success: false, message: 'บันทึกไม่ได้' };
+      } catch (err) {
+        return { success: false, message: err.message };
+      }
+    }
+    return { success: true, staff: { id: 'temp_id_'+Date.now() } };
+  },
   
   /* ── AUTH ─────────────────────────────────────────── */
   async login({ phone, hashedPassword }) {
