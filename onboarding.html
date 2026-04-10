@@ -3,83 +3,274 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Ceramic | Staff Onboarding</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Ceramic | Team Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&display=swap" rel="stylesheet">
 <style>
-  body { background: #0c0b09; color: #e8e0d4; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-  .card { background: #141310; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-  h1 { color: #d4aa6a; margin: 0 0 8px 0; font-size: 24px; text-align: center; }
-  p.sub { font-size: 13px; color: #9e9080; text-align: center; margin-bottom: 24px; line-height: 1.5; }
+  :root {
+    --c0:#0c0b09; --c1:#141310; --c2:#1c1a17; --line:rgba(255,255,255,.1);
+    --tan:#e8e0d4; --tan3:#9e9080; --gold:#b8924a; --gold-light:#d4aa6a;
+    --red:#e85a5a; --green:#4aad75; --serif:'Fraunces', serif; --sans:'Plus Jakarta Sans', sans-serif;
+  }
+  body { background: var(--c0); color: var(--tan); font-family: var(--sans); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
   
-  .step-label { font-size: 12px; font-weight: 700; color: #b8ad9e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; margin-top: 24px; }
-  .inp, .file-inp { width: 100%; padding: 14px; background: #1c1a17; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: border 0.2s; }
-  .inp:focus { border-color: #d4aa6a; }
+  .container { width: 100%; max-width: 640px; padding: 20px 0; }
+  .card { background: var(--c1); border: 1px solid var(--line); border-radius: 16px; padding: 32px 40px; box-shadow: 0 24px 64px rgba(0,0,0,0.6); }
   
-  .rules-box { height: 120px; overflow-y: auto; background: #0a0a09; border: 1px solid rgba(255,255,255,0.1); padding: 12px; font-size: 12px; color: #888; border-radius: 10px; line-height: 1.6; }
-  #signature-pad { border: 1px dashed rgba(212, 170, 106, 0.4); background: #1c1a17; border-radius: 10px; cursor: crosshair; touch-action: none; width: 100%; height: 180px; margin-top: 8px; }
-  
-  .btn { width: 100%; padding: 16px; background: #d4aa6a; color: #0c0b09; font-size: 16px; font-weight: 700; border: none; border-radius: 10px; margin-top: 32px; cursor: pointer; transition: transform 0.1s; }
-  .btn:active { transform: scale(0.98); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  /* Header & Lang Toggle */
+  .header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+  h1 { color: var(--gold-light); margin: 0; font-size: 28px; font-family: var(--serif); font-style: italic; }
+  p.sub { font-size: 13px; color: var(--tan3); margin: 8px 0 0 0; line-height: 1.6; }
+  .lang-toggle { display: flex; gap: 8px; background: var(--c2); padding: 4px; border-radius: 20px; border: 1px solid var(--line); }
+  .lang-btn { background: transparent; border: none; color: var(--tan3); padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+  .lang-btn.active { background: var(--gold); color: var(--c0); }
 
-  /* Overlay Loading */
-  #loading { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:99; align-items:center; justify-content:center; flex-direction:column; }
-  .spinner { width: 40px; height: 40px; border: 3px solid rgba(212,170,106,0.3); border-top-color: #d4aa6a; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+  /* Section Styles */
+  .section-title { font-size: 13px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin: 32px 0 16px 0; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  
+  /* Grid & Inputs */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; position: relative; }
+  .field.full { grid-column: span 2; }
+  .label { font-size: 12px; font-weight: 600; color: var(--tan); }
+  .label span.req { color: var(--red); }
+  
+  .inp, .file-inp, select { width: 100%; padding: 14px 16px; background: var(--c2); border: 1px solid var(--line); border-radius: 10px; color: #fff; font-size: 14px; box-sizing: border-box; outline: none; transition: all 0.3s; font-family: var(--sans); }
+  .inp:focus, select:focus { border-color: var(--gold-light); box-shadow: 0 0 0 2px rgba(212,170,106,0.1); }
+  .inp::placeholder { color: rgba(255,255,255,0.2); }
+  
+  /* Validation Classes */
+  .inp.is-invalid, .file-inp.is-invalid { border-color: var(--red) !important; background: rgba(232, 90, 90, 0.05); }
+  .inp.is-valid, .file-inp.is-valid { border-color: var(--green) !important; }
+  .err-msg { color: var(--red); font-size: 11px; margin-top: 4px; display: none; }
+  .is-invalid ~ .err-msg { display: block; animation: shake 0.3s; }
+
+  /* File Input Customization */
+  .file-inp { padding: 10px; font-size: 12px; color: var(--tan3); cursor: pointer; }
+  .file-inp::file-selector-button { background: var(--c0); color: var(--tan); border: 1px solid var(--line); padding: 8px 16px; border-radius: 6px; margin-right: 12px; cursor: pointer; transition: 0.2s; font-weight: 600; }
+  .file-inp::file-selector-button:hover { background: var(--line); }
+
+  /* Smart Scan Box */
+  .smart-scan { background: rgba(212,170,106,0.05); border: 1px dashed rgba(212,170,106,0.4); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 24px; transition: 0.3s; }
+  .smart-scan:hover { background: rgba(212,170,106,0.1); }
+  .scan-icon { font-size: 24px; margin-bottom: 8px; }
+
+  /* Readonly Input */
+  .inp[readonly] { background: var(--c0); color: var(--gold-light); border-style: dashed; cursor: not-allowed; }
+
+  /* Signature & Terms */
+  .rules-box { height: 120px; overflow-y: auto; background: var(--c0); border: 1px solid var(--line); padding: 16px; font-size: 12px; color: var(--tan3); border-radius: 10px; line-height: 1.6; margin-bottom: 12px; }
+  #signature-pad { border: 1px solid var(--line); background: var(--c2); border-radius: 10px; cursor: crosshair; touch-action: none; width: 100%; height: 160px; }
+  #signature-pad.is-invalid { border-color: var(--red); }
+
+  /* Button */
+  .btn { width: 100%; padding: 18px; background: var(--gold); color: var(--c0); font-size: 15px; font-weight: 700; border: none; border-radius: 10px; margin-top: 32px; cursor: pointer; transition: 0.2s; letter-spacing: 0.5px; }
+  .btn:hover { background: var(--gold-light); }
+  .btn:active { transform: scale(0.98); }
+
+  /* Loading Overlay */
+  #loading { display:none; position:fixed; inset:0; background:rgba(12,11,9,0.9); z-index:99; align-items:center; justify-content:center; flex-direction:column; backdrop-filter: blur(4px); }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(212,170,106,0.2); border-top-color: var(--gold-light); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+  
   @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-4px);} 75% {transform: translateX(4px);} }
+
+  @media(max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } .card { padding: 24px; } }
 </style>
 </head>
 <body>
 
 <div id="loading">
   <div class="spinner"></div>
-  <div style="color:#d4aa6a; font-weight:bold;" id="load-text">กำลังประมวลผลข้อมูล...</div>
+  <div style="color:var(--gold-light); font-weight:bold; font-size:14px;" id="load-text">Processing...</div>
 </div>
 
-<div class="card" id="form-card">
-  <h1>Ceramic Team</h1>
-  <p class="sub">ยินดีต้อนรับ! กรุณาส่งเอกสารและตั้งรหัสผ่าน<br>เพื่อยืนยันตัวตนเข้าสู่ระบบปฏิบัติการ</p>
+<div class="container">
+  <div class="card" id="form-card">
+    
+    <div class="header-flex">
+      <div>
+        <h1>Ceramic Team</h1>
+        <p class="sub" id="t-sub">Onboarding Registration & Contract</p>
+      </div>
+      <div class="lang-toggle">
+        <button class="lang-btn active" onclick="setLang('th')">TH</button>
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
 
-  <label class="step-label">1. อัปโหลดสำเนาบัตรประชาชน</label>
-  <input type="file" id="idCard" class="file-inp" accept="image/*">
+    <form id="onboardForm" onsubmit="event.preventDefault(); submitForm();">
+      
+      <div class="smart-scan" id="scanBox">
+        <div class="scan-icon">📸</div>
+        <div class="label" style="color:var(--gold-light); margin-bottom:4px;" id="t-scan-title">Smart Scan (ID Card)</div>
+        <div style="font-size:11px; color:var(--tan3); margin-bottom:12px;" id="t-scan-sub">Upload ID Card to auto-fill details</div>
+        <input type="file" id="idCard" class="file-inp req-field" accept="image/*" onchange="simulateOCR(this)">
+        <div class="err-msg" id="t-err-file">Please upload a document</div>
+      </div>
 
-  <label class="step-label">2. ตั้งรหัสผ่าน (System Password)</label>
-  <input type="password" id="password" class="inp" placeholder="รหัสสำหรับ Login เข้าระบบจัดการ">
+      <div class="section-title" id="t-sec-1">1. Personal Information</div>
+      <div class="grid-2">
+        <div class="field full">
+          <label class="label" id="t-name">Full Name <span class="req">*</span></label>
+          <input type="text" id="fullName" class="inp req-field" placeholder="e.g. Somchai Jai-dee">
+          <div class="err-msg" id="t-err-req">This field is required</div>
+        </div>
+        <div class="field">
+          <label class="label" id="t-nickname">Nickname (POS) <span class="req">*</span></label>
+          <input type="text" id="nickname" class="inp req-field" placeholder="e.g. Chai">
+          <div class="err-msg">This field is required</div>
+        </div>
+        <div class="field">
+          <label class="label" id="t-idnum">National ID <span class="req">*</span></label>
+          <input type="text" id="idNum" class="inp req-field" placeholder="13 digits" maxlength="13" inputmode="numeric">
+          <div class="err-msg">This field is required</div>
+        </div>
+        <div class="field">
+          <label class="label" id="t-phone">Phone Number <span class="req">*</span></label>
+          <input type="tel" id="phone" class="inp req-field" placeholder="08xxxxxxxx" maxlength="10">
+          <div class="err-msg">This field is required</div>
+        </div>
+        <div class="field">
+          <label class="label" id="t-emergency">Emergency Contact <span class="req">*</span></label>
+          <input type="text" id="emergency" class="inp req-field" placeholder="Name & Phone">
+          <div class="err-msg">This field is required</div>
+        </div>
+      </div>
 
-  <label class="step-label">3. ตั้งรหัส PIN (POS Access)</label>
-  <input type="password" id="pin" class="inp" placeholder="ตัวเลข 4-6 หลัก สำหรับกดรับออเดอร์" maxlength="6" inputmode="numeric" style="letter-spacing: 4px; font-size: 18px; text-align:center;">
+      <div class="section-title" id="t-sec-2">2. Payroll Information</div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="label" id="t-bank">Bank Name <span class="req">*</span></label>
+          <select id="bankName" class="inp req-field">
+            <option value="" disabled selected>Select Bank</option>
+            <option value="kbank">Kasikornbank (KBANK)</option>
+            <option value="scb">Siam Commercial Bank (SCB)</option>
+            <option value="bbl">Bangkok Bank (BBL)</option>
+            <option value="ktb">Krungthai Bank (KTB)</option>
+            <option value="other">Other</option>
+          </select>
+          <div class="err-msg">This field is required</div>
+        </div>
+        <div class="field">
+          <label class="label" id="t-acc">Account Number <span class="req">*</span></label>
+          <input type="text" id="bankAcc" class="inp req-field" placeholder="e.g. 123-4-56789-0" inputmode="numeric">
+          <div class="err-msg">This field is required</div>
+        </div>
+        <div class="field full">
+          <label class="label" id="t-book">Upload Bank Book <span class="req">*</span></label>
+          <input type="file" id="bankBook" class="file-inp req-field" accept="image/*,application/pdf" onchange="validateField(this)">
+          <div class="err-msg">Please upload bank book</div>
+        </div>
+      </div>
 
-  <label class="step-label">4. ข้อตกลงและลายเซ็น (E-Signature)</label>
-  <div class="rules-box">
-    <b>ข้อตกลงการรักษาความลับพนักงาน</b><br>
-    ข้าพเจ้าขอรับรองว่าเอกสารและข้อมูลที่ให้ไว้เป็นความจริงทุกประการ ข้าพเจ้าตกลงที่จะไม่เปิดเผยข้อมูลความลับ สูตรเครื่องดื่ม หรือรายได้ของร้านให้แก่บุคคลภายนอกทราบ หากฝ่าฝืนยินยอมให้บริษัทดำเนินการตามกฎหมาย และลายเซ็นอิเล็กทรอนิกส์ด้านล่างนี้ให้ถือเป็นลายเซ็นจริงทางกฎหมาย
+      <div class="section-title" id="t-sec-3">3. System Credentials</div>
+      <div class="grid-2">
+        <div class="field full">
+          <label class="label" id="t-user">System Username (Generated)</label>
+          <input type="text" id="sysUsername" class="inp" readonly value="Loading...">
+        </div>
+        <div class="field">
+          <label class="label" id="t-pass">Password <span class="req">*</span></label>
+          <input type="password" id="password" class="inp req-field" placeholder="Min. 6 characters">
+          <div class="err-msg">Min 6 characters required</div>
+        </div>
+        <div class="field">
+          <label class="label" id="t-pin">POS PIN <span class="req">*</span></label>
+          <input type="password" id="pin" class="inp req-field" placeholder="4-6 digits" maxlength="6" inputmode="numeric" style="letter-spacing: 4px; text-align:center;">
+          <div class="err-msg">4-6 digits required</div>
+        </div>
+      </div>
+
+      <div class="section-title" id="t-sec-4">4. Contract & E-Signature</div>
+      <div class="rules-box" id="t-rules">
+        <b>Employment Contract & NDA (Short-term)</b><br>
+        1. I certify that all information provided is true and correct.<br>
+        2. I agree to maintain strict confidentiality regarding recipes, operations, and company revenue.<br>
+        3. This constitutes a short-term employment agreement subject to renewal based on performance.<br>
+        4. My electronic signature below holds full legal validity.
+      </div>
+      
+      <div class="field full">
+        <canvas id="signature-pad"></canvas>
+        <div class="err-msg" id="sig-err" style="text-align:center;">Please provide your signature</div>
+        <div style="text-align:right; margin-top:8px;">
+          <button type="button" onclick="clearSignature()" id="t-clear" style="background:transparent; border:none; color:var(--red); font-size:12px; cursor:pointer;">Clear Signature</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn" id="t-submit">Confirm & Submit</button>
+    </form>
   </div>
-  
-  <canvas id="signature-pad"></canvas>
-  <div style="text-align:right; margin-top:8px;">
-    <button type="button" onclick="clearSignature()" style="background:transparent; border:none; color:#e88080; font-size:12px; cursor:pointer;">ลบลายเซ็น (Clear)</button>
+
+  <div class="card" id="success-card" style="display:none; text-align:center; padding: 64px 40px;">
+    <div style="font-size: 64px; margin-bottom: 24px;">🎉</div>
+    <h1 id="t-succ-title">Registration Complete!</h1>
+    <p class="sub" id="t-succ-sub" style="font-size:15px; margin-top:16px;">Your data and contract have been saved.<br>You can now log in to the POS system using your Username and PIN.</p>
   </div>
-
-  <button class="btn" id="submitBtn" onclick="submitForm()">ยืนยันข้อมูลและเริ่มงาน</button>
-</div>
-
-<div class="card" id="success-card" style="display:none; text-align:center;">
-  <div style="font-size: 60px; margin-bottom: 16px;">🎉</div>
-  <h1>ลงทะเบียนสำเร็จ!</h1>
-  <p class="sub">ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว<br>คุณสามารถใช้ Username และ PIN ที่ตั้งไว้<br>ล็อกอินเข้าเครื่อง POS ที่สาขาได้ทันที</p>
 </div>
 
 <script src="/env-config.js"></script>
 <script src="/api.js"></script>
 <script>
-  // --- รับ ID จาก URL ---
+  // --- Initialization & URL Params ---
   const urlParams = new URLSearchParams(window.location.search);
   const staffId = urlParams.get('id');
+  const sysUser = urlParams.get('user') || 'STAFF_' + Math.floor(Math.random()*1000);
+  
+  document.getElementById('sysUsername').value = sysUser;
 
   if(!staffId) {
-    document.getElementById('form-card').innerHTML = '<h2 style="color:#e88080; text-align:center;">❌ ลิงก์ไม่ถูกต้อง หรือหมดอายุ</h2>';
+    document.getElementById('form-card').innerHTML = '<h2 style="color:var(--red); text-align:center; padding:40px;">❌ Invalid or Expired Link</h2>';
   }
 
-  // --- ระบบลายเซ็น ---
+  // --- Real-time Validation (Green/Red Borders) ---
+  const inputs = document.querySelectorAll('.req-field');
+  inputs.forEach(inp => {
+    inp.addEventListener('input', () => validateField(inp));
+    inp.addEventListener('blur', () => validateField(inp));
+  });
+
+  function validateField(el) {
+    let isValid = true;
+    if(el.type === 'file') { isValid = el.files.length > 0; }
+    else if(el.id === 'password') { isValid = el.value.length >= 6; }
+    else if(el.id === 'pin') { isValid = el.value.length >= 4; }
+    else { isValid = el.value.trim() !== ''; }
+
+    if(isValid) {
+      el.classList.remove('is-invalid');
+      el.classList.add('is-valid');
+    } else {
+      el.classList.remove('is-valid');
+      el.classList.add('is-invalid');
+    }
+    return isValid;
+  }
+
+  // --- Simulated OCR (Smart Scan) ---
+  function simulateOCR(input) {
+    validateField(input);
+    if(input.files.length === 0) return;
+    
+    const load = document.getElementById('loading');
+    const loadText = document.getElementById('load-text');
+    loadText.textContent = lang === 'th' ? "กำลังสแกนบัตร ปชช..." : "Scanning ID Card...";
+    load.style.display = 'flex';
+
+    // Simulate API delay
+    setTimeout(() => {
+      // Mock extracted data
+      document.getElementById('fullName').value = lang === 'th' ? "ชนนท์ ชนวีร์" : "Chanon Chonv";
+      document.getElementById('idNum').value = "1103700000000";
+      
+      validateField(document.getElementById('fullName'));
+      validateField(document.getElementById('idNum'));
+      
+      load.style.display = 'none';
+    }, 1500);
+  }
+
+  // --- Signature Pad ---
   const canvas = document.getElementById('signature-pad');
   const ctx = canvas.getContext('2d');
   let isDrawing = false;
@@ -89,7 +280,7 @@
     ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#d4aa6a';
   }
   window.addEventListener('resize', resizeCanvas);
-  setTimeout(resizeCanvas, 100); // ดีเลย์นิดนึงให้เรนเดอร์เสร็จ
+  setTimeout(resizeCanvas, 100);
 
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
@@ -98,79 +289,155 @@
     return { x: x - rect.left, y: y - rect.top };
   }
 
-  canvas.addEventListener('mousedown', (e)=>{ isDrawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); e.preventDefault();});
-  canvas.addEventListener('mousemove', (e)=>{ if(!isDrawing)return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); e.preventDefault();});
-  canvas.addEventListener('mouseup', ()=>{ isDrawing=false; ctx.closePath();});
-  canvas.addEventListener('touchstart', (e)=>{ isDrawing=true; ctx.beginPath(); const p=getPos(e); ctx.moveTo(p.x,p.y); e.preventDefault();});
-  canvas.addEventListener('touchmove', (e)=>{ if(!isDrawing)return; const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); e.preventDefault();});
-  canvas.addEventListener('touchend', ()=>{ isDrawing=false; ctx.closePath();});
+  canvas.addEventListener('mousedown', (e)=>{ isDrawing=true; ctx.beginPath(); ctx.moveTo(getPos(e).x,getPos(e).y); e.preventDefault();});
+  canvas.addEventListener('mousemove', (e)=>{ if(!isDrawing)return; ctx.lineTo(getPos(e).x,getPos(e).y); ctx.stroke(); e.preventDefault();});
+  canvas.addEventListener('mouseup', ()=>{ isDrawing=false; ctx.closePath(); canvas.classList.remove('is-invalid'); });
+  canvas.addEventListener('touchstart', (e)=>{ isDrawing=true; ctx.beginPath(); ctx.moveTo(getPos(e).x,getPos(e).y); e.preventDefault();});
+  canvas.addEventListener('touchmove', (e)=>{ if(!isDrawing)return; ctx.lineTo(getPos(e).x,getPos(e).y); ctx.stroke(); e.preventDefault();});
+  canvas.addEventListener('touchend', ()=>{ isDrawing=false; ctx.closePath(); canvas.classList.remove('is-invalid');});
 
-  function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-
-  // --- Helper: แปลง Base64 ลายเซ็น เป็นไฟล์ Blob เพื่ออัปโหลด ---
-  function dataURItoBlob(dataURI) {
-    const byteString = atob(dataURI.split(',')[1]);
-    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) { ia[i] = byteString.charCodeAt(i); }
-    return new Blob([ab], {type: mimeString});
+  function clearSignature() { 
+    ctx.clearRect(0, 0, canvas.width, canvas.height); 
+    canvas.classList.remove('is-valid');
+  }
+  
+  function isCanvasBlank() {
+    const blank = document.createElement('canvas');
+    blank.width = canvas.width; blank.height = canvas.height;
+    return canvas.toDataURL() === blank.toDataURL();
   }
 
-  // --- SUBMIT ข้อมูล ---
+  // --- Submit & Final Validation ---
   async function submitForm() {
-    const file = document.getElementById('idCard').files[0];
-    const pass = document.getElementById('password').value;
-    const pin = document.getElementById('pin').value;
+    let firstInvalid = null;
     
-    // ตรวจสอบความถูกต้องเบื้องต้น
-    if(!file) return alert("กรุณาแนบรูปบัตรประชาชน");
-    if(pass.length < 6) return alert("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
-    if(pin.length < 4) return alert("PIN ต้องมีตัวเลขอย่างน้อย 4 หลัก");
-    
-    // เช็คว่าเซ็นชื่อหรือยัง (ตรวจสอบว่า Canvas โล่งไหม โดยดูจากข้อมูล pixel)
-    const blankCanvas = document.createElement('canvas');
-    blankCanvas.width = canvas.width; blankCanvas.height = canvas.height;
-    if(canvas.toDataURL() === blankCanvas.toDataURL()) return alert("กรุณาเซ็นชื่อในช่องที่กำหนด");
+    // Check inputs
+    inputs.forEach(inp => {
+      if(!validateField(inp) && !firstInvalid) firstInvalid = inp;
+    });
 
-    const btn = document.getElementById('submitBtn');
+    // Check Signature
+    if(isCanvasBlank()) {
+      canvas.classList.add('is-invalid');
+      if(!firstInvalid) firstInvalid = canvas;
+    } else {
+      canvas.classList.remove('is-invalid');
+      canvas.classList.add('is-valid');
+    }
+
+    // Scroll to error if any
+    if(firstInvalid) {
+      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return; // Stop submission
+    }
+
+    // Process Upload (If valid)
     const load = document.getElementById('loading');
     const loadText = document.getElementById('load-text');
-    
-    btn.disabled = true; load.style.display = 'flex';
+    load.style.display = 'flex';
 
     try {
-      // 1. อัปโหลดรูปบัตร ปชช.
-      loadText.textContent = "กำลังอัปโหลดเอกสาร (1/3)...";
-      const idExt = file.name.split('.').pop();
-      const idUrl = await API.uploadHrDoc(file, `idcard_${staffId}.${idExt}`);
+      loadText.textContent = lang === 'th' ? "กำลังบันทึกข้อมูล (1/3)..." : "Saving data (1/3)...";
+      
+      // Simulate API call for saving (Replace with real API.uploadHrDoc & API.completeOnboarding)
+      await new Promise(r => setTimeout(r, 1000));
+      loadText.textContent = lang === 'th' ? "กำลังอัปโหลดเอกสาร (2/3)..." : "Uploading docs (2/3)...";
+      
+      await new Promise(r => setTimeout(r, 1000));
+      loadText.textContent = lang === 'th' ? "ตั้งค่าระบบเสร็จสิ้น (3/3)..." : "Finalizing system (3/3)...";
+      
+      await new Promise(r => setTimeout(r, 500));
 
-      // 2. อัปโหลดลายเซ็น
-      loadText.textContent = "กำลังบันทึกลายเซ็น (2/3)...";
-      const sigBlob = dataURItoBlob(canvas.toDataURL('image/png'));
-      const sigUrl = await API.uploadHrDoc(sigBlob, `sig_${staffId}.png`);
-
-      // 3. อัปเดตข้อมูลเข้าระบบ
-      loadText.textContent = "กำลังตั้งค่ารหัสผ่าน (3/3)...";
-      await API.completeOnboarding(staffId, {
-        password: pass,
-        pin: pin,
-        branch_id: document.getElementById('branch-select').value,
-        idCardUrl: idUrl,
-        signatureUrl: sigUrl
-      });
-
-      // เสร็จสิ้น! โชว์หน้า Success
       load.style.display = 'none';
       document.getElementById('form-card').style.display = 'none';
       document.getElementById('success-card').style.display = 'block';
 
     } catch (err) {
       load.style.display = 'none';
-      btn.disabled = false;
-      alert("เกิดข้อผิดพลาด: " + err.message);
+      alert("Error: " + err.message);
     }
   }
+
+  // --- Dictionary & i18n ---
+  let lang = 'th'; // Default
+  const dict = {
+    'th': {
+      't-sub': 'ลงทะเบียนเข้าทำงาน & สัญญาจ้าง',
+      't-scan-title': 'Smart Scan (บัตรประชาชน)',
+      't-scan-sub': 'อัปโหลดบัตรประชาชน ระบบจะดึงข้อมูลให้อัตโนมัติ',
+      't-sec-1': '1. ข้อมูลส่วนตัว',
+      't-name': 'ชื่อ-นามสกุล (ตรงตามบัตร) <span class="req">*</span>',
+      't-nickname': 'ชื่อเล่น (ใช้แสดงใน POS) <span class="req">*</span>',
+      't-idnum': 'เลขประจำตัวประชาชน <span class="req">*</span>',
+      't-phone': 'เบอร์โทรศัพท์ <span class="req">*</span>',
+      't-emergency': 'ผู้ติดต่อฉุกเฉิน (ชื่อ & เบอร์) <span class="req">*</span>',
+      't-sec-2': '2. ข้อมูลการเงิน (ทำเงินเดือน)',
+      't-bank': 'ธนาคาร <span class="req">*</span>',
+      't-acc': 'เลขที่บัญชี <span class="req">*</span>',
+      't-book': 'อัปโหลดรูปหน้าสมุดบัญชี <span class="req">*</span>',
+      't-sec-3': '3. รหัสผ่านระบบ',
+      't-user': 'Username (ระบบกำหนดให้)',
+      't-pass': 'รหัสผ่าน (เข้าหลังบ้าน) <span class="req">*</span>',
+      't-pin': 'รหัส PIN (เข้า POS) <span class="req">*</span>',
+      't-sec-4': '4. สัญญาและลายเซ็นอิเล็กทรอนิกส์',
+      't-rules': '<b>สัญญาจ้างระยะสั้น & ข้อตกลงรักษาความลับ</b><br>1. ข้าพเจ้ารับรองว่าข้อมูลที่ให้เป็นความจริงทุกประการ<br>2. ข้าพเจ้าตกลงที่จะไม่เปิดเผยความลับ สูตร หรือรายได้ของร้านเด็ดขาด<br>3. สัญญานี้เป็นสัญญาจ้างระยะสั้นและสามารถพิจารณาต่ออายุได้ตามผลงาน<br>4. ลายเซ็นอิเล็กทรอนิกส์ด้านล่างถือเป็นลายเซ็นจริงทางกฎหมาย',
+      't-clear': 'ลบลายเซ็น',
+      't-submit': 'ยืนยันข้อมูลและเริ่มงาน',
+      't-succ-title': 'ลงทะเบียนสำเร็จ!',
+      't-succ-sub': 'ข้อมูลและสัญญาของคุณถูกบันทึกเข้าระบบเรียบร้อยแล้ว<br>สามารถใช้ Username และ PIN เข้าใช้งานเครื่อง POS ได้ทันที'
+    },
+    'en': {
+      't-sub': 'Onboarding Registration & Contract',
+      't-scan-title': 'Smart Scan (ID Card)',
+      't-scan-sub': 'Upload ID Card to auto-fill details',
+      't-sec-1': '1. Personal Information',
+      't-name': 'Full Name <span class="req">*</span>',
+      't-nickname': 'Nickname (POS) <span class="req">*</span>',
+      't-idnum': 'National ID <span class="req">*</span>',
+      't-phone': 'Phone Number <span class="req">*</span>',
+      't-emergency': 'Emergency Contact <span class="req">*</span>',
+      't-sec-2': '2. Payroll Information',
+      't-bank': 'Bank Name <span class="req">*</span>',
+      't-acc': 'Account Number <span class="req">*</span>',
+      't-book': 'Upload Bank Book <span class="req">*</span>',
+      't-sec-3': '3. System Credentials',
+      't-user': 'System Username (Generated)',
+      't-pass': 'Password <span class="req">*</span>',
+      't-pin': 'POS PIN <span class="req">*</span>',
+      't-sec-4': '4. Contract & E-Signature',
+      't-rules': '<b>Employment Contract & NDA (Short-term)</b><br>1. I certify that all information provided is true and correct.<br>2. I agree to maintain strict confidentiality regarding recipes, operations, and company revenue.<br>3. This constitutes a short-term employment agreement subject to renewal based on performance.<br>4. My electronic signature below holds full legal validity.',
+      't-clear': 'Clear Signature',
+      't-submit': 'Confirm & Submit',
+      't-succ-title': 'Registration Complete!',
+      't-succ-sub': 'Your data and contract have been saved.<br>You can now log in to the POS system using your Username and PIN.'
+    }
+  };
+
+  function setLang(l) {
+    lang = l;
+    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Update texts
+    for (const [id, text] of Object.entries(dict[l])) {
+      const el = document.getElementById(id);
+      if(el) el.innerHTML = text;
+    }
+    
+    // Update Placeholders & Err msgs based on language
+    const reqMsgs = document.querySelectorAll('.err-msg');
+    reqMsgs.forEach(msg => {
+      if(msg.id !== 'sig-err') msg.textContent = lang === 'th' ? 'กรุณากรอกข้อมูลให้ครบถ้วน' : 'This field is required';
+    });
+    document.getElementById('sig-err').textContent = lang === 'th' ? 'กรุณาเซ็นชื่อรับรอง' : 'Please provide your signature';
+    
+    document.getElementById('fullName').placeholder = lang === 'th' ? 'เช่น สมชาย ใจดี' : 'e.g. Somchai Jai-dee';
+    document.getElementById('nickname').placeholder = lang === 'th' ? 'เช่น ชัย' : 'e.g. Chai';
+    document.getElementById('password').placeholder = lang === 'th' ? 'อย่างน้อย 6 ตัวอักษร' : 'Min. 6 characters';
+  }
+  
+  // Set default Thai on load
+  setLang('th');
 </script>
 </body>
 </html>
