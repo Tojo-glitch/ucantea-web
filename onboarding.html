@@ -216,6 +216,7 @@
   const urlParams = new URLSearchParams(window.location.search);
   const staffId = urlParams.get('id');
   const sysUser = urlParams.get('user') || 'STAFF_' + Math.floor(Math.random()*1000);
+  const branchId = urlParams.get('branch');
   
   document.getElementById('sysUsername').value = sysUser;
 
