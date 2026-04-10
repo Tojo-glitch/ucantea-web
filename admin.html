@@ -91,6 +91,13 @@ a{text-decoration:none}
 .btn-signout{width:100%;padding:9px;border-radius:8px;background:var(--red2);color:var(--red);border:1px solid rgba(212,79,79,.2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .btn-signout:hover{background:var(--red);color:#fff}
 
+/* Additional Styles for Staff Management */
+.status-pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.status-pill.pending { background: rgba(184, 146, 74, 0.15); color: var(--gold); border: 1px solid rgba(184, 146, 74, 0.3); }
+.status-pill.active { background: rgba(74, 173, 117, 0.15); color: var(--grn); border: 1px solid rgba(74, 173, 117, 0.3); }
+.tag { background: var(--c3); padding: 2px 8px; border-radius: 4px; font-size: 12px; color: var(--tan2); border: 1px solid var(--line); }
+.btn-sm-line { background: transparent; border: 1px solid var(--line); color: var(--tan3); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
 /* ── TOPBAR ────────────────────────── */
 .page-title{font-family:var(--serif);font-size:20px;color:var(--tan)}
 .topbar-actions{display:flex;align-items:center;gap:10px}
@@ -536,6 +543,7 @@ tbody tr:hover{background:var(--c2)}
         Members
       </div>
     </div>
+     
 
     <div class="nav-group">
       <div class="nav-group-label">System</div>
@@ -1096,6 +1104,62 @@ tbody tr:hover{background:var(--c2)}
 <script src="/env-config.js"></script>
 <script src="/api.js"></script>
 <script>
+
+   /* ── STAFF MANAGEMENT LOGIC ────────────────────────── */
+
+async function generateStaffInvite() {
+  const refName = document.getElementById('staff-ref-name').value;
+  const role = document.getElementById('staff-role').value;
+  const branch = document.getElementById('staff-branch').value;
+  const wageType = document.getElementById('staff-wage-type').value;
+  const wageRate = document.getElementById('staff-wage-rate').value;
+
+  // 1. บันทึกลง Supabase ในตาราง 'staff_onboarding_tickets'
+  // (สมมติว่าใช้ API.createStaffTicket ที่เราจะไปสร้างเพิ่มใน api.js)
+  const ticketId = 'TK-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+  
+  // สร้าง URL สำหรับหน้า Onboarding
+  const inviteLink = `${window.location.origin}/onboarding.html?ticket=${ticketId}&role=${role}&rate=${wageRate}`;
+  
+  document.getElementById('generated-link').value = inviteLink;
+  closeModal('modal-add-staff');
+  openModal('modal-invite-ready');
+  
+  // เพิ่มลงในตาราง (Simulate)
+  renderStaffRow({
+    refName, role, branch, wage: `${wageRate}/${wageType === 'hourly' ? 'hr' : 'mo'}`, status: 'PENDING'
+  });
+}
+
+function renderStaffRow(data) {
+  const tbody = document.getElementById('staff-table-body');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${data.refName}</td>
+    <td><span class="tag">${data.role}</span></td>
+    <td>${data.branch}</td>
+    <td>${data.wage}</td>
+    <td><span class="status-pill ${data.status.toLowerCase()}">${data.status}</span></td>
+    <td><button class="btn-sm-line">Manage</button></td>
+  `;
+  tbody.prepend(tr);
+}
+
+function copyInviteLink() {
+  const link = document.getElementById('generated-link');
+  link.select();
+  document.execCommand('copy');
+  alert('Link copied to clipboard! คุณสามารถส่งให้พนักงานทาง LINE ได้เลยครับ');
+}
+
+/* ── HELPER FUNCTIONS ──────────────────────────────── */
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.getElementById('tab-' + id).style.display = 'block';
+}
+   
 // 1. ประกาศตัวแปรไว้ข้างนอกสุด (Global Scope) เพื่อให้ฟังก์ชันอื่นมองเห็น
   let sbClient; 
 
