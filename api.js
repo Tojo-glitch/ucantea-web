@@ -186,6 +186,26 @@ const _mockCats = [
    All functions return Promise<{success, ...}>
 ══════════════════════════════════════════════════════ */
 window.API = {
+  // ดึงข้อมูลพนักงานและชื่อสาขาในครั้งเดียว
+  async getStaffOnboardingInfo(staffId) {
+    if (BACKEND_MODE === 'supabase') {
+      // ดึงข้อมูลพนักงาน
+      const staffRes = await sb.query('staff', { eq: { id: staffId }, select: '*' });
+      if (!staffRes || staffRes.length === 0) return { success: false, message: 'Staff not found' };
+      
+      const staff = staffRes[0];
+      
+      // ดึงข้อมูลสาขาด้วย branch_id ที่ได้มา
+      const branchRes = await sb.query('branches', { eq: { id: staff.branch_id }, select: 'name' });
+      
+      return { 
+        success: true, 
+        staff: staff, 
+        branchName: branchRes.length > 0 ? branchRes[0].name : 'Unknown Branch' 
+      };
+    }
+    return { success: true, staff: { name: 'Test' }, branchName: 'Main Branch' };
+  },
     // ดึงรายชื่อสาขาทั้งหมดที่เปิดอยู่
   async getBranches() {
     if (BACKEND_MODE === 'supabase') {
