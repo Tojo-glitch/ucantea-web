@@ -209,7 +209,7 @@ window.API = {
     // ดึงรายชื่อสาขาทั้งหมดที่เปิดอยู่
   async getBranches() {
     if (BACKEND_MODE === 'supabase') {
-      onst branches = await sb.query('branches', { select: 'id, name', order: 'sort_order' });
+     const branches = await sb.query('branches', { select: 'id, name', order: 'sort_order' });
       return { success: true, data: branches };
     }
     // Mock
