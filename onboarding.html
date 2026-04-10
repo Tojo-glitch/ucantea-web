@@ -155,6 +155,7 @@
       await API.completeOnboarding(staffId, {
         password: pass,
         pin: pin,
+        branch_id: document.getElementById('branch-select').value,
         idCardUrl: idUrl,
         signatureUrl: sigUrl
       });
