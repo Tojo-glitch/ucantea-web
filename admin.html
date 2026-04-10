@@ -1854,7 +1854,7 @@ function generateInvite() {
 
   API.inviteStaff({ name, email, username: user, role, branch_id: branchId }).then(res => {
     if(res.success) {
-      const link = `${window.location.origin}/onboarding.html?id=${res.staff.id}`;
+      const link = `${window.location.origin}/onboarding.html?id=${res.staff.id}&branch=${branchId}`;
       document.getElementById('invite-link-url').value = link;
       document.getElementById('invite-link-area').style.display = 'block';
       btn.style.display = 'none';
