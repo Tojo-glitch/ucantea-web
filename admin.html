@@ -1053,6 +1053,15 @@ tbody tr:hover{background:var(--c2)}
           <label class="field-label">Username</label>
           <input class="field-input" id="is-user" type="text" placeholder="สำหรับ Log in">
         </div>
+         <!-- ในส่วน modal-body ของ invite-staff-modal -->
+         <div class="field">
+           <label class="field-label">Branch</label>
+           <select class="field-input" id="is-branch">
+             <option value="BR001">Main Branch — Siam</option>
+             <option value="BR002">Thonglor Branch</option>
+             <option value="BR003">Ari Branch</option>
+           </select>
+         </div>
         <div class="field">
           <label class="field-label">Role</label>
           <select class="field-input" id="is-role">
@@ -1836,13 +1845,14 @@ function generateInvite() {
   const email = document.getElementById('is-email').value.trim();
   const user = document.getElementById('is-user').value.trim();
   const role = document.getElementById('is-role').value;
+  const branchId = document.getElementById('is-branch').value;
 
-  if(!name || !email || !user) { alert('กรุณากรอกข้อมูลให้ครบทุกช่อง'); return; }
+  if(!name || !email || !user || !branchId) { alert('กรุณากรอกข้อมูลให้ครบทุกช่อง'); return; }
 
   const btn = document.getElementById('btn-create-invite');
   btn.textContent = 'Generating...'; btn.disabled = true;
 
-  API.inviteStaff({ name, email, username: user, role }).then(res => {
+  API.inviteStaff({ name, email, username: user, role, branch_id: branchId }).then(res => {
     if(res.success) {
       const link = `${window.location.origin}/onboarding.html?id=${res.staff.id}`;
       document.getElementById('invite-link-url').value = link;
