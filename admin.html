@@ -1180,7 +1180,8 @@ function toast(msg,type='info',dur=3000){
 
       // 4. ล็อกอินสำเร็จ! เก็บ Token ไว้ให้ api.js ไปใช้งานต่อ
       if (data.session) {
-        localStorage.setItem('ctb_admin_token', data.session.access_token);
+          localStorage.setItem('ctb_admin_token', data.session.access_token);
+          console.log("Token saved:", data.session.access_token);
       }
 
       // 5. ปิดหน้าต่าง Login แล้วเตรียมความพร้อม Dashboard
