@@ -517,6 +517,138 @@ tbody tr:hover{background:var(--c2)}
 }
 .cs-pill strong{font-family:var(--serif);font-size:16px;color:var(--gl)}
 
+/* ═══ PHASE 2+3 CSS ═══════════════════════════════════ */
+
+/* ── ACTIVITY LOG ───────────────────── */
+.activity-log{display:flex;flex-direction:column;gap:0}
+.al-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--line);
+  transition:background .12s;
+}
+.al-item:last-child{border-bottom:none}
+.al-item:hover{background:var(--c2)}
+.al-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;
+}
+.al-dot-order {background:var(--gl)}
+.al-dot-login {background:var(--grnl)}
+.al-dot-void  {background:var(--red)}
+.al-dot-discount{background:var(--blue)}
+.al-dot-system{background:var(--tan3)}
+.al-body{flex:1;min-width:0}
+.al-action{font-size:13px;font-weight:500;color:var(--tan);margin-bottom:2px}
+.al-meta{font-size:11px;color:var(--tan3)}
+.al-time{font-size:11px;color:var(--tan3);white-space:nowrap;flex-shrink:0}
+.al-amount{font-size:12px;font-weight:600;color:var(--gl);margin-left:6px}
+
+/* ── STAFF PERFORMANCE CARD ─────────── */
+.perf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:14px 0}
+.perf-card{background:var(--c2);border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center}
+.perf-val{font-family:var(--serif);font-size:22px;color:var(--gl);margin-bottom:2px}
+.perf-lbl{font-size:10px;color:var(--tan3);text-transform:uppercase;letter-spacing:.8px}
+
+/* ── PERMISSIONS MATRIX ─────────────── */
+.perm-table{width:100%;border-collapse:collapse}
+.perm-table th{padding:10px 14px;font-size:10px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:.8px;text-align:center;border-bottom:1px solid var(--line)}
+.perm-table th:first-child{text-align:left}
+.perm-table td{padding:10px 14px;font-size:13px;color:var(--tan2);border-bottom:1px solid var(--line);text-align:center}
+.perm-table td:first-child{text-align:left;color:var(--tan)}
+.perm-table tr:last-child td{border-bottom:none}
+.perm-table tbody tr:hover{background:var(--c2)}
+.perm-yes{color:var(--grnl);font-weight:700;font-size:16px}
+.perm-no {color:var(--tan4);font-size:16px}
+.perm-mgr{color:var(--gl);font-size:12px;font-weight:600}
+
+/* ── CUSTOMER DETAIL MODAL ──────────── */
+.cd-hero{
+  background:linear-gradient(160deg,var(--c2),var(--c3));
+  padding:24px 24px 20px;
+  display:flex;align-items:flex-start;gap:16px;
+  border-bottom:1px solid var(--line);
+}
+.cd-av{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--gold);color:var(--c0);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;flex-shrink:0;
+}
+.cd-name{font-family:var(--serif);font-size:20px;color:var(--tan);margin-bottom:4px}
+.cd-meta{font-size:12px;color:var(--tan3);margin-bottom:8px}
+.cd-tier-badge{
+  display:inline-flex;align-items:center;
+  padding:3px 10px;border-radius:4px;
+  font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+}
+
+/* ── POINTS HISTORY TIMELINE ─────────── */
+.pts-timeline{display:flex;flex-direction:column;gap:0;margin-top:8px}
+.pt-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-bottom:1px solid var(--line);
+}
+.pt-item:last-child{border-bottom:none}
+.pt-icon{
+  width:28px;height:28px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;
+}
+.pt-earn {background:var(--grn2);color:var(--grnl)}
+.pt-redeem{background:var(--red2);color:var(--red)}
+.pt-adjust{background:var(--gl2);color:var(--gl)}
+.pt-body{flex:1}
+.pt-desc{font-size:13px;color:var(--tan);margin-bottom:2px}
+.pt-date{font-size:11px;color:var(--tan3)}
+.pt-delta{font-size:13px;font-weight:700;min-width:56px;text-align:right}
+.pt-positive{color:var(--grnl)}
+.pt-negative{color:var(--red)}
+
+/* ── CUSTOMER SEGMENT PILLS ─────────── */
+.seg-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.seg-pill{
+  padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;
+  cursor:pointer;border:1px solid;transition:all .15s;
+}
+.seg-pill.sp-all    {background:var(--gl2);color:var(--gl);border-color:rgba(212,170,106,.25)}
+.seg-pill.sp-new    {background:var(--grn2);color:var(--grnl);border-color:rgba(74,173,117,.25)}
+.seg-pill.sp-loyal  {background:rgba(150,100,255,.1);color:#c0a8f0;border-color:rgba(150,100,255,.2)}
+.seg-pill.sp-sleep  {background:var(--red2);color:var(--red);border-color:rgba(212,79,79,.25)}
+.seg-pill.sp-vip    {background:rgba(212,170,106,.18);color:var(--gold);border-color:rgba(212,170,106,.35)}
+.seg-pill.active    {opacity:1;box-shadow:0 0 0 2px currentColor}
+.seg-pill:not(.active){opacity:.65}
+.seg-count{margin-left:5px;font-weight:400;opacity:.7}
+
+/* ── ORDER MINI CARD (customer history) ─ */
+.ord-mini{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;background:var(--c2);
+  border-radius:8px;border:1px solid var(--line);
+  margin-bottom:8px;cursor:pointer;transition:border-color .15s;
+}
+.ord-mini:hover{border-color:rgba(212,170,106,.25)}
+.ord-mini-id{font-size:12px;font-weight:700;color:var(--tan);letter-spacing:.2px}
+.ord-mini-items{font-size:11px;color:var(--tan3);margin-top:1px}
+.ord-mini-total{font-family:var(--serif);font-size:14px;color:var(--gl);margin-left:auto;white-space:nowrap}
+
+/* ── TAB BAR (inside modal) ─────────── */
+.modal-tabs{display:flex;border-bottom:1px solid var(--line);margin-bottom:18px}
+.mtab{
+  padding:10px 16px;font-size:13px;font-weight:600;
+  color:var(--tan3);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .15s;margin-bottom:-1px;
+}
+.mtab.active{color:var(--gl);border-bottom-color:var(--gl)}
+
+/* ── SHIFT STATS BAR ────────────────── */
+.shift-bar{
+  display:flex;gap:10px;padding:14px 16px;
+  background:var(--c2);border:1px solid var(--line);
+  border-radius:10px;margin-bottom:16px;flex-wrap:wrap;
+}
+.sb-item{flex:1;min-width:80px}
+.sb-lbl{font-size:9px;color:var(--tan3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+.sb-val{font-family:var(--serif);font-size:18px;color:var(--gl)}
+
 /* ─── PREMIUM LOGIN OVERLAY ─── */
 #login-overlay {
   position: fixed; inset: 0;
@@ -884,8 +1016,17 @@ tbody tr:hover{background:var(--c2)}
           <div class="cs-pill"><strong id="cs-points">0</strong>Avg Points</div>
           <div class="cs-pill" style="background:var(--gl2);border-color:rgba(212,170,106,.2)"><strong id="cs-diamond" style="color:var(--gl)">0</strong>Diamond+</div>
         </div>
+        <!-- Segment pills -->
+        <div class="seg-bar" id="seg-bar">
+          <button class="seg-pill sp-all active" onclick="setSegment('all',this)">All <span class="seg-count" id="seg-c-all">0</span></button>
+          <button class="seg-pill sp-new" onclick="setSegment('new',this)">🌱 New (≤30d) <span class="seg-count" id="seg-c-new">0</span></button>
+          <button class="seg-pill sp-loyal" onclick="setSegment('loyal',this)">💜 Loyal (10+ orders) <span class="seg-count" id="seg-c-loyal">0</span></button>
+          <button class="seg-pill sp-vip" onclick="setSegment('vip',this)">⭐ VIP (Gold+) <span class="seg-count" id="seg-c-vip">0</span></button>
+          <button class="seg-pill sp-sleep" onclick="setSegment('sleep',this)">😴 Inactive (60d+) <span class="seg-count" id="seg-c-sleep">0</span></button>
+        </div>
+        <!-- Filters -->
         <div class="filter-bar">
-          <input class="filter-search" id="mem-search" placeholder="Search name or phone..." oninput="filterMembers()">
+          <input class="filter-search" id="mem-search" placeholder="Search name, phone, email..." oninput="filterMembers()">
           <select class="filter-sel" id="mem-tier-filter" onchange="filterMembers()">
             <option value="">All Tiers</option>
             <option value="Bronze">Bronze</option>
@@ -903,10 +1044,10 @@ tbody tr:hover{background:var(--c2)}
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>Name</th><th>Phone</th><th>Email</th><th>Tier</th><th>Points</th><th>Orders</th><th>Joined</th><th>Actions</th></tr>
+              <tr><th>Name</th><th>Phone</th><th>Tier</th><th>Points</th><th>Orders</th><th>Total Spend</th><th>Last Order</th><th>Joined</th><th>Actions</th></tr>
             </thead>
             <tbody id="member-tbody">
-              <tr><td colspan="8" class="table-empty">Loading customers...</td></tr>
+              <tr><td colspan="9" class="table-empty">Loading customers...</td></tr>
             </tbody>
           </table>
         </div>
@@ -917,10 +1058,8 @@ tbody tr:hover{background:var(--c2)}
         <div class="sec-head">
           <div class="sec-title">Staff Management</div>
           <div class="sec-actions">
-            <button class="btn btn-ghost btn-sm" onclick="loadStaff()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              Refresh
-            </button>
+            <button class="btn btn-ghost btn-sm" onclick="switchStaffView('activity')" id="sbtn-activity">Activity Log</button>
+            <button class="btn btn-ghost btn-sm" onclick="switchStaffView('permissions')" id="sbtn-permissions">Permissions</button>
             <button class="btn btn-gold" onclick="openInviteModal()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Invite Staff
@@ -928,29 +1067,90 @@ tbody tr:hover{background:var(--c2)}
           </div>
         </div>
 
-        <!-- Pending invites tracker -->
-        <div id="pending-invites-wrap" style="display:none;margin-bottom:20px">
-          <div style="font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Pending Invitations</div>
-          <div class="invite-tracker" id="pending-invites-list"></div>
+        <!-- STAFF VIEW: TEAM -->
+        <div id="staff-view-team">
+          <!-- Today's shift stats -->
+          <div class="shift-bar" id="shift-bar-today">
+            <div class="sb-item"><div class="sb-lbl">On shift today</div><div class="sb-val" id="sb-onshift">—</div></div>
+            <div class="sb-item"><div class="sb-lbl">Orders processed</div><div class="sb-val" id="sb-orders">—</div></div>
+            <div class="sb-item"><div class="sb-lbl">Revenue generated</div><div class="sb-val" id="sb-revenue">—</div></div>
+            <div class="sb-item"><div class="sb-lbl">Avg per order</div><div class="sb-val" id="sb-avg">—</div></div>
+          </div>
+
+          <!-- Pending invites tracker -->
+          <div id="pending-invites-wrap" style="display:none;margin-bottom:16px">
+            <div style="font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Pending Invitations <span class="nav-badge on" id="pending-inv-count" style="display:inline-flex;position:static;margin-left:6px">0</span></div>
+            <div class="invite-tracker" id="pending-invites-list"></div>
+          </div>
+
+          <!-- Filter -->
+          <div class="filter-bar">
+            <input class="filter-search" id="staff-search" placeholder="Search staff name..." oninput="filterStaff()">
+            <select class="filter-sel" id="staff-role-filter" onchange="filterStaff()">
+              <option value="">All Roles</option>
+              <option value="ADMIN">Admin</option>
+              <option value="MANAGER">Manager</option>
+              <option value="STAFF">Staff</option>
+            </select>
+            <select class="filter-sel" id="staff-branch-filter" onchange="filterStaff()">
+              <option value="">All Branches</option>
+            </select>
+          </div>
+
+          <!-- Staff cards -->
+          <div class="staff-grid" id="staff-grid">
+            <div style="color:var(--tan3);font-size:13px">Loading staff...</div>
+          </div>
         </div>
 
-        <!-- Staff filter -->
-        <div class="filter-bar" style="margin-bottom:20px">
-          <input class="filter-search" id="staff-search" placeholder="Search staff name..." oninput="filterStaff()">
-          <select class="filter-sel" id="staff-role-filter" onchange="filterStaff()">
-            <option value="">All Roles</option>
-            <option value="ADMIN">Admin</option>
-            <option value="MANAGER">Manager</option>
-            <option value="STAFF">Staff</option>
-          </select>
-          <select class="filter-sel" id="staff-branch-filter" onchange="filterStaff()">
-            <option value="">All Branches</option>
-          </select>
+        <!-- STAFF VIEW: ACTIVITY LOG -->
+        <div id="staff-view-activity" style="display:none">
+          <div class="filter-bar" style="margin-bottom:16px">
+            <input class="filter-search" id="act-search" placeholder="Search staff or action..." oninput="filterActivity()">
+            <select class="filter-sel" id="act-type-filter" onchange="filterActivity()">
+              <option value="">All Actions</option>
+              <option value="order">Order</option>
+              <option value="login">Login/Logout</option>
+              <option value="void">Void</option>
+              <option value="discount">Discount</option>
+              <option value="status">Status Change</option>
+            </select>
+            <select class="filter-sel" id="act-staff-filter" onchange="filterActivity()">
+              <option value="">All Staff</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="exportActivityCSV()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+          </div>
+          <div class="table-wrap">
+            <div class="activity-log" id="activity-log-list">
+              <div style="padding:48px;text-align:center;color:var(--tan3)">Loading activity...</div>
+            </div>
+          </div>
         </div>
 
-        <!-- Staff cards grid -->
-        <div class="staff-grid" id="staff-grid">
-          <div style="color:var(--tan3);font-size:13px">Loading staff...</div>
+        <!-- STAFF VIEW: PERMISSIONS -->
+        <div id="staff-view-permissions" style="display:none">
+          <div style="font-size:13px;color:var(--tan3);margin-bottom:16px;line-height:1.7">
+            Role-based permissions matrix. Changes to role assignments take effect immediately on next login.
+          </div>
+          <div class="table-wrap">
+            <table class="perm-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left">Permission</th>
+                  <th><span class="role-badge role-staff">Staff</span></th>
+                  <th><span class="role-badge role-manager">Manager</span></th>
+                  <th><span class="role-badge role-admin">Admin</span></th>
+                </tr>
+              </thead>
+              <tbody id="perm-tbody"></tbody>
+            </table>
+          </div>
+          <div style="margin-top:16px;padding:14px 16px;background:var(--gl2);border:1px solid rgba(212,170,106,.2);border-radius:8px;font-size:12px;color:var(--tan3)">
+            <strong style="color:var(--gl)">Note:</strong> Admin role is reserved for system owners. Assign Manager for branch supervisors who need discount and void access.
+          </div>
         </div>
       </div>
 
@@ -1384,6 +1584,80 @@ tbody tr:hover{background:var(--c2)}
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('branch-modal')">Cancel</button>
       <button class="btn btn-primary" id="br-save" onclick="saveBranch()">Save Branch</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER DETAIL MODAL -->
+<div class="modal-backdrop" id="customer-detail-modal">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-close" onclick="closeModal('customer-detail-modal')" style="position:absolute;top:16px;right:16px;z-index:2">✕</div>
+    <!-- Hero -->
+    <div class="cd-hero">
+      <div class="cd-av" id="cdav">K</div>
+      <div style="flex:1">
+        <div class="cd-name" id="cd-name">Customer Name</div>
+        <div class="cd-meta" id="cd-meta">—</div>
+        <div id="cd-tier-badge"></div>
+      </div>
+      <!-- Quick stats -->
+      <div class="perf-grid" style="margin:0;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div class="perf-card"><div class="perf-val" id="cd-stat-orders">0</div><div class="perf-lbl">Orders</div></div>
+        <div class="perf-card"><div class="perf-val" id="cd-stat-spend">฿0</div><div class="perf-lbl">Total Spend</div></div>
+        <div class="perf-card"><div class="perf-val" id="cd-stat-pts">0</div><div class="perf-lbl">Points</div></div>
+        <div class="perf-card"><div class="perf-val" id="cd-stat-avg">฿0</div><div class="perf-lbl">Avg Order</div></div>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div style="padding:0 24px">
+      <div class="modal-tabs">
+        <div class="mtab active" onclick="switchCDTab('orders',this)">Order History</div>
+        <div class="mtab" onclick="switchCDTab('points',this)">Points Log</div>
+        <div class="mtab" onclick="switchCDTab('info',this)">Account Info</div>
+      </div>
+    </div>
+    <!-- Tab: Orders -->
+    <div class="modal-body" id="cd-tab-orders" style="padding:0 24px 24px">
+      <div id="cd-orders-list">
+        <div style="color:var(--tan3);font-size:13px">Loading orders...</div>
+      </div>
+    </div>
+    <!-- Tab: Points -->
+    <div class="modal-body" id="cd-tab-points" style="display:none;padding:0 24px 24px">
+      <div class="pts-timeline" id="cd-pts-timeline">
+        <div style="color:var(--tan3);font-size:13px">Loading points history...</div>
+      </div>
+    </div>
+    <!-- Tab: Info -->
+    <div class="modal-body" id="cd-tab-info" style="display:none;padding:0 24px 24px">
+      <div class="info-grid" id="cd-info-grid"></div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn btn-gold" onclick="openEditMemberFromDetail()" style="flex:1;justify-content:center">Edit Profile</button>
+        <button class="btn btn-ghost" id="cd-toggle-btn" style="flex:1;justify-content:center" onclick="toggleMemberFromDetail()">Suspend</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STAFF DETAIL MODAL (Performance) -->
+<div class="modal-backdrop" id="staff-detail-modal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="sdm-name">Staff Name</div>
+        <div style="font-size:12px;color:var(--tan3);margin-top:2px" id="sdm-role-branch">—</div>
+      </div>
+      <div class="modal-close" onclick="closeModal('staff-detail-modal')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Performance (Last 30 days)</div>
+      <div class="perf-grid" id="sdm-perf"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px;margin:16px 0 8px">Recent Activity</div>
+      <div class="activity-log table-wrap" id="sdm-activity" style="max-height:260px;overflow-y:auto"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('staff-detail-modal')">Close</button>
+      <button class="btn btn-gold" id="sdm-edit-btn">Edit Staff</button>
     </div>
   </div>
 </div>
@@ -2231,10 +2505,12 @@ async function loadStaff(){
     const res = await API.getStaff?.();
     A_staff = res?.data || MOCK_STAFF;
   }catch(e){ A_staff = MOCK_STAFF; }
+  updateShiftStats();
   // Load pending invites
   const pendWrap = ge('pending-invites-wrap');
   if(PENDING_INVITES.length){
     pendWrap.style.display='block';
+    ge('pending-inv-count').textContent = PENDING_INVITES.length;
     ge('pending-invites-list').innerHTML = PENDING_INVITES.map(inv=>`
       <div class="it-row">
         <span class="it-status its-pending">Pending</span>
@@ -2243,10 +2519,8 @@ async function loadStaff(){
         <button class="btn btn-ghost btn-sm" onclick="copyInviteText('${inv.link}')">Copy Link</button>
       </div>`).join('');
   } else { pendWrap.style.display='none'; }
-  // Badge
   const badge=ge('nav-staff-badge');
   if(badge){badge.textContent=PENDING_INVITES.length;badge.classList.toggle('on',PENDING_INVITES.length>0);}
-  // Populate branch filter
   populateStaffBranchFilter();
   filterStaff();
 }
@@ -2278,7 +2552,7 @@ function renderStaffGrid(list){
   const avCls={ADMIN:'',MANAGER:'mgr',STAFF:''};
   el.innerHTML=list.map(s=>`
     <div class="staff-card ${s.is_active===false?'suspended':''}">
-      <div class="sc-head">
+      <div class="sc-head" style="cursor:pointer" onclick="openStaffDetail('${esc(s.id)}')">
         <div class="sc-av ${avCls[s.role]||''} ${s.is_active===false?'susp':''}">${(s.name||'?')[0].toUpperCase()}</div>
         <div style="flex:1">
           <div class="sc-name">${esc(s.name)}</div>
@@ -2294,6 +2568,7 @@ function renderStaffGrid(list){
       </div>
       <div class="sc-foot">
         <div style="font-size:10px;color:var(--tan3);flex:1">Since ${s.created_at?new Date(s.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}):'—'}</div>
+        <button class="btn btn-ghost btn-sm" onclick="openStaffDetail('${esc(s.id)}')">Stats</button>
         <button class="btn btn-ghost btn-sm" onclick="openEditStaff('${esc(s.id)}')">Edit</button>
         <button class="btn ${s.is_active===false?'btn-grn':'btn-red'} btn-sm" onclick="toggleStaff('${esc(s.id)}',${s.is_active!==false})">
           ${s.is_active===false?'Restore':'Suspend'}
@@ -2515,8 +2790,385 @@ async function toggleBranchStatus(id,currentOpen){
   }catch(e){toast('Failed','error')}
 }
 
-/* ── MODAL HELPERS ──────────────────────────────────── */
-function closeModal(id){ge(id)?.classList.remove('on')}
+/* ══════════════════════════════════════════════════════
+   PHASE 2: STAFF — COMPLETE
+══════════════════════════════════════════════════════ */
+
+/* ── STAFF VIEW SWITCHER ─────────────────────────────── */
+function switchStaffView(view) {
+  ['team','activity','permissions'].forEach(v => {
+    ge('staff-view-'+v).style.display = v===view?'block':'none';
+  });
+  ['sbtn-activity','sbtn-permissions'].forEach(id => {
+    ge(id)?.classList.toggle('btn-gold', id==='sbtn-'+view);
+    ge(id)?.classList.toggle('btn-ghost', id!=='sbtn-'+view);
+  });
+  if(view==='activity')    loadActivityLog();
+  if(view==='permissions') renderPermissionsMatrix();
+}
+
+/* ── SHIFT STATS BAR ─────────────────────────────────── */
+function updateShiftStats() {
+  const today = new Date().toDateString();
+  const todayOrders = A.orders.filter(o => new Date(o.created_at).toDateString()===today && o.source==='POS');
+  const revenue = todayOrders.reduce((s,o)=>s+(o.total_amount||0),0);
+  ge('sb-onshift') && (ge('sb-onshift').textContent = A_staff.filter(s=>s.is_active!==false).length);
+  ge('sb-orders') && (ge('sb-orders').textContent = todayOrders.length);
+  ge('sb-revenue') && (ge('sb-revenue').textContent = fmt(revenue));
+  ge('sb-avg') && (ge('sb-avg').textContent = todayOrders.length ? fmt(Math.round(revenue/todayOrders.length)) : '฿0');
+}
+
+/* ── ACTIVITY LOG ─────────────────────────────────────── */
+const MOCK_ACTIVITY = [
+  {id:'a1',type:'order',staff:'Khun Nong',branch:'Main Branch',action:'Created order CTB-A1B2',orderId:'CTB-A1B2',amount:240,time:new Date(Date.now()-120000).toISOString()},
+  {id:'a2',type:'status',staff:'Khun Arm',branch:'Main Branch',action:'Changed CTB-C3D4 → PREPARING',orderId:'CTB-C3D4',amount:null,time:new Date(Date.now()-300000).toISOString()},
+  {id:'a3',type:'login',staff:'Khun Mint',branch:'Thonglor',action:'Logged in to POS',orderId:null,amount:null,time:new Date(Date.now()-600000).toISOString()},
+  {id:'a4',type:'discount',staff:'Khun Nong',branch:'Main Branch',action:'Applied manual discount ฿50 on CTB-E5F6',orderId:'CTB-E5F6',amount:-50,time:new Date(Date.now()-900000).toISOString()},
+  {id:'a5',type:'void',staff:'Khun Arm',branch:'Main Branch',action:'Voided order CTB-G7H8 — Wrong Order',orderId:'CTB-G7H8',amount:-120,time:new Date(Date.now()-1800000).toISOString()},
+  {id:'a6',type:'order',staff:'Khun Mint',branch:'Thonglor',action:'Created order CTB-H9I0',orderId:'CTB-H9I0',amount:335,time:new Date(Date.now()-3600000).toISOString()},
+  {id:'a7',type:'login',staff:'Khun Nong',branch:'Main Branch',action:'Logged in to POS',orderId:null,amount:null,time:new Date(Date.now()-4*3600000).toISOString()},
+  {id:'a8',type:'status',staff:'Khun Nong',branch:'Main Branch',action:'Changed CTB-J1K2 → COMPLETED',orderId:'CTB-J1K2',amount:null,time:new Date(Date.now()-5*3600000).toISOString()},
+];
+let A_activity = [...MOCK_ACTIVITY];
+
+async function loadActivityLog() {
+  ge('activity-log-list').innerHTML = '<div style="padding:40px;text-align:center;color:var(--tan3)">Loading...</div>';
+  try {
+    const res = await API.getActivityLog?.();
+    if (res?.data?.length) A_activity = res.data;
+  } catch(e) {}
+  // Populate staff filter
+  const staffSel = ge('act-staff-filter');
+  if (staffSel) {
+    const names = [...new Set(A_activity.map(a=>a.staff).filter(Boolean))];
+    staffSel.innerHTML = '<option value="">All Staff</option>' + names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  }
+  filterActivity();
+}
+
+function filterActivity() {
+  const q = (ge('act-search')?.value||'').toLowerCase();
+  const type = ge('act-type-filter')?.value||'';
+  const staff = ge('act-staff-filter')?.value||'';
+  const list = A_activity.filter(a => {
+    if(type && a.type!==type) return false;
+    if(staff && a.staff!==staff) return false;
+    if(q && !(a.action||'').toLowerCase().includes(q) && !(a.staff||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderActivityLog(list, 'activity-log-list');
+}
+
+function renderActivityLog(list, containerId) {
+  const el = ge(containerId);
+  if(!el) return;
+  if(!list.length) { el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--tan3)">No activity found</div>'; return; }
+  const dotMap = {order:'al-dot-order',login:'al-dot-login',void:'al-dot-void',discount:'al-dot-discount',status:'al-dot-system'};
+  el.innerHTML = list.map(a => {
+    const t = new Date(a.time);
+    const timeStr = t.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) + ' · ' + t.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    return `<div class="al-item">
+      <div class="al-dot ${dotMap[a.type]||'al-dot-system'}"></div>
+      <div class="al-body">
+        <div class="al-action">${esc(a.action)}${a.amount?`<span class="al-amount">${a.amount>0?'+':''} ${fmt(a.amount)}</span>`:''}</div>
+        <div class="al-meta"><strong style="color:var(--tan2)">${esc(a.staff||'—')}</strong> · ${esc(a.branch||'—')}</div>
+      </div>
+      <div class="al-time">${timeStr}</div>
+    </div>`;
+  }).join('');
+}
+
+function exportActivityCSV() {
+  const rows = [['Time','Staff','Branch','Type','Action','Amount']];
+  A_activity.forEach(a => rows.push([a.time, a.staff, a.branch, a.type, a.action, a.amount||'']));
+  downloadCSV(rows, 'activity_'+new Date().toISOString().slice(0,10)+'.csv');
+}
+
+/* ── PERMISSIONS MATRIX ──────────────────────────────── */
+const PERMISSIONS = [
+  {label:'View live orders',         staff:true,  manager:true,  admin:true},
+  {label:'Change order status',      staff:true,  manager:true,  admin:true},
+  {label:'Process POS payment',      staff:true,  manager:true,  admin:true},
+  {label:'Apply manual discount',    staff:false, manager:true,  admin:true},
+  {label:'Void/cancel order',        staff:false, manager:true,  admin:true},
+  {label:'View analytics',           staff:false, manager:true,  admin:true},
+  {label:'Edit menu items',          staff:false, manager:'view',admin:true},
+  {label:'Manage promo codes',       staff:false, manager:true,  admin:true},
+  {label:'View customer list',       staff:false, manager:true,  admin:true},
+  {label:'Edit customer profile',    staff:false, manager:'pts', admin:true},
+  {label:'Invite/manage staff',      staff:false, manager:false, admin:true},
+  {label:'Manage branches',          staff:false, manager:false, admin:true},
+  {label:'Access admin dashboard',   staff:false, manager:true,  admin:true},
+  {label:'Close shift / Z-Report',   staff:false, manager:true,  admin:true},
+];
+
+function renderPermissionsMatrix() {
+  const tbody = ge('perm-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = PERMISSIONS.map(p => {
+    const cell = v => {
+      if(v===true)  return `<span class="perm-yes">✓</span>`;
+      if(v===false) return `<span class="perm-no">—</span>`;
+      return `<span class="perm-mgr">${v}</span>`;
+    };
+    return `<tr>
+      <td>${p.label}</td>
+      <td>${cell(p.staff)}</td>
+      <td>${cell(p.manager)}</td>
+      <td>${cell(p.admin)}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── STAFF DETAIL (PERFORMANCE) ─────────────────────── */
+async function openStaffDetail(id) {
+  const s = A_staff.find(x=>x.id===id);
+  if(!s) return;
+  ge('sdm-name').textContent = s.name;
+  ge('sdm-role-branch').textContent = s.role + ' · ' + (s.branch_name||'—');
+  ge('sdm-edit-btn').onclick = () => { closeModal('staff-detail-modal'); openEditStaff(id); };
+  // Performance stats (computed from orders where staff_name matches)
+  const staffOrders = A.orders.filter(o => o.staff_name===s.name);
+  const rev = staffOrders.reduce((sum,o)=>sum+(o.total_amount||0),0);
+  const voided = A_activity.filter(a=>a.staff===s.name&&a.type==='void').length;
+  const discounts = A_activity.filter(a=>a.staff===s.name&&a.type==='discount').length;
+  ge('sdm-perf').innerHTML = `
+    <div class="perf-card"><div class="perf-val">${staffOrders.length}</div><div class="perf-lbl">Orders</div></div>
+    <div class="perf-card"><div class="perf-val">${fmt(rev)}</div><div class="perf-lbl">Revenue</div></div>
+    <div class="perf-card"><div class="perf-val">${staffOrders.length?fmt(Math.round(rev/staffOrders.length)):'฿0'}</div><div class="perf-lbl">Avg Order</div></div>
+    <div class="perf-card"><div class="perf-val">${voided}</div><div class="perf-lbl">Voids</div></div>
+    <div class="perf-card"><div class="perf-val">${discounts}</div><div class="perf-lbl">Discounts</div></div>
+    <div class="perf-card"><div class="perf-val">${s.created_at?Math.floor((Date.now()-new Date(s.created_at))/(1000*3600*24)):0}d</div><div class="perf-lbl">Days with us</div></div>
+  `;
+  // Recent activity for this staff
+  const staffAct = A_activity.filter(a=>a.staff===s.name).slice(0,10);
+  renderActivityLog(staffAct, 'sdm-activity');
+  ge('staff-detail-modal').classList.add('on');
+}
+
+/* ══════════════════════════════════════════════════════
+   PHASE 3: CUSTOMERS — COMPLETE
+══════════════════════════════════════════════════════ */
+
+/* ── SEGMENTS ────────────────────────────────────────── */
+let ACTIVE_SEGMENT = 'all';
+
+function setSegment(seg, el) {
+  ACTIVE_SEGMENT = seg;
+  document.querySelectorAll('.seg-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  filterMembers();
+}
+
+function computeSegment(m) {
+  const now = Date.now();
+  const joinedAgo = now - new Date(m.created_at||now).getTime();
+  const lastOrderAgo = m.last_order_date ? now - new Date(m.last_order_date).getTime() : Infinity;
+  if(joinedAgo <= 30*86400000) return 'new';
+  if((m.total_orders||0) >= 10) return 'loyal';
+  if(['Gold','Platinum','Diamond'].includes(m.tier)) return 'vip';
+  if(lastOrderAgo >= 60*86400000) return 'sleep';
+  return 'regular';
+}
+
+function updateSegmentCounts(list) {
+  const counts = {all:list.length,new:0,loyal:0,vip:0,sleep:0,regular:0};
+  list.forEach(m=>{ const seg=computeSegment(m); counts[seg]=(counts[seg]||0)+1; });
+  Object.entries(counts).forEach(([k,v])=>{ const el=ge('seg-c-'+k); if(el)el.textContent=v; });
+}
+
+/* ── MEMBERS (CUSTOMERS) — enhanced ─────────────────── */
+async function loadMembers(){
+  ge('member-tbody').innerHTML='<tr><td colspan="9" class="table-empty">Loading...</td></tr>';
+  try{
+    const res=await API.getAdminMembers();
+    A.members=res.data||[];
+    const active=A.members.filter(m=>m.is_active!==false).length;
+    const avgPts=A.members.length?Math.round(A.members.reduce((s,m)=>s+(m.points||0),0)/A.members.length):0;
+    const diamond=A.members.filter(m=>m.tier==='Diamond'||m.tier==='Platinum').length;
+    ge('cs-total')&&(ge('cs-total').textContent=A.members.length);
+    ge('cs-active')&&(ge('cs-active').textContent=active);
+    ge('cs-points')&&(ge('cs-points').textContent=avgPts+' pts');
+    ge('cs-diamond')&&(ge('cs-diamond').textContent=diamond);
+    updateSegmentCounts(A.members);
+    renderMembers();
+  }catch(e){ge('member-tbody').innerHTML='<tr><td colspan="9" class="table-empty" style="color:var(--red)">Failed to load</td></tr>'}
+}
+
+function filterMembers(){renderMembers()}
+
+function renderMembers(){
+  const q=(ge('mem-search')?.value||'').toLowerCase();
+  const tier=ge('mem-tier-filter')?.value||'';
+  const st=ge('mem-status-filter')?.value||'';
+  let list=A.members.filter(m=>{
+    if(tier&&m.tier!==tier)return false;
+    if(st==='active'&&m.is_active===false)return false;
+    if(st==='inactive'&&m.is_active!==false)return false;
+    if(q&&!(m.name||'').toLowerCase().includes(q)&&!(m.phone||'').includes(q)&&!(m.email||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+  // Segment filter
+  if(ACTIVE_SEGMENT!=='all') list=list.filter(m=>computeSegment(m)===ACTIVE_SEGMENT);
+  if(!list.length){ge('member-tbody').innerHTML='<tr><td colspan="9" class="table-empty">No customers found</td></tr>';return}
+  const tierCls={Bronze:'b-tier-bronze',Silver:'b-tier-silver',Gold:'b-tier-gold',Platinum:'b-tier-platinum',Diamond:'b-tier-diamond'};
+  const segIcon={new:'🌱',loyal:'💜',vip:'⭐',sleep:'😴',regular:''};
+  ge('member-tbody').innerHTML=list.map(m=>{
+    const seg=computeSegment(m);
+    const totalSpend=(m.total_orders||0)*(m.avg_order||120); // estimate if no spend field
+    const lastOrder=m.last_order_date?new Date(m.last_order_date).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'Never';
+    const joined=m.created_at?new Date(m.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'}):'—';
+    return `<tr style="cursor:pointer" onclick="openCustomerDetail('${esc(m.id)}')">
+      <td style="color:var(--tan);font-weight:600">${segIcon[seg]?`<span title="${seg}" style="margin-right:4px">${segIcon[seg]}</span>`:''}${esc(m.name)}</td>
+      <td>${esc(m.phone)}</td>
+      <td><span class="badge ${tierCls[m.tier]||'b-pending'}">${m.tier||'Bronze'}</span></td>
+      <td style="color:var(--gl);font-weight:600">${(m.points||0).toLocaleString()}</td>
+      <td>${m.total_orders||0}</td>
+      <td style="color:var(--tan3)">${fmt(totalSpend)}</td>
+      <td style="font-size:11px;color:var(--tan3)">${lastOrder}</td>
+      <td style="font-size:11px;color:var(--tan3)">${joined}</td>
+      <td onclick="event.stopPropagation()">
+        <div class="member-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openEditMember('${esc(m.id)}')">Edit</button>
+          <button class="btn ${m.is_active===false?'btn-grn':'btn-red'} btn-sm" onclick="toggleMember('${esc(m.id)}',${m.is_active!==false})">
+            ${m.is_active===false?'Restore':'Suspend'}
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── CUSTOMER DETAIL MODAL ───────────────────────────── */
+let CD_MEMBER_ID = null;
+
+async function openCustomerDetail(id) {
+  const m = A.members.find(x=>x.id===id);
+  if(!m) return;
+  CD_MEMBER_ID = id;
+  // Hero
+  ge('cdav').textContent = (m.name||'?')[0].toUpperCase();
+  ge('cd-name').textContent = m.name;
+  ge('cd-meta').textContent = m.phone + (m.email?' · '+m.email:'') + (m.is_active===false?' · ⛔ Suspended':'');
+  const tierCls={Bronze:'b-tier-bronze',Silver:'b-tier-silver',Gold:'b-tier-gold',Platinum:'b-tier-platinum',Diamond:'b-tier-diamond'};
+  ge('cd-tier-badge').innerHTML = `<span class="badge ${tierCls[m.tier]||'b-pending'}" style="margin-top:6px">${m.tier||'Bronze'}</span>`;
+  // Stats
+  const custOrders = A.orders.filter(o=>o.user_id===id);
+  const totalSpend = custOrders.reduce((s,o)=>s+(o.total_amount||0),0);
+  ge('cd-stat-orders').textContent = custOrders.length;
+  ge('cd-stat-spend').textContent = fmt(totalSpend);
+  ge('cd-stat-pts').textContent = (m.points||0).toLocaleString();
+  ge('cd-stat-avg').textContent = custOrders.length?fmt(Math.round(totalSpend/custOrders.length)):'฿0';
+  // Toggle button
+  ge('cd-toggle-btn').textContent = m.is_active===false?'Restore':'Suspend';
+  ge('cd-toggle-btn').className = 'btn '+(m.is_active===false?'btn-grn':'btn-red')+' btn-sm';
+  // Default to orders tab
+  switchCDTab('orders', document.querySelector('#customer-detail-modal .mtab'));
+  ge('customer-detail-modal').classList.add('on');
+  // Load orders async
+  loadCustomerOrders(id, custOrders);
+  loadCustomerPoints(id);
+  loadCustomerInfo(m);
+}
+
+function switchCDTab(tab, el) {
+  ['orders','points','info'].forEach(t=>{
+    ge('cd-tab-'+t).style.display = t===tab?'block':'none';
+  });
+  document.querySelectorAll('#customer-detail-modal .mtab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+function loadCustomerOrders(id, orders) {
+  const el = ge('cd-orders-list');
+  if(!orders.length){
+    el.innerHTML = '<div style="color:var(--tan3);font-size:13px;padding:20px 0">No orders yet</div>';
+    return;
+  }
+  const sorted = [...orders].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  el.innerHTML = sorted.map(o=>{
+    let items=[]; try{items=typeof o.items==='string'?JSON.parse(o.items):o.items}catch{}
+    const summary=(items||[]).slice(0,2).map(i=>i.name+(i.qty>1?' ×'+i.qty:'')).join(', ')+((items||[]).length>2?` +${(items||[]).length-2} more`:'');
+    const bc='b-'+o.status.toLowerCase();
+    return `<div class="ord-mini" onclick="openOrderDetail('${esc(o.id)}')">
+      <div style="flex:1">
+        <div class="ord-mini-id">${esc(o.id)} <span class="badge ${bc}" style="font-size:9px">${o.status}</span></div>
+        <div class="ord-mini-items">${summary||'—'}</div>
+        <div style="font-size:10px;color:var(--tan3);margin-top:2px">${fmtDate(o.created_at)} · ${o.order_type||'pickup'} · ${o.payment_method||'—'}</div>
+      </div>
+      <div class="ord-mini-total">${fmt(o.total_amount)}</div>
+    </div>`;
+  }).join('');
+}
+
+function loadCustomerPoints(id) {
+  // Build audit log from orders (earned) + mock adjustments
+  const el = ge('cd-pts-timeline');
+  const custOrders = A.orders.filter(o=>o.user_id===id&&o.status==='COMPLETED');
+  const m = A.members.find(x=>x.id===id);
+  const MOCK_ADJUST = [
+    {type:'adjust',desc:'Admin bonus — Birthday reward',delta:+100,date:new Date(Date.now()-86400000*15).toISOString()},
+  ];
+  const entries = [
+    ...custOrders.map(o=>({type:'earn',desc:'Order completed: '+o.id,delta:+Math.floor(o.total_amount/10),date:o.created_at})),
+    ...MOCK_ADJUST,
+  ].sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  if(!entries.length){el.innerHTML='<div style="color:var(--tan3);font-size:13px;padding:16px 0">No points history</div>';return}
+  el.innerHTML = entries.map(e=>`
+    <div class="pt-item">
+      <div class="pt-icon ${e.type==='earn'?'pt-earn':e.type==='redeem'?'pt-redeem':'pt-adjust'}">${e.type==='earn'?'+':e.type==='redeem'?'−':'✎'}</div>
+      <div class="pt-body">
+        <div class="pt-desc">${esc(e.desc)}</div>
+        <div class="pt-date">${fmtDate(e.date)}</div>
+      </div>
+      <div class="pt-delta ${e.delta>=0?'pt-positive':'pt-negative'}">${e.delta>0?'+':''}${e.delta} pts</div>
+    </div>`).join('');
+  // Running balance row
+  el.innerHTML += `<div class="pt-item" style="background:var(--gl2);border-radius:0 0 8px 8px">
+    <div class="pt-icon pt-adjust">Σ</div>
+    <div class="pt-body"><div class="pt-desc" style="font-weight:600;color:var(--gl)">Current Balance</div></div>
+    <div class="pt-delta pt-positive">${(m?.points||0).toLocaleString()} pts</div>
+  </div>`;
+}
+
+function loadCustomerInfo(m) {
+  ge('cd-info-grid').innerHTML = `
+    <div class="info-card"><div class="info-key">Phone</div><div class="info-val">${esc(m.phone||'—')}</div></div>
+    <div class="info-card"><div class="info-key">Email</div><div class="info-val">${esc(m.email||'—')}</div></div>
+    <div class="info-card"><div class="info-key">Tier</div><div class="info-val">${esc(m.tier||'Bronze')}</div></div>
+    <div class="info-card"><div class="info-key">Points</div><div class="info-val">${(m.points||0).toLocaleString()}</div></div>
+    <div class="info-card"><div class="info-key">Status</div><div class="info-val">${m.is_active===false?'⛔ Suspended':'✅ Active'}</div></div>
+    <div class="info-card"><div class="info-key">Joined</div><div class="info-val">${m.created_at?fmtDate(m.created_at):'—'}</div></div>
+    <div class="info-card"><div class="info-key">Segment</div><div class="info-val">${({new:'🌱 New Member',loyal:'💜 Loyal',vip:'⭐ VIP',sleep:'😴 Inactive',regular:'Regular'})[computeSegment(m)]||'Regular'}</div></div>
+    <div class="info-card"><div class="info-key">Total Orders</div><div class="info-val">${m.total_orders||0}</div></div>
+  `;
+}
+
+function openEditMemberFromDetail() {
+  if(!CD_MEMBER_ID) return;
+  closeModal('customer-detail-modal');
+  openEditMember(CD_MEMBER_ID);
+}
+function toggleMemberFromDetail() {
+  if(!CD_MEMBER_ID) return;
+  const m=A.members.find(x=>x.id===CD_MEMBER_ID);
+  if(!m)return;
+  toggleMember(CD_MEMBER_ID, m.is_active!==false);
+  closeModal('customer-detail-modal');
+}
+
+/* ── EXPORT CUSTOMERS CSV (enhanced) ────────────────── */
+function exportMembersCSV(){
+  const rows=[['Name','Phone','Email','Tier','Points','Orders','Status','Segment','Joined']];
+  A.members.forEach(m=>rows.push([
+    m.name, m.phone, m.email||'', m.tier, m.points,
+    m.total_orders||0, m.is_active===false?'Suspended':'Active',
+    computeSegment(m),
+    m.created_at?new Date(m.created_at).toLocaleDateString('en-GB'):''
+  ]));
+  downloadCSV(rows,'customers_'+new Date().toISOString().slice(0,10)+'.csv');
+}
 document.addEventListener('click',e=>{
   if(e.target.classList.contains('modal-backdrop'))e.target.classList.remove('on');
 });
