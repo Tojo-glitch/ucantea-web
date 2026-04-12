@@ -222,46 +222,45 @@
   const staffId = urlParams.get('id');
   const sysUser = urlParams.get('user') || 'STAFF_' + Math.floor(Math.random()*1000);
   const branchName = urlParams.get('branchName') || 'Unknown Branch'; 
-
+  const branchId = urlParams.get('branch');
   document.getElementById('assigned-branch-display').value = branchName;;
   document.getElementById('sysUsername').value = sysUser;
 
-  // ตรวจสอบว่า API.getStaffOnboardingInfo ถูกโหลดมาแล้วหรือยัง
-if(!staffId || !branchId) {
+  if(!staffId || !branchId) {
     document.getElementById('form-card').innerHTML = '<h2 style="color:var(--red); text-align:center; padding:40px;">❌ Invalid or Expired Link</h2>';
   }
 
-  // --- 2. ดึงชื่อสาขามาแสดง ---
-  // ใช้ API.getBranches() ที่มีอยู่แล้ว ไปถาม Supabase ว่า ID นี้คือสาขาชื่ออะไร
+  // 🟢 3. ดึงชื่อสาขามาแสดง
   API.getBranches().then(res => {
     const branchInput = document.getElementById('assigned-branch-display');
     if (res.success && branchInput) {
       const branchObj = res.data.find(b => b.id === branchId);
       if (branchObj) {
-        branchInput.value = branchObj.name; // ใส่ชื่อสาขาลงช่อง
+        branchInput.value = branchObj.name;
       } else {
         branchInput.value = "Unknown Branch Code";
       }
     }
-  });
-    
-// --- 3. สร้าง Username อัตโนมัติเมื่อพนักงานพิมพ์ชื่อ ---
+  }).catch(err => console.error("Error loading branches:", err));
+
+  // 🟢 4. ระบบสร้าง Username อัตโนมัติ (แก้ไขปัญหา Name Undefined)
   const fullNameInput = document.getElementById('fullName');
   const sysUserInput = document.getElementById('sysUsername');
 
-  fullNameInput.addEventListener('input', function() {
-    const name = this.value.trim();
-    if (name.length > 2) {
-      // ดึงชื่อแรกมาทำเป็นพิมพ์เล็ก ตัดช่องว่างทิ้ง
-      const firstName = name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
-      // เอาชื่อมารวมกับรหัสสาขา เช่น "somchai.br001"
-      const shortBranch = branchId ? branchId.toLowerCase() : 'hq';
-      sysUserInput.value = `${firstName}.${shortBranch}`;
-    } else {
-      sysUserInput.value = '';
-    }
-  });
-
+  if (fullNameInput && sysUserInput) {
+    fullNameInput.addEventListener('input', function() {
+      const nameStr = this.value.trim();
+      if (nameStr.length > 2) {
+        // เอาชื่อคำแรกมาทำพิมพ์เล็ก และตัดอักขระพิเศษทิ้ง
+        const firstName = nameStr.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+        // สร้าง Username เช่น "somchai.br001"
+        const shortBranch = branchId ? branchId.toLowerCase() : 'hq';
+        sysUserInput.value = `${firstName}.${shortBranch}`;
+      } else {
+        sysUserInput.value = '';
+      }
+    });
+  }
   // --- Real-time Validation (Green/Red Borders) ---
   const inputs = document.querySelectorAll('.req-field');
   inputs.forEach(inp => {
