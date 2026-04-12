@@ -358,12 +358,13 @@ window.API = {
   },
 
   // 3. พนักงานกดยืนยันการสมัคร (อัปเดตข้อมูล)
-  async completeOnboarding(staffId, data) {
+ async completeOnboarding(staffId, data) {
     if (BACKEND_MODE === 'supabase') {
       const passHash = await _sha256(data.password + 'CTB_SALT_2025');
       const pinHash = await _sha256(data.pin + 'CTB_SALT_2025');
       
       await sb.update('staff', {
+        username: data.username, // 🟢 สำคัญ: ต้องเอา Username ที่ระบบ Gen ให้ ไปทับของเดิม
         password_hash: passHash,
         pos_pin_hash: pinHash,
         id_card_url: data.idCardUrl,
