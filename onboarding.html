@@ -165,14 +165,15 @@
 
       <div class="section-title" id="t-sec-3">3. System Credentials</div>
       <div class="grid-2">
-         <div class="field full">
+          <div class="field full">
           <label class="label">Assigned Branch</label>
-          <input type="text" class="inp" id="assigned-branch-display" readonly value="Loading...">
+          <input type="text" class="inp" id="assigned-branch-display" readonly value="Loading branch..." style="background:rgba(212,170,106,.05); border-color:rgba(212,170,106,.2); color:var(--gold-light);">
         </div>
-        <div class="field full">
-          <label class="label" id="t-user">System Username (Generated)</label>
-          <input type="text" id="sysUsername" class="inp" readonly value="Loading...">
+          <div class="field full">
+          <label class="label" id="t-user">System Username (Auto-generated)</label>
+          <input type="text" id="sysUsername" class="inp" readonly placeholder="พิมพ์ชื่อ-นามสกุลด้านบนก่อน..." style="background:rgba(212,170,106,.05); border-color:rgba(212,170,106,.2); color:var(--gold-light);">
         </div>
+
         <div class="field">
           <label class="label" id="t-pass">Password <span class="req">*</span></label>
           <input type="password" id="password" class="inp req-field" placeholder="Min. 6 characters">
@@ -226,19 +227,40 @@
   document.getElementById('sysUsername').value = sysUser;
 
   // ตรวจสอบว่า API.getStaffOnboardingInfo ถูกโหลดมาแล้วหรือยัง
-  if (staffId) {
-    // ให้แน่ใจว่าเรียก API นี้ (ซึ่งเราเพิ่มเข้าไปใน api.js แล้ว)
-    API.getStaffOnboardingInfo(staffId).then(res => {
-      if(res.success) {
-        document.getElementById('branch-name-text').textContent = res.branchName;
-      } else {
-        document.getElementById('branch-name-text').textContent = "Branch not found";
-      }
-    }).catch(err => {
-      console.error("Error loading branch:", err);
-      document.getElementById('branch-name-text').textContent = "Connection Error";
-    });
+if(!staffId || !branchId) {
+    document.getElementById('form-card').innerHTML = '<h2 style="color:var(--red); text-align:center; padding:40px;">❌ Invalid or Expired Link</h2>';
   }
+
+  // --- 2. ดึงชื่อสาขามาแสดง ---
+  // ใช้ API.getBranches() ที่มีอยู่แล้ว ไปถาม Supabase ว่า ID นี้คือสาขาชื่ออะไร
+  API.getBranches().then(res => {
+    const branchInput = document.getElementById('assigned-branch-display');
+    if (res.success && branchInput) {
+      const branchObj = res.data.find(b => b.id === branchId);
+      if (branchObj) {
+        branchInput.value = branchObj.name; // ใส่ชื่อสาขาลงช่อง
+      } else {
+        branchInput.value = "Unknown Branch Code";
+      }
+    }
+  });
+    
+// --- 3. สร้าง Username อัตโนมัติเมื่อพนักงานพิมพ์ชื่อ ---
+  const fullNameInput = document.getElementById('fullName');
+  const sysUserInput = document.getElementById('sysUsername');
+
+  fullNameInput.addEventListener('input', function() {
+    const name = this.value.trim();
+    if (name.length > 2) {
+      // ดึงชื่อแรกมาทำเป็นพิมพ์เล็ก ตัดช่องว่างทิ้ง
+      const firstName = name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      // เอาชื่อมารวมกับรหัสสาขา เช่น "somchai.br001"
+      const shortBranch = branchId ? branchId.toLowerCase() : 'hq';
+      sysUserInput.value = `${firstName}.${shortBranch}`;
+    } else {
+      sysUserInput.value = '';
+    }
+  });
 
   // --- Real-time Validation (Green/Red Borders) ---
   const inputs = document.querySelectorAll('.req-field');
