@@ -1574,7 +1574,7 @@ async function placeOrder() {
 
     if (btn) btn.textContent = 'Processing Order...';
 
-    // 2. ส่งข้อมูลไป Supabase
+// 2. สร้างออเดอร์พร้อมแนบ URL ของสลิปไปให้ Admin ตรวจ
     const res = await API.createOrder({
       items: S.cart,
       total: total,
@@ -1583,8 +1583,8 @@ async function placeOrder() {
       userId: S.user ? S.user.id : null,
       promoCode: S.disc > 0 ? (ge('promoInp')?.value || null) : null,
       disc: S.disc,
-      slipUrl: slipUrl, // 🟢 ส่ง URL สลิปไปให้ Admin ตรวจ
-      status: 'PENDING' // ลูกค้าสั่งต้องเป็น PENDING
+      slipUrl: slipUrl, // 🟢 ตรวจสอบว่าส่งค่าชื่อนี้ "slipUrl"
+      status: 'PENDING'
     });
 
     // 3. จัดการ UI หลังจากสั่งสำเร็จ
