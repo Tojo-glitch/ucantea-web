@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Ceramic POS</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Extended+Text&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ═══ TOKENS ═══════════════════════════════════════════ */
@@ -1555,7 +1556,7 @@ async function sendToEthernetPrinter(data) {
   }
 }
 
-/* ── BROWSER PRINT FALLBACK ─────────────────────── */
+/* ── BROWSER PRINT FALLBACK (อัปเกรดมี Barcode) ─────────────────────── */
 function browserPrint(order) {
   const d = new Date(order.created_at || Date.now());
   const dateStr = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
@@ -1565,7 +1566,9 @@ function browserPrint(order) {
     <div class="row"><div class="left">${i.qty}x ${i.name}</div><div class="right">฿${i.price * i.qty}</div></div>
     <div class="sub">${i.opts || ''}${i.note ? ' 📝 '+i.note : ''}</div>`).join('');
 
+  // 🟢 1. สร้าง HTML ใบเสร็จ (เพิ่ม Google Font สำหรับ Barcode) 🟢
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt ${order.id}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Extended+Text&display=swap" rel="stylesheet">
   <style>
     @page { margin:2mm; size:80mm auto }
     * { margin:0; padding:0; box-sizing:border-box }
@@ -1582,12 +1585,20 @@ function browserPrint(order) {
     .sub    { font-size:9px; color:#555; padding-left:12px; margin-bottom:4px; white-space:pre-wrap }
     .total-row { display:flex; justify-content:space-between; font-size:16px; font-weight:bold; margin:4px 0 }
     .total-row .right { font-size:18px }
+    
+    /* 🟢 2. สไตล์ของ Barcode 🟢 */
+    .barcode { font-family: 'Libre Barcode 39 Extended Text', cursive; font-size: 42px; text-align: center; margin: 12px 0 8px 0; font-weight: normal; line-height: 0.8; }
   </style></head><body>
+  
   <div class="center bold lg">${STORE.name}</div>
   <div class="center">${STORE.nameTH}</div>
   <div class="center">${CURRENT_BRANCH?.name || ''}</div>
   <div class="center">Tel: ${STORE.tel}</div>
   <div class="center" style="font-size:9px">TAX ID: ${STORE.taxId}</div>
+  
+  <!-- 🟢 3. พิมพ์บาร์โค้ด (ต้องมีเครื่องหมาย * หัวท้ายสำหรับ Code39) 🟢 -->
+  <div class="barcode">*${order.id}*</div>
+  
   <div class="line"></div>
   <div class="row bold"><div>Order:</div><div>${order.id}</div></div>
   <div class="row"><div>Date:</div><div>${dateStr}</div></div>
@@ -1611,7 +1622,16 @@ function browserPrint(order) {
   <div class="center" style="margin-top:8px">Thank you! ขอบคุณที่ใช้บริการ</div>
   <div class="center" style="font-size:9px;margin-top:4px">${STORE.wifi}</div>
   <div style="height:12mm"></div>
-  <script>window.onload=function(){window.print();setTimeout(window.close,300)}<\/script>
+  
+  <!-- 🟢 4. หน่วงเวลา 0.5 วิ ให้ฟอนต์บาร์โค้ดโหลดเสร็จก่อนค่อยสั่ง Print 🟢 -->
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+        setTimeout(window.close, 500);
+      }, 500);
+    }
+  <\/script>
   </body></html>`;
 
   const w = window.open('', '_blank', 'width=320,height=600,menubar=no,toolbar=no');
