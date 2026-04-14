@@ -146,7 +146,17 @@ const _mockCats = [];
    All functions return Promise<{success, ...}>
 ══════════════════════════════════════════════════════ */
 window.API = {
-  
+   async uploadSlip(file) {
+    if (!file) return null;
+    const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/slips/${fileName}`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Content-Type': file.type },
+      body: file,
+    });
+    if (!res.ok) throw new Error('Upload slip failed');
+    return `${SUPABASE_URL}/storage/v1/object/public/slips/${fileName}`;
+  },
   // ดึงข้อมูลพนักงานและชื่อสาขาในครั้งเดียว
   async getStaffOnboardingInfo(staffId) {
     if (BACKEND_MODE === 'supabase') {
