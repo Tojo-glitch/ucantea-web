@@ -1894,28 +1894,7 @@ function saveEditField(){
    API ADAPTER — switches between Supabase & GAS
    Load api.js before this file for production
 ══════════════════════════════════════════════════════ */
-var API = window.API || {
-  /* Mock implementations for standalone preview */
-  login:function(p){return new Promise(function(res){
-    setTimeout(function(){
-      if(p.phone==='0812345678'){
-        res({success:true,user:{id:'usr1',name:'Khun Demo',phone:p.phone,email:'demo@ceramic.co',points:245,tier:'Silver',token:'mock_token'}});
-      } else {
-        res({success:false,message:'No account found with this phone number'});
-      }
-    },800);
-  })},
-  register:function(p){return new Promise(function(res){
-    setTimeout(function(){
-      res({success:true,user:{id:'usr_'+Date.now(),name:p.name,phone:p.phone,email:p.email,points:50,tier:'Bronze',token:'mock_token'}});
-    },1000);
-  })},
-  forgotPassword:function(email){return new Promise(function(res){setTimeout(function(){res({success:true})},1000)})},
-  logout:function(){return Promise.resolve()},
-  updateProfile:function(p){return new Promise(function(res){setTimeout(function(){res({success:true})},600)})},
-  createOrder:function(p){return new Promise(function(res){setTimeout(function(){res({id:'CTB-'+Date.now().toString(36).toUpperCase(),success:true})},1200)})},
-  getMenu:function(){return Promise.resolve(MENUS)},
-};
+
 /* ── STORE STATUS (เปิด-ปิดร้าน + เวลา + เตือน 30 นาที) ────────────────────────── */
 let isStoreOpen = true;
 
@@ -1992,17 +1971,6 @@ function checkStoreStatus() {
   }
 }
 
- async uploadSlip(file) {
-    if (!file) return null;
-    const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/slips/${fileName}`, {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Content-Type': file.type },
-      body: file,
-    });
-    if (!res.ok) throw new Error('Upload slip failed');
-    return `${SUPABASE_URL}/storage/v1/object/public/slips/${fileName}`;
-  },
 
 /* ── INIT ───────────────────────────────────────────── */
 function init(){
