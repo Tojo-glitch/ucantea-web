@@ -468,6 +468,63 @@ window.API = {
     return { success: true };
   },
 
+  /* ── STAFF MANAGEMENT (สำหรับหน้า Admin) ───────────────────────── */
+  // 1. ดึงรายชื่อพนักงานทั้งหมดมาโชว์ในหน้า Admin
+  async getStaff() {
+    if (BACKEND_MODE === 'supabase') {
+      try {
+        // ดึงพนักงานทั้งหมด
+        const staffList = await sb.query('staff', { select: '*', order: 'created_at.desc' });
+        // ดึงสาขามาเพื่อแปลง branch_id เป็นชื่อสาขา
+        const branches = await sb.query('branches', { select: 'id, name' });
+        
+        const branchMap = {};
+        branches.forEach(b => branchMap[b.id] = b.name);
+
+        // เอาชื่อสาขาไปผูกกับพนักงาน
+        const enrichedStaff = staffList.map(s => ({
+          ...s,
+          branch_name: branchMap[s.branch_id] || 'ไม่ทราบสาขา'
+        }));
+
+        return { success: true, data: enrichedStaff };
+      } catch (err) {
+        return { success: false, message: err.message };
+      }
+    }
+    return { success: true, data: [] }; // Mock
+  },
+
+  // 2. อัปเดตข้อมูลพนักงาน (เช่น ระงับสิทธิ์, เปลี่ยน Role) จากหน้า Admin
+  async updateStaff(id, data) {
+    if (BACKEND_MODE === 'supabase') {
+      await sb.update('staff', data, { id });
+      return { success: true };
+    }
+    return { success: true };
+  },
+
+  /* ── POS LOGIN (สำหรับหน้า POS) ──────────────────────────────── */
+  // 3. ล็อกอินเข้า POS โดยเช็คจากตาราง staff
+  async staffLogin(username, pin) {
+    if (BACKEND_MODE === 'supabase') {
+      // ทำการเข้ารหัส PIN 4 หลักที่พนักงานกดหน้าจอ POS
+      const hashedPin = await _sha256(pin + 'CTB_SALT_2025');
+      
+      // ค้นหาในตาราง staff ว่ามี Username และ PIN ตรงกันไหม + ต้อง Active อยู่
+      const res = await sb.query('staff', { 
+        eq: { username: username, pos_pin_hash: hashedPin, is_active: true }, 
+        select: 'id, username, name, role, branch_id' 
+      });
+      
+      if (res && res.length > 0) {
+        return { success: true, staff: res[0] };
+      }
+      return { success: false, message: 'Username หรือ PIN ไม่ถูกต้อง / บัญชีถูกระงับ' };
+    }
+    return { success: false, message: 'Invalid credentials' };
+  },
+
   async getStoreStatus() {
     const stored = localStorage.getItem('ctb_shop_open');
     return { isOpen: stored === null ? true : stored === 'true' };
