@@ -367,7 +367,8 @@ window.API = {
     return { success: true };
   },
 
-  async createOrder({ items, total, branch, type, userId, promoCode, disc, address, contactPhone, pickupTime, status }) {
+  // 🟢 เพิ่ม slipUrl เข้าไปใน parameter { ... }
+  async createOrder({ items, total, branch, type, userId, promoCode, disc, address, contactPhone, pickupTime, status, slipUrl }) {
     if (BACKEND_MODE === 'supabase') {
       const order = await sb.insert('orders', {
         user_id: userId || null,
@@ -383,12 +384,12 @@ window.API = {
         delivery_address: address || null,
         delivery_phone: contactPhone || null,
         pickup_time: pickupTime || null,
-        slip_url: slipUrl || null, 
-        source: 'CLIENT'    
+        slip_url: slipUrl || null, // 🟢 ใส่ตรงนี้
+        source: 'CLIENT'
       });
       return { success: true, id: order[0].id };
     }
-    return { success: true, id: 'CTB-' + Date.now() };
+    return { success: true, id: 'CTB-' + Date.now().toString(36).toUpperCase() };
   },
 
   async getOrderStatus(orderId) {
