@@ -373,6 +373,8 @@ window.API = {
         delivery_address: address || null,
         delivery_phone: contactPhone || null,
         pickup_time: pickupTime || null,
+        slip_url: slipUrl || null, 
+        source: 'CLIENT'    
       });
       return { success: true, id: order[0].id };
     }
