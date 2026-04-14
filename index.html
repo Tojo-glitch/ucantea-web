@@ -1558,13 +1558,72 @@ function applyPromo(){
 }
 
 /* ── PLACE ORDER ────────────────────────────────────── */
-function placeOrder(){
+async function placeOrder() {
   if(!S.cart.length){toast('Your cart is empty');return}
   if(!S.slipFile){toast('Please upload your payment slip');return}
-  var btn=ge('placeBtn');if(btn){btn.disabled=true;btn.textContent='Processing...'}
-  var total=calcTotal();
-  var orderId='CTB-'+Date.now().toString(36).toUpperCase();
   
+  var btn=ge('placeBtn');
+  if(btn){btn.disabled=true;btn.textContent='Uploading Slip...'}
+  
+  var total=calcTotal();
+
+  try {
+    // 1. อัปโหลดรูปสลิปไปที่ Supabase Storage ก่อน
+    let slipUrl = await API.uploadSlip(S.slipFile);
+    if (!slipUrl) throw new Error("Upload slip failed");
+
+    if(btn) btn.textContent = 'Processing Order...';
+
+    // 2. สร้างออเดอร์พร้อมแนบ URL ของสลิปไปให้ Admin ตรวจ
+    const res = await API.createOrder({
+      items: S.cart,
+      total: total,
+      branch: S.branch,
+      type: S.orderType,
+      userId: S.user ? S.user.id : null,
+      promoCode: S.disc > 0 ? (ge('promoInp')?.value||null) : null,
+      disc: S.disc,
+      slipUrl: slipUrl // 🟢 ส่ง URL สลิปไปด้วย
+    });
+
+    // 3. สั่งสำเร็จ ทำการรีเซ็ตหน้าจอ
+    if(btn){btn.disabled=false;btn.textContent='Confirm & Pay'}
+    closeCart();
+    
+    var orderId = res.id || 'CTB-' + Date.now().toString(36).toUpperCase();
+    S.order={id:orderId, status:'pending', items:S.cart.slice(), total:total, cancelDL:Date.now()+5*60*1000};
+    
+    var pts=Math.floor(total/10);
+    if(S.user){S.user.points=(S.user.points||0)+pts;PTS=S.user.points;renderLoyalty()}
+    
+    safeSet('rcptName','Order confirmed');safeSet('rcptNum',orderId);
+    safeSet('rcptPtsTxt','Points earned');safeSet('rcptPtsNum','+'+pts+' pts');
+    var ri=ge('rcptItems');
+    if(ri)ri.innerHTML=S.cart.map(function(i){return'<div class="rcpt-item"><span class="rcpt-item-name">'+i.name+'</span><span class="rcpt-item-qty">×'+i.qty+'</span><span class="rcpt-item-price">฿'+(i.price*i.qty)+'</span></div>'}).join('');
+    var rs=ge('rcptSummary');
+    if(rs)rs.innerHTML='<div class="rcpt-divider"></div><div class="rcpt-total"><span>Total Paid</span><span class="rv">฿'+total+'</span></div>';
+    
+    ge('rcptOv').classList.add('on');
+    S.orderHistory.unshift({receipt:orderId, items:S.cart.slice(), total:total, status:'completed', created:new Date().toISOString()});
+    
+    // ล้างตะกร้า
+    S.cart=[]; S.disc=0; S.slipFile=null;
+    var sp=ge('slipPrev'),sc=ge('slipChg'),sl=ge('slipLbl');
+    if(sp)sp.classList.remove('on');if(sc)sc.classList.remove('on');if(sl)sl.textContent='Upload payment slip';
+    ge('promoOk')&&(ge('promoOk').style.display='none');
+    updCartBar();
+    
+    var tbd=ge('trkDot'),thd=ge('trkH');
+    if(tbd)tbd.classList.add('on');if(thd)thd.classList.add('on');
+    
+    startPoll(); // เริ่มระบบ Track Order
+    
+  } catch (err) {
+    if(btn){btn.disabled=false;btn.textContent='Confirm & Pay'}
+    toast('Order failed. Please try again.');
+    console.error(err);
+  }
+}
   // Call API (Supabase) or simulate
   API.createOrder({
     items:S.cart,total:total,branch:S.branch,type:S.orderType,
