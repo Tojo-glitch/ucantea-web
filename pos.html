@@ -208,6 +208,20 @@ input::placeholder{color:var(--tan3)}
 #pos-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 
+/* ═══ SETTINGS MODAL ════════════════════════════════════ */
+.settings-group{background:var(--c1);border:1px solid var(--ln2);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.settings-group-title{padding:9px 14px;background:var(--c2);font-size:10px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:1px}
+.srow{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);gap:10px}
+.srow:last-child{border-bottom:none}
+.srow-lbl{flex:1;font-size:13px;color:var(--tan)}
+.srow-sub{font-size:10px;color:var(--tan3);margin-top:1px}
+.srow input,.srow select{height:34px;font-size:13px;max-width:200px;flex-shrink:0}
+/* login status */
+.login-sb-status{padding:8px 12px;border-radius:7px;font-size:12px;margin-bottom:12px;display:none;align-items:center;gap:8px}
+.lss-ok  {background:var(--grn2);border:1px solid rgba(74,173,117,.25);color:var(--grnl);display:flex}
+.lss-err {background:var(--red2);border:1px solid rgba(212,79,79,.25);color:var(--red);display:flex}
+.lss-wait{background:var(--gl2);border:1px solid rgba(212,170,106,.25);color:var(--gl);display:flex}
+
 /* ═══ QUEUE NUMBER ══════════════════════════════════════ */
 .queue-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:var(--gl);color:var(--c0);font-size:13px;font-weight:700;margin-left:6px}
 </style>
@@ -226,26 +240,28 @@ input::placeholder{color:var(--tan3)}
       <div class="brand" style="justify-content:center;margin-bottom:4px">Ceramic <span>POS</span></div>
       <div style="font-size:11px;color:var(--tan3)">Staff Terminal — v2.0</div>
     </div>
+    <!-- Supabase connection status -->
+    <div class="login-sb-status" id="sbLoginStatus">
+      <div style="width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0"></div>
+      <span id="sbLoginStatusTxt">Checking connection...</span>
+    </div>
     <form onsubmit="event.preventDefault();doLogin()">
       <div style="margin-bottom:14px">
         <div style="font-size:10px;color:var(--tan3);text-transform:uppercase;font-weight:700;margin-bottom:6px">Branch</div>
         <select id="branchSelect" style="width:100%;height:42px;cursor:pointer">
-          <option value="">— Select Branch —</option>
-          <option value="BR001">Main Branch — Siam</option>
-          <option value="BR002">Thonglor Branch</option>
-          <option value="BR003">Ari Branch</option>
+          <option value="">— Loading branches —</option>
         </select>
       </div>
       <div style="margin-bottom:14px">
         <div style="font-size:10px;color:var(--tan3);text-transform:uppercase;font-weight:700;margin-bottom:6px">Username</div>
-        <input type="text" id="staffUser" placeholder="staff_siam01" style="width:100%;height:42px">
+        <input type="text" id="staffUser" placeholder="e.g. nong_siam" style="width:100%;height:42px">
       </div>
       <div style="margin-bottom:20px">
         <div style="font-size:10px;color:var(--tan3);text-transform:uppercase;font-weight:700;margin-bottom:6px">PIN / Passcode</div>
-        <input type="password" id="pinInp" placeholder="••••" style="width:100%;height:42px;text-align:center;font-size:22px;letter-spacing:8px">
+        <input type="password" id="pinInp" placeholder="••••" style="width:100%;height:42px;text-align:center;font-size:22px;letter-spacing:8px" maxlength="8">
       </div>
       <div id="loginError" style="color:var(--red);font-size:12px;text-align:center;min-height:18px;margin-bottom:12px"></div>
-      <button type="submit" id="loginBtn" class="btn btn-primary" style="width:100%;height:48px;font-size:15px">Access POS</button>
+      <button type="submit" id="loginBtn" class="btn btn-primary" style="width:100%;height:48px;font-size:15px;justify-content:center">Access POS</button>
     </form>
   </div>
 </div>
@@ -273,7 +289,7 @@ input::placeholder{color:var(--tan3)}
       <button class="auth-np-btn" onclick="authKey('9')">9</button>
       <button class="auth-np-btn" onclick="authKey('C')" style="background:var(--red2);color:var(--red);border-color:rgba(212,79,79,.25)">C</button>
       <button class="auth-np-btn" onclick="authKey('0')">0</button>
-      <button class="auth-np-btn" onclick="authKey('OK')" style="background:var(--gl2);color:var(--gl);border-color:rgba(212,170,106,.25)">OK</button>
+      <button class="auth-np-btn" id="authBtn" onclick="authKey('OK')" style="background:var(--gl2);color:var(--gl);border-color:rgba(212,170,106,.25)">OK</button>
     </div>
     <button onclick="cancelAuth()" class="btn btn-ghost" style="width:100%;margin-top:12px">Cancel</button>
   </div>
@@ -579,6 +595,9 @@ input::placeholder{color:var(--tan3)}
         <div class="btn-icon" onclick="openPrinterSettings()" title="Printer Settings">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         </div>
+        <div class="btn-icon" onclick="openSettings()" title="POS Settings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
         <div class="btn-icon" onclick="openShift()" title="Shift Report">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </div>
@@ -667,6 +686,162 @@ input::placeholder{color:var(--tan3)}
 </div>
 
 <!-- ═══════════════════════════════════════════════════
+     9. POS SETTINGS MODAL
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="settingsOv">
+  <div class="modal" style="max-width:520px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-shrink:0">
+      <div class="modal-title" style="margin-bottom:0">POS Settings</div>
+      <div class="modal-close" style="position:static" onclick="closeOverlay('settingsOv')">✕</div>
+    </div>
+    <div class="modal-body">
+
+      <!-- Store Info -->
+      <div class="settings-group">
+        <div class="settings-group-title">Store Information</div>
+        <div class="srow">
+          <div><div class="srow-lbl">Store Name (EN)</div></div>
+          <input type="text" id="cfg-name" value="Ceramic Tea Bar">
+        </div>
+        <div class="srow">
+          <div><div class="srow-lbl">Store Name (TH)</div></div>
+          <input type="text" id="cfg-name-th" value="เซรามิค ที บาร์">
+        </div>
+        <div class="srow">
+          <div><div class="srow-lbl">Tax ID (เลขที่ผู้เสียภาษี)</div></div>
+          <input type="text" id="cfg-tax-id" value="0105565012345">
+        </div>
+        <div class="srow">
+          <div><div class="srow-lbl">Phone</div></div>
+          <input type="tel" id="cfg-tel" value="02-123-4567">
+        </div>
+        <div class="srow">
+          <div><div class="srow-lbl">WiFi (printed on receipt)</div></div>
+          <input type="text" id="cfg-wifi" value="ceramic_guest | pw: artisan">
+        </div>
+      </div>
+
+      <!-- Tax & Payments -->
+      <div class="settings-group">
+        <div class="settings-group-title">Tax & Payment</div>
+        <div class="srow">
+          <div>
+            <div class="srow-lbl">VAT Rate (%)</div>
+            <div class="srow-sub">0 = price already includes VAT</div>
+          </div>
+          <select id="cfg-vat">
+            <option value="0">0% — VAT Included</option>
+            <option value="7">7% — Add on top</option>
+          </select>
+        </div>
+        <div class="srow">
+          <div>
+            <div class="srow-lbl">Enable QR Payment</div>
+            <div class="srow-sub">Show QR Transfer button in checkout</div>
+          </div>
+          <select id="cfg-qr">
+            <option value="1">Enabled</option>
+            <option value="0">Disabled</option>
+          </select>
+        </div>
+        <div class="srow">
+          <div>
+            <div class="srow-lbl">Enable Points Payment</div>
+            <div class="srow-sub">Allow redeeming loyalty points</div>
+          </div>
+          <select id="cfg-pts-pay">
+            <option value="1">Enabled</option>
+            <option value="0">Disabled</option>
+          </select>
+        </div>
+        <div class="srow">
+          <div>
+            <div class="srow-lbl">Points per ฿</div>
+            <div class="srow-sub">How many baht = 1 point earned</div>
+          </div>
+          <input type="number" id="cfg-pts-rate" value="10" min="1" max="100" style="max-width:80px">
+        </div>
+      </div>
+
+      <!-- POS Behavior -->
+      <div class="settings-group">
+        <div class="settings-group-title">POS Behavior</div>
+        <div class="srow">
+          <div>
+            <div class="srow-lbl">Online order poll interval</div>
+            <div class="srow-sub">Check for new online orders every N seconds</div>
+          </div>
+          <select id="cfg-poll">
+            <option value="5">5 sec</option>
+            <option value="10" selected>10 sec</option>
+            <option value="30">30 sec</option>
+            <option value="0">Off</option>
+          </select>
+        </div>
+        <div class="srow">
+          <div>
+            <div class="srow-lbl">New order sound</div>
+            <div class="srow-sub">Play alert when online order arrives</div>
+          </div>
+          <select id="cfg-sound">
+            <option value="1">Enabled</option>
+            <option value="0">Disabled</option>
+          </select>
+        </div>
+        <div class="srow">
+          <div>
+            <div class="srow-lbl">Auto-print after payment</div>
+            <div class="srow-sub">Print receipt immediately on checkout</div>
+          </div>
+          <select id="cfg-autoprint">
+            <option value="1">Yes — auto print</option>
+            <option value="0">No — ask first</option>
+          </select>
+        </div>
+        <div class="srow">
+          <div>
+            <div class="srow-lbl">Receipt copies</div>
+            <div class="srow-sub">Also configurable in Printer Settings</div>
+          </div>
+          <select id="cfg-copies">
+            <option value="1">1 copy</option>
+            <option value="2">2 copies</option>
+            <option value="3">3 copies</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Supabase Connection -->
+      <div class="settings-group">
+        <div class="settings-group-title">Supabase Connection</div>
+        <div class="srow">
+          <div>
+            <div class="srow-lbl">Project URL</div>
+            <div class="srow-sub" id="sb-url-display" style="color:var(--grnl)">Loading...</div>
+          </div>
+          <span class="btn btn-ghost btn-sm" id="sb-conn-status">Checking...</span>
+        </div>
+        <div class="srow">
+          <div>
+            <div class="srow-lbl">Staff auth mode</div>
+            <div class="srow-sub">How POS verifies staff PIN</div>
+          </div>
+          <select id="cfg-auth-mode">
+            <option value="supabase">Supabase (Real-time)</option>
+            <option value="mock">Mock (Dev only)</option>
+          </select>
+        </div>
+      </div>
+
+    </div><!-- /modal-body -->
+    <div class="modal-foot" style="flex-shrink:0;margin-top:0;padding-top:16px;border-top:1px solid var(--line)">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeOverlay('settingsOv')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
      SCRIPTS
 ═══════════════════════════════════════════════════ -->
 <script src="env-config.js"></script>
@@ -687,16 +862,27 @@ const PRINTER = {
   isConnected: false,
 };
 
-/* ── STORE CONFIG ────────────────────────────────── */
-const STORE = {
-  name:    'Ceramic Tea Bar',
-  nameTH:  'เซรามิค ที บาร์',
-  taxId:   '0105565012345',         // เลขที่ผู้เสียภาษี (ตัวอย่าง)
-  tel:     '02-123-4567',
-  wifi:    'ceramic_guest | pw: artisan',
-  vatRate: 0,                       // 0 = price include VAT (set 7 for exclusive)
-  currency:'THB',
-};
+/* ── STORE CONFIG (persistent via localStorage) ──────── */
+function loadStoreConfig() {
+  const saved = JSON.parse(localStorage.getItem('pos_store_config') || '{}');
+  return {
+    name:      saved.name      || 'Ceramic Tea Bar',
+    nameTH:    saved.nameTH    || 'เซรามิค ที บาร์',
+    taxId:     saved.taxId     || '0105565012345',
+    tel:       saved.tel       || '02-123-4567',
+    wifi:      saved.wifi      || 'ceramic_guest | pw: artisan',
+    vatRate:   Number(saved.vatRate ?? 0),
+    currency:  'THB',
+    qrEnabled:      saved.qrEnabled      !== '0',
+    ptsPayEnabled:  saved.ptsPayEnabled  !== '0',
+    ptsRate:   Number(saved.ptsRate  || 10),
+    pollSec:   Number(saved.pollSec  || 10),
+    soundOn:   saved.soundOn   !== '0',
+    autoprint: saved.autoprint !== '0',
+    authMode:  saved.authMode  || 'supabase',
+  };
+}
+const STORE = loadStoreConfig();
 
 /* ── STATE ───────────────────────────────────────── */
 let MENUS = [];
@@ -721,43 +907,134 @@ let SHIFT_ORDERS = [];
 let QUEUE_NUM = 0;
 let POLL_TIMER = null;
 
-/* ── API STUBS (เพิ่มใน api.js ถ้ายังไม่มี) ────── */
+/* ── SUPABASE HELPERS (direct REST — no SDK needed) ──── */
+const SB = {
+  get url() { return window.ENV?.URL || ''; },
+  get key() { return window.ENV?.KEY || ''; },
+  get headers() {
+    return {
+      'apikey': this.key,
+      'Authorization': `Bearer ${this.key}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+    };
+  },
+  async query(table, params = {}) {
+    if (!this.url) throw new Error('Supabase not configured');
+    let url = `${this.url}/rest/v1/${table}?`;
+    if (params.select) url += `select=${encodeURIComponent(params.select)}&`;
+    if (params.eq)     Object.entries(params.eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
+    if (params.order)  url += `order=${params.order}&`;
+    if (params.limit)  url += `limit=${params.limit}&`;
+    const res = await fetch(url, { headers: this.headers });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+  async update(table, data, eq) {
+    let url = `${this.url}/rest/v1/${table}?`;
+    Object.entries(eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
+    const res = await fetch(url, { method:'PATCH', headers:this.headers, body:JSON.stringify(data) });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  },
+};
+
+/* ── SHA-256 (PIN hashing, same as onboarding.html) ─── */
+async function sha256(str) {
+  const salt = 'CTB_SALT_2025';
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest('SHA-256', enc.encode(str + salt));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ── API STUBS — fallback only when no ENV configured ── */
 if (!window.API) window.API = {};
-// getBranches
-if (!window.API.getBranches) window.API.getBranches = function() {
-  return Promise.resolve({ success:true, data:[
+
+/* getBranches — real Supabase + mock fallback */
+if (!window.API.getBranches) window.API.getBranches = async function() {
+  try {
+    const data = await SB.query('branches', { select:'id,name,address,is_open', order:'sort_order' });
+    if (data.length) return { success:true, data };
+  } catch(e) {}
+  return { success:true, data:[
     {id:'BR001',name:'Main Branch — Siam'},
     {id:'BR002',name:'Thonglor Branch'},
     {id:'BR003',name:'Ari Branch'},
-  ]});
+  ]};
 };
-// staffLogin
-if (!window.API.staffLogin) window.API.staffLogin = function(user, pin) {
-  return new Promise(r => setTimeout(() => {
-    if (pin === '1234' || pin.length >= 4)
-      r({ success:true, staff:{ name: user || 'Cashier', role:'STAFF', id:'s1' }});
-    else
-      r({ success:false, message:'Invalid PIN' });
-  }, 600));
+
+/* staffLogin — queries Supabase staff table, verifies pin_hash */
+if (!window.API.staffLogin) window.API.staffLogin = async function(username, pin) {
+  // --- Supabase path ---
+  if (SB.url && STORE.authMode !== 'mock') {
+    try {
+      const pinHash = await sha256(pin);
+      const rows = await SB.query('staff', {
+        select: 'id,name,username,role,branch_id,pin_hash,is_active',
+        eq:     { username: username.trim().toLowerCase() },
+      });
+      if (!rows.length) return { success:false, message:'ไม่พบชื่อผู้ใช้ในระบบ (Username not found)' };
+      const staff = rows[0];
+      if (staff.is_active === false) return { success:false, message:'บัญชีนี้ถูกระงับการใช้งาน (Account suspended)' };
+      if (staff.pin_hash !== pinHash) return { success:false, message:'รหัส PIN ไม่ถูกต้อง (Wrong PIN)' };
+      return { success:true, staff: { id:staff.id, name:staff.name, username:staff.username, role:staff.role, branch_id:staff.branch_id } };
+    } catch(e) {
+      console.warn('staffLogin Supabase error:', e.message);
+      return { success:false, message:'เชื่อมต่อ Supabase ไม่ได้ — ' + e.message };
+    }
+  }
+  // --- Mock fallback (dev mode) ---
+  await new Promise(r => setTimeout(r, 600));
+  if (pin.length >= 4)
+    return { success:true, staff:{ id:'s1', name: username, username, role:'STAFF' }};
+  return { success:false, message:'PIN ต้องมีอย่างน้อย 4 ตัว' };
 };
-// verifyManagerPin
-if (!window.API.verifyManagerPin) window.API.verifyManagerPin = function(pin) {
-  return new Promise(r => setTimeout(() => {
-    if (pin === '9999' || pin === '0000')
-      r({ success:true, managerName:'Manager' });
-    else
-      r({ success:false, message:'Wrong manager PIN (try 9999)' });
-  }, 500));
+
+/* verifyManagerPin — query manager/admin staff by pin_hash */
+if (!window.API.verifyManagerPin) window.API.verifyManagerPin = async function(pin) {
+  if (SB.url && STORE.authMode !== 'mock') {
+    try {
+      const pinHash = await sha256(pin);
+      const rows = await SB.query('staff', {
+        select: 'id,name,role,pin_hash,is_active',
+      });
+      const mgr = rows.find(s =>
+        (s.role === 'MANAGER' || s.role === 'ADMIN') &&
+        s.is_active !== false &&
+        s.pin_hash === pinHash
+      );
+      if (mgr) return { success:true, managerName:mgr.name };
+      return { success:false, message:'รหัส Manager ไม่ถูกต้อง' };
+    } catch(e) {
+      return { success:false, message:'Connection error: ' + e.message };
+    }
+  }
+  await new Promise(r => setTimeout(r, 400));
+  if (pin === '9999' || pin === '0000') return { success:true, managerName:'Manager (Dev)' };
+  return { success:false, message:'Wrong PIN (dev: use 9999)' };
 };
-// validatePromoCode
-if (!window.API.validatePromoCode) window.API.validatePromoCode = function({ code, subtotal }) {
-  const codes = { 'NEW10':{pct:10}, 'CERAMIC50':{flat:50}, 'FREESHIP':{flat:0} };
-  return new Promise(r => setTimeout(() => {
-    const c = codes[code];
-    if (!c) { r({ valid:false, message:'Invalid code' }); return; }
-    const disc = c.flat !== undefined ? c.flat : Math.round(subtotal * c.pct / 100);
-    r({ valid:true, discountAmount:disc, description: c.pct ? c.pct+'% off' : '฿'+disc+' off' });
-  }, 400));
+
+/* validatePromoCode */
+if (!window.API.validatePromoCode) window.API.validatePromoCode = async function({ code, subtotal }) {
+  if (SB.url) {
+    try {
+      const rows = await SB.query('promo_codes', { select:'*', eq:{ code:code.toUpperCase(), is_active:true } });
+      const p = rows[0];
+      if (!p) return { valid:false, message:'รหัสส่วนลดไม่ถูกต้อง' };
+      if (p.expires_at && new Date(p.expires_at) < new Date()) return { valid:false, message:'โค้ดหมดอายุแล้ว' };
+      if (p.max_uses && p.used_count >= p.max_uses) return { valid:false, message:'โค้ดถูกใช้ครบแล้ว' };
+      if (subtotal < (p.min_order||0)) return { valid:false, message:`ต้องสั่งขั้นต่ำ ฿${p.min_order}` };
+      const disc = p.type==='percent' ? Math.round(subtotal*p.value/100) : p.value;
+      return { valid:true, discountAmount:disc, description:`${p.type==='percent'?p.value+'%':'฿'+p.value} off` };
+    } catch(e) {}
+  }
+  // Mock
+  const codes = { 'NEW10':{pct:10},'CERAMIC50':{flat:50},'FREESHIP':{flat:20} };
+  await new Promise(r => setTimeout(r, 300));
+  const c = codes[code.toUpperCase()];
+  if (!c) return { valid:false, message:'Invalid code' };
+  const disc = c.flat!==undefined ? c.flat : Math.round(subtotal*c.pct/100);
+  return { valid:true, discountAmount:disc, description: c.pct?c.pct+'% off':'฿'+disc+' off' };
 };
 
 /* ── UTILITIES ──────────────────────────────────── */
@@ -775,61 +1052,134 @@ function toast(msg, type='info', dur=2800) {
 }
 function closeOverlay(id) { ge(id).classList.remove('on'); }
 
-/* ── LOGIN ──────────────────────────────────────── */
-window.onload = () => {
-  // Restore printer settings
-  ge('printerMode').value = PRINTER.mode;
-  ge('printerIp').value   = PRINTER.ip;
-  ge('printerPort').value = PRINTER.port;
-  ge('printerWidth').value= PRINTER.width;
-  ge('printerCopies').value = PRINTER.copies;
+/* ── INIT ────────────────────────────────────────── */
+window.onload = async () => {
+  // 1. Restore printer settings into modal fields
+  ge('printerMode').value     = PRINTER.mode;
+  ge('printerIp').value       = PRINTER.ip;
+  ge('printerPort').value     = PRINTER.port;
+  ge('printerWidth').value    = PRINTER.width;
+  ge('printerCopies').value   = PRINTER.copies;
   updatePrinterMode();
 
-  // Restore branch
+  // 2. Check Supabase connection & show status on login screen
+  const statusEl  = ge('sbLoginStatus');
+  const statusTxt = ge('sbLoginStatusTxt');
+  if (SB.url) {
+    statusEl.className = 'login-sb-status lss-wait';
+    statusTxt.textContent = 'เชื่อมต่อ Supabase...';
+    try {
+      await SB.query('branches', { select:'id', limit:1 });
+      statusEl.className = 'login-sb-status lss-ok';
+      statusTxt.textContent = '✓ Supabase connected — ' + SB.url.replace('https://','').split('.')[0];
+    } catch(e) {
+      statusEl.className = 'login-sb-status lss-err';
+      statusTxt.textContent = '✕ Cannot reach Supabase: ' + e.message;
+    }
+  } else {
+    statusEl.className = 'login-sb-status lss-err';
+    statusTxt.textContent = '⚠ env-config.js not loaded — using mock mode';
+  }
+
+  // 3. Load branches into login dropdown (from Supabase or mock)
+  await loadBranchDropdown();
+
+  // 4. Restore last branch selection
   const savedBranch = localStorage.getItem('pos_saved_branch');
   if (savedBranch) ge('branchSelect').value = savedBranch;
+
+  // 5. Apply settings (QR, Points visibility etc)
+  applyInitialSettings();
 };
 
-function doLogin() {
+/* ── BRANCH DROPDOWN ─────────────────────────────── */
+async function loadBranchDropdown() {
+  const sel = ge('branchSelect');
+  sel.innerHTML = '<option value="">กำลังโหลดสาขา...</option>';
+  try {
+    const res = await API.getBranches();
+    if (res.success && res.data.length) {
+      sel.innerHTML = '<option value="">— เลือกสาขา —</option>' +
+        res.data.map(b => `<option value="${b.id}">${b.name}${b.is_open===false?' (ปิด)':''}</option>`).join('');
+      return;
+    }
+  } catch(e) { console.warn('loadBranchDropdown:', e.message); }
+  // fallback
+  sel.innerHTML = ['<option value="">— เลือกสาขา —</option>',
+    '<option value="BR001">Main Branch — Siam</option>',
+    '<option value="BR002">Thonglor Branch</option>',
+    '<option value="BR003">Ari Branch</option>',
+  ].join('');
+}
+
+/* ── POLL INTERVAL per settings ─────────────────── */
+let _pollInterval = STORE.pollSec;
+
+/* ── LOGIN ──────────────────────────────────────── */
+async function doLogin() {
   const branchId   = ge('branchSelect').value;
-  const branchText = ge('branchSelect').options[ge('branchSelect').selectedIndex]?.text;
-  const user = ge('staffUser').value.trim();
-  const pin  = ge('pinInp').value;
+  const branchText = ge('branchSelect').options[ge('branchSelect').selectedIndex]?.text || branchId;
+  const user = ge('staffUser').value.trim().toLowerCase();
+  const pin  = ge('pinInp').value.trim();
   const err  = ge('loginError');
   const btn  = ge('loginBtn');
+
   err.textContent = '';
-  if (!branchId)     { err.textContent = 'Please select a branch'; return; }
-  if (!user || !pin) { err.textContent = 'Username and PIN required'; return; }
-  btn.textContent = 'Verifying...'; btn.disabled = true;
-  API.staffLogin(user, pin).then(res => {
-    btn.textContent = 'Access POS'; btn.disabled = false;
-    if (!res.success) { err.textContent = res.message; return; }
+  if (!branchId)     { err.textContent = 'กรุณาเลือกสาขาก่อน'; return; }
+  if (!user)         { err.textContent = 'กรุณากรอก Username'; return; }
+  if (pin.length < 4){ err.textContent = 'PIN ต้องมีอย่างน้อย 4 ตัว'; return; }
+
+  btn.textContent = 'กำลังตรวจสอบ...'; btn.disabled = true;
+
+  try {
+    const res = await API.staffLogin(user, pin);
+    if (!res.success) {
+      err.textContent = res.message || 'เข้าสู่ระบบไม่สำเร็จ';
+      btn.textContent = 'Access POS'; btn.disabled = false;
+      return;
+    }
+
+    // ─ Login success ─
     CURRENT_STAFF  = res.staff;
-    CURRENT_BRANCH = { id: branchId, name: branchText };
+    CURRENT_BRANCH = { id: branchId, name: branchText.replace(' (ปิด)','') };
     localStorage.setItem('pos_saved_branch', branchId);
-    ge('staffName').textContent  = CURRENT_STAFF.name + (CURRENT_STAFF.role ? ` [${CURRENT_STAFF.role}]` : '');
+
+    // UI
+    ge('staffName').innerHTML = `${CURRENT_STAFF.name} <span style="font-size:9px;background:var(--gl);color:var(--c0);padding:1px 5px;border-radius:3px;font-weight:700">${CURRENT_STAFF.role}</span>`;
     ge('branchName').textContent = CURRENT_BRANCH.name;
     ge('loginOv').classList.remove('on');
     ge('pinInp').value = '';
+    ge('staffUser').value = '';
+
     SHIFT_START = new Date();
+
     // Unlock audio
     const audio = ge('posAlert');
     audio.volume = 0;
     audio.play().then(() => { audio.pause(); audio.currentTime = 0; audio.volume = 1; isAudioUnlocked = true; }).catch(() => {});
+
     loadMenuData();
     startPolling();
     checkConnection();
-    toast('Welcome, ' + CURRENT_STAFF.name + '!', 'success');
-  });
+    toast(`ยินดีต้อนรับ ${CURRENT_STAFF.name}!`, 'success');
+  } catch(e) {
+    err.textContent = 'Connection error: ' + e.message;
+    btn.textContent = 'Access POS'; btn.disabled = false;
+  }
 }
 
 function lockPOS() {
-  if (TICKET.length > 0 && !confirm('Ticket has items. Lock anyway?')) return;
+  if (TICKET.length > 0 && !confirm('มีสินค้าในบิลอยู่ ต้องการล็อก POS ต่อไปหรือไม่?')) return;
   stopPolling();
   ge('loginOv').classList.add('on');
   ge('staffUser').value = '';
   ge('pinInp').value = '';
   ge('loginError').textContent = '';
+  // Reload branches in case they changed
+  loadBranchDropdown().then(() => {
+    const savedBranch = localStorage.getItem('pos_saved_branch');
+    if (savedBranch) ge('branchSelect').value = savedBranch;
+  });
 }
 
 /* ── CONNECTION CHECK ───────────────────────────── */
@@ -843,10 +1193,12 @@ function checkConnection() {
   });
 }
 
-/* ── POLLING ────────────────────────────────────── */
+/* ── POLLING (configurable interval) ────────────── */
 function startPolling() {
+  if (POLL_TIMER) clearInterval(POLL_TIMER);
   pollIncomingOrders();
-  POLL_TIMER = setInterval(pollIncomingOrders, 5000);
+  const interval = (STORE.pollSec || 10) * 1000;
+  if (interval > 0) POLL_TIMER = setInterval(pollIncomingOrders, interval);
 }
 function stopPolling() {
   if (POLL_TIMER) { clearInterval(POLL_TIMER); POLL_TIMER = null; }
@@ -857,7 +1209,7 @@ function pollIncomingOrders() {
   API.getAdminOrders().then(res => {
     if (!res.success) return;
     const newPendings = res.data.filter(o => o.status === 'PENDING' && o.source !== 'POS');
-    if (newPendings.length > pendingOrders.length && isAudioUnlocked) {
+    if (newPendings.length > pendingOrders.length && isAudioUnlocked && STORE.soundOn) {
       const audio = ge('posAlert');
       audio.currentTime = 0;
       audio.play().catch(() => {});
@@ -1266,19 +1618,30 @@ function processPayment() {
   API.createOrder(payload).then(res => {
     const orderId = res.id || ('CTB-POS-' + Date.now().toString(36).toUpperCase());
     LAST_ORDER = { ...payload, id: orderId, created_at: new Date().toISOString(), queueNum };
-
-    // Add to shift log
     SHIFT_ORDERS.push(LAST_ORDER);
 
     closeOverlay('checkoutOv');
-    // Show queue number on ticket header
     ge('queueBadge').textContent = '#' + queueNum;
     ge('queueBadge').style.display = 'inline-flex';
-    // Print
-    printReceipt(LAST_ORDER, Number(PRINTER.copies));
-    toast('Payment successful! Order ' + orderId, 'success', 4000);
 
-    // Reset
+    // Auto-print or ask
+    if (STORE.autoprint) {
+      printReceipt(LAST_ORDER, Number(PRINTER.copies));
+    } else {
+      if (confirm('พิมพ์ใบเสร็จ?')) printReceipt(LAST_ORDER, Number(PRINTER.copies));
+    }
+
+    // Award points if member attached
+    if (CUR_MEMBER && PAY_METHOD !== 'comp') {
+      const earned = Math.floor(CO_TOTAL / STORE.ptsRate);
+      if (earned > 0 && API.updateMemberPoints) {
+        API.updateMemberPoints(CUR_MEMBER.id, (CUR_MEMBER.points || 0) + earned)
+          .then(() => toast(`+${earned} pts earned for ${CUR_MEMBER.name}`, 'success', 3000))
+          .catch(() => {});
+      }
+    }
+
+    toast('ชำระเงินสำเร็จ! Order ' + orderId, 'success', 4000);
     TICKET = []; CO_DISCOUNT = 0;
     removeMember();
     updateTicket();
@@ -1346,6 +1709,100 @@ function closeShift() {
   QUEUE_NUM    = 0;
   closeOverlay('shiftOv');
   toast('Shift closed & Z-Report printed', 'success');
+}
+
+/* ── SETTINGS MODAL ──────────────────────────────── */
+function openSettings() {
+  // Populate fields from STORE config
+  const cfg = JSON.parse(localStorage.getItem('pos_store_config') || '{}');
+  ge('cfg-name').value       = STORE.name;
+  ge('cfg-name-th').value    = STORE.nameTH;
+  ge('cfg-tax-id').value     = STORE.taxId;
+  ge('cfg-tel').value        = STORE.tel;
+  ge('cfg-wifi').value       = STORE.wifi;
+  ge('cfg-vat').value        = String(STORE.vatRate);
+  ge('cfg-qr').value         = STORE.qrEnabled ? '1' : '0';
+  ge('cfg-pts-pay').value    = STORE.ptsPayEnabled ? '1' : '0';
+  ge('cfg-pts-rate').value   = STORE.ptsRate;
+  ge('cfg-poll').value       = String(STORE.pollSec);
+  ge('cfg-sound').value      = STORE.soundOn ? '1' : '0';
+  ge('cfg-autoprint').value  = STORE.autoprint ? '1' : '0';
+  ge('cfg-copies').value     = String(PRINTER.copies);
+  ge('cfg-auth-mode').value  = STORE.authMode || 'supabase';
+
+  // Connection info
+  const urlDisp = ge('sb-url-display');
+  if (urlDisp) urlDisp.textContent = SB.url || '(not configured — check env-config.js)';
+
+  // Connection status
+  const connBtn = ge('sb-conn-status');
+  if (connBtn) {
+    connBtn.textContent = 'Testing...';
+    SB.query('branches', { select:'id', limit:1 })
+      .then(() => { connBtn.textContent = '✓ Connected'; connBtn.className = 'btn btn-grn btn-sm'; })
+      .catch(() => { connBtn.textContent = '✕ Error'; connBtn.className = 'btn btn-red btn-sm'; });
+  }
+
+  ge('settingsOv').classList.add('on');
+}
+
+function saveSettings() {
+  const newCfg = {
+    name:         ge('cfg-name').value.trim()    || STORE.name,
+    nameTH:       ge('cfg-name-th').value.trim() || STORE.nameTH,
+    taxId:        ge('cfg-tax-id').value.trim()  || STORE.taxId,
+    tel:          ge('cfg-tel').value.trim()     || STORE.tel,
+    wifi:         ge('cfg-wifi').value.trim()    || STORE.wifi,
+    vatRate:      ge('cfg-vat').value,
+    qrEnabled:    ge('cfg-qr').value,
+    ptsPayEnabled:ge('cfg-pts-pay').value,
+    ptsRate:      ge('cfg-pts-rate').value,
+    pollSec:      ge('cfg-poll').value,
+    soundOn:      ge('cfg-sound').value,
+    autoprint:    ge('cfg-autoprint').value,
+    authMode:     ge('cfg-auth-mode').value,
+  };
+  localStorage.setItem('pos_store_config', JSON.stringify(newCfg));
+
+  // Apply immediately to running STORE object
+  Object.assign(STORE, {
+    name:         newCfg.name,
+    nameTH:       newCfg.nameTH,
+    taxId:        newCfg.taxId,
+    tel:          newCfg.tel,
+    wifi:         newCfg.wifi,
+    vatRate:      Number(newCfg.vatRate),
+    qrEnabled:    newCfg.qrEnabled !== '0',
+    ptsPayEnabled:newCfg.ptsPayEnabled !== '0',
+    ptsRate:      Number(newCfg.ptsRate),
+    pollSec:      Number(newCfg.pollSec),
+    soundOn:      newCfg.soundOn !== '0',
+    autoprint:    newCfg.autoprint !== '0',
+    authMode:     newCfg.authMode,
+  });
+
+  // Save receipt copies to printer config too
+  const copies = Number(ge('cfg-copies').value);
+  PRINTER.copies = copies;
+  localStorage.setItem('pos_printer_copies', copies);
+
+  // Restart polling with new interval
+  startPolling();
+
+  // Show/hide QR and Points payment buttons
+  const qrBtn  = ge('pm-transfer');
+  const ptsBtn = ge('pm-points');
+  if (qrBtn)  qrBtn.style.display  = STORE.qrEnabled ? '' : 'none';
+  if (ptsBtn) ptsBtn.style.display = STORE.ptsPayEnabled ? '' : 'none';
+
+  closeOverlay('settingsOv');
+  toast('Settings saved ✓', 'success');
+}
+
+/* ── APPLY INITIAL SETTINGS (called after load) ──── */
+function applyInitialSettings() {
+  if (!STORE.qrEnabled)    ge('pm-transfer') && (ge('pm-transfer').style.display = 'none');
+  if (!STORE.ptsPayEnabled) ge('pm-points') && (ge('pm-points').style.display = 'none');
 }
 
 /* ── PRINTER SETTINGS ───────────────────────────── */
