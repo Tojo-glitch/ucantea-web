@@ -1832,7 +1832,13 @@ async function doRegister(){
     try{localStorage.setItem('ctb_user',JSON.stringify(res.user))}catch(e){}
     closeAuthSheet();renderProfile();toast('Welcome to Ceramic, '+res.user.name+'!','success');
     if(S._pendingCheckout){S._pendingCheckout=false;setTimeout(openCart,350);}
-  }).catch(function(){btn.disabled=false;btn.textContent='Create Account';msg.textContent='Connection error';msg.className='auth-msg err'});
+  }).catch(function(err){ // รับค่า err มาด้วย
+      btn.disabled=false;
+      btn.textContent='Create Account';
+      msg.textContent='Connection error (See Console)';
+      msg.className='auth-msg err';
+      console.error("🔥 รหัสแดง! เกิด Error ตอนสมัครสมาชิก:", err); // พ่นออกมาดูเลย!
+  });
 }
 
 function doForgot(){
