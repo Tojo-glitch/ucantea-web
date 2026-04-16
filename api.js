@@ -84,28 +84,41 @@ const sb = {
     return res.json();
   },
 
+// ใน object 'sb' ให้แก้ 3 ฟังก์ชันนี้ครับ
+
   async signUp(email, password) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-      method: 'POST', headers: { ...sb.headers, 'apikey': SUPABASE_ANON },
+      method: 'POST', 
+      // 🟢 เปลี่ยนมาใช้ sb.getHeaders() เพื่อให้ได้ Header ที่ถูกต้องเสมอ
+      headers: sb.getHeaders(), 
       body: JSON.stringify({ email, password }),
     });
-    return res.json();
+    
+    const data = await res.json();
+    if (!res.ok) {
+      console.error("Supabase Auth Error:", data); // เอาไว้ดูใน Console ว่าทำไมถึงพัง
+    }
+    return data;
   },
 
   async signOut(token) {
     await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
       method: 'POST',
-      headers: { ...sb.headers, 'Authorization': `Bearer ${token}` },
+      // 🟢 ใช้ sb.getHeaders() และใส่ Authorization ทับลงไป
+      headers: { ...sb.getHeaders(), 'Authorization': `Bearer ${token}` },
     });
   },
 
   async resetPassword(email) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
-      method: 'POST', headers: sb.headers, body: JSON.stringify({ email }),
+      method: 'POST', 
+      // 🟢 เปลี่ยนมาใช้ sb.getHeaders()
+      headers: sb.getHeaders(), 
+      body: JSON.stringify({ email }),
     });
     return res.json();
   }
-}; // 🟢 ปิด Object sb ตรงนี้ให้ถูกต้อง
+}; // 🟢 ปิด Object sb
 
 /* ── HELPERS ───────────────────────────────────────── */
 const _delay = (ms = 600) => new Promise(r => setTimeout(r, ms));
