@@ -1037,6 +1037,37 @@ body, #app, .ov, #splash, #loader {
     <div class="sum-row" id="sumDiscRow" style="display:none"><span>Discount</span><span class="rv" id="sumDisc">−฿0</span></div>
     <div class="sum-div"></div>
     <div class="sum-total"><span>Total</span><span class="rv" id="sumTotal">฿0</span></div>
+    <div style="margin:12px 20px 8px;font-size:10px;font-weight:700;color:var(--tan3);letter-spacing:1.5px;text-transform:uppercase">Payment Method</div>
+    
+    <!-- ปุ่ม Credit Card (รออนาคต) -->
+    <div style="margin:0 20px 8px; padding:12px 16px; background:var(--c2); border:1px solid var(--ln2); border-radius:10px; display:flex; align-items:center; gap:10px; opacity:0.5; cursor:not-allowed;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+      <div style="flex:1;">
+        <div style="font-size:13px; font-weight:600; color:var(--tan);">Credit / Debit Card</div>
+        <div style="font-size:10px; color:var(--tan3);">Coming Soon</div>
+      </div>
+    </div>
+
+    <!-- โอนเงินธนาคาร (บังคับใช้อันนี้) -->
+    <div style="margin:0 20px 12px; padding:12px 16px; background:rgba(212,170,106,.08); border:1px solid rgba(212,170,106,.3); border-radius:10px; display:flex; align-items:center; gap:10px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+      <div style="flex:1;">
+        <div style="font-size:13px; font-weight:600; color:var(--gl);">Bank Transfer (โอนเงิน)</div>
+        <div style="font-size:10px; color:var(--tan3);">Kasikorn Bank: 123-4-56789-0<br>Name: Ceramic Tea Co.</div>
+      </div>
+    </div>
+
+    <!-- กล่องอัปโหลดสลิป -->
+    <div class="slip-zone" onclick="document.getElementById('slipFile').click()">
+      <input type="file" id="slipFile" accept="image/*" style="display:none" onchange="handleSlip(event)">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 14V4M7 8l4-4 4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <div class="slip-lbl" id="slipLbl">Upload Payment Slip</div>
+      <div class="slip-sub">อัปโหลดสลิปเพื่อยืนยันการสั่งซื้อ</div>
+    </div>
+    <div style="margin:8px 20px 0;overflow:hidden;border-radius:8px">
+      <img class="slip-prev" id="slipPrev" src="" alt="">
+      <div class="slip-chg" id="slipChg" onclick="document.getElementById('slipFile').click()">Change image</div>
+    </div>
     <div style="margin:12px 20px 8px;font-size:10px;font-weight:700;color:var(--tan3);letter-spacing:1.5px;text-transform:uppercase">Payment slip</div>
     <div class="slip-zone" onclick="document.getElementById('slipFile').click()">
       <input type="file" id="slipFile" accept="image/*" style="display:none" onchange="handleSlip(event)">
@@ -1486,26 +1517,32 @@ function addToCart(){
   closeCS();updCartBar();toast(m.name+' added to cart');
 }
 
-/* ── CART ───────────────────────────────────────────── */
-function calcSub(){return S.cart.reduce(function(s,i){return s+i.price*i.qty},0)}
-function calcTotal(){return Math.round((calcSub()+(S.orderType==='delivery'?20:0)-S.disc)*100)/100}
+/* ── CART (พร้อมระบบ Persistence จำตะกร้า) ───────────────────────────── */
+function saveCart() {
+  localStorage.setItem('ctb_cart', JSON.stringify(S.cart));
+}
+function loadCart() {
+  const saved = localStorage.getItem('ctb_cart');
+  if (saved) { S.cart = JSON.parse(saved); updCartBar(); }
+}
+function calcSub(){return S.cart.reduce((s,i) => s + i.price * i.qty, 0)}
+function calcTotal(){return Math.round((calcSub() + (S.orderType === 'delivery' ? 20 : 0) - S.disc) * 100) / 100}
 function updCartBar(){
-  var n=S.cart.reduce(function(s,i){return s+i.qty},0),t=calcSub();
-  var cb=ge('cbar');if(cb)cb.classList.toggle('on',n>0);
-  safeSet('cbN',n);safeSet('cbT','฿'+t);
-  var badge=ge('cartBadge');if(badge){badge.textContent=n;badge.classList.toggle('on',n>0)}
+  var n = S.cart.reduce((s,i) => s + i.qty, 0), t = calcSub();
+  var cb = ge('cbar'); if(cb) cb.classList.toggle('on', n > 0);
+  safeSet('cbN', n); safeSet('cbT', '฿' + t);
+  var badge = ge('cartBadge'); if(badge){ badge.textContent = n; badge.classList.toggle('on', n > 0); }
+  saveCart(); // <--- เซฟทุกครั้งที่แถบอัปเดต
 }
 function updSummary(){
-  var sub=calcSub();
-  safeSet('sumSub','฿'+sub);
-  var disc=S.disc;var dr=ge('sumDiscRow');
-  if(dr)dr.style.display=disc>0?'flex':'none';
-  if(disc>0)safeSet('sumDisc','−฿'+disc);
-  safeSet('sumTotal','฿'+calcTotal());
+  safeSet('sumSub', '฿' + calcSub());
+  var dr = ge('sumDiscRow'); if(dr) dr.style.display = S.disc > 0 ? 'flex' : 'none';
+  if(S.disc > 0) safeSet('sumDisc', '−฿' + S.disc);
+  safeSet('sumTotal', '฿' + calcTotal());
 }
 function openCart(){
   checkStoreStatus();
-  renderCartItems();updSummary();ge('cartOv').classList.add('on');
+  renderCartItems(); updSummary(); ge('cartOv').classList.add('on');
 }
 function closeCart(){ge('cartOv').classList.remove('on')}
 function renderCartItems(){
@@ -1524,22 +1561,9 @@ function renderCartItems(){
   }).join('');
 }
 function chCart(uid,d){
-  var i=S.cart.findIndex(function(x){return x.uid==uid});if(i<0)return;
-  S.cart[i].qty+=d;if(S.cart[i].qty<=0)S.cart.splice(i,1);
-  renderCartItems();updCartBar();updSummary();
-}
-function handleSlip(e){
-  var f=e.target.files[0];if(!f)return;
-  if(!['image/jpeg','image/png','image/webp'].includes(f.type)){toast('Please use JPG or PNG');return}
-  if(f.size>3*1024*1024){toast('File too large (max 3MB)');return}
-  S.slipFile=f;
-  var r=new FileReader();r.onload=function(ev){
-    var p=ge('slipPrev'),c=ge('slipChg'),l=ge('slipLbl');
-    if(p){p.src=ev.target.result;p.classList.add('on')}
-    if(c)c.classList.add('on');
-    if(l)l.textContent='✓ Slip uploaded';
-    toast('Slip uploaded');
-  };r.readAsDataURL(f);
+  var i=S.cart.findIndex(x => x.uid == uid); if(i < 0) return;
+  S.cart[i].qty += d; if(S.cart[i].qty <= 0) S.cart.splice(i,1);
+  renderCartItems(); updCartBar(); updSummary();
 }
 
 /* ── PROMO ──────────────────────────────────────────── */
@@ -1557,10 +1581,34 @@ function applyPromo(){
   toast('Promo applied!');updSummary();
 }
 
-/* ── PLACE ORDER ────────────────────────────────────── */
+/* ── PLACE ORDER (Validation + Force Login) ────────────────────────────────────── */
 async function placeOrder() {
+  // 1. ตรวจสอบตะกร้า
   if (!S.cart.length) { toast('Your cart is empty', 'warn'); return; }
-  if (!S.slipFile) { toast('Please upload your payment slip', 'warn'); return; }
+
+  // 2. บังคับ Login ก่อนจ่ายเงิน (ตาม PRD)
+  if (!S.user) {
+    toast('กรุณาเข้าสู่ระบบก่อนชำระเงิน', 'warn');
+    closeCart(); // ปิดตะกร้าชั่วคราว
+    openAuth('login'); // เด้งหน้า Login
+    return;
+  }
+
+  // 3. ตรวจสอบข้อมูลที่อยู่ / เวลา
+  var addr = '', phone = '', time = '';
+  if(S.orderType === 'delivery') {
+      addr = ge('cartDelAddr') ? ge('cartDelAddr').value.trim() : '';
+      phone = ge('cartDelPhone') ? ge('cartDelPhone').value.trim() : '';
+      if(!addr || !phone) { toast('กรุณาระบุที่อยู่และเบอร์โทรให้ครบถ้วน', 'warn'); return; }
+  } else if (S.orderType === 'preorder') {
+      time = ge('cartPreTime') ? ge('cartPreTime').value : '';
+      if(!time) { toast('กรุณาระบุเวลารับของ', 'warn'); return; }
+      // ดักเวลาในอดีต
+      if(new Date(time) < new Date()) { toast('ไม่สามารถเลือกเวลาในอดีตได้', 'warn'); return; }
+  }
+
+  // 4. ตรวจสอบสลิป (NO COD)
+  if (!S.slipFile) { toast('กรุณาแนบสลิปโอนเงิน', 'warn'); return; }
   
   var btn = ge('placeBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Uploading Slip...'; }
@@ -1568,58 +1616,48 @@ async function placeOrder() {
   var total = calcTotal();
 
   try {
-    // 1. อัปโหลดรูปสลิป
     let slipUrl = await API.uploadSlip(S.slipFile);
     if (!slipUrl) throw new Error("Upload slip failed");
 
     if (btn) btn.textContent = 'Processing Order...';
 
-// 2. สร้างออเดอร์พร้อมแนบ URL ของสลิปไปให้ Admin ตรวจ
     const res = await API.createOrder({
       items: S.cart,
       total: total,
       branch: S.branch,
       type: S.orderType,
-      userId: S.user ? S.user.id : null,
+      userId: S.user.id,
       promoCode: S.disc > 0 ? (ge('promoInp')?.value || null) : null,
       disc: S.disc,
-      slipUrl: slipUrl, // 🟢 ตรวจสอบว่าส่งค่าชื่อนี้ "slipUrl"
-      status: 'PENDING'
+      slipUrl: slipUrl, 
+      status: 'PENDING',
+      delivery_address: addr,
+      delivery_phone: phone,
+      pickup_time: time
     });
 
-    // 3. จัดการ UI หลังจากสั่งสำเร็จ
     if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Pay'; }
     closeCart();
     
     var orderId = res.id || 'CTB-' + Date.now().toString(36).toUpperCase();
     S.order = { id: orderId, status: 'pending', items: S.cart.slice(), total: total };
     
-    // แต้ม
-    var pts = Math.floor(total / 10);
-    if (S.user) { S.user.points = (S.user.points || 0) + pts; renderLoyalty(); }
+    // เคลียร์ตะกร้าและลบออกจาก LocalStorage
+    S.cart = []; S.disc = 0; S.slipFile = null; saveCart();
     
-    // โชว์ใบเสร็จ
-    safeSet('rcptName', 'Order confirmed');
-    safeSet('rcptNum', orderId);
-    safeSet('rcptPtsTxt', 'Points earned');
-    safeSet('rcptPtsNum', '+' + pts + ' pts');
-    
-    const ri = ge('rcptItems');
-    if (ri) ri.innerHTML = S.cart.map(i => `<div class="rcpt-item"><span class="rcpt-item-name">${i.name}</span><span class="rcpt-item-qty">×${i.qty}</span><span class="rcpt-item-price">฿${(i.price * i.qty)}</span></div>`).join('');
-    
-    const rs = ge('rcptSummary');
-    if (rs) rs.innerHTML = '<div class="rcpt-divider"></div><div class="rcpt-total"><span>Total Paid</span><span class="rv">฿' + total + '</span></div>';
-    
-    ge('rcptOv').classList.add('on');
-    
-    // รีเซ็ตทุกอย่าง
-    S.cart = []; S.disc = 0; S.slipFile = null;
     ge('slipPrev').classList.remove('on');
     ge('slipChg').classList.remove('on');
     ge('slipLbl').textContent = 'Upload payment slip';
-    ge('promoOk') && (ge('promoOk').style.display = 'none');
+    if(ge('cartDelAddr')) ge('cartDelAddr').value = '';
+    if(ge('cartDelPhone')) ge('cartDelPhone').value = '';
+    if(ge('cartPreTime')) ge('cartPreTime').value = '';
+    
     updCartBar();
     startPoll();
+    
+    // พาไปหน้า Track Order อัตโนมัติ แทนการโชว์ใบเสร็จหลอก
+    toast('Order Placed Successfully!', 'success');
+    nav('pg-track', 'nt-track');
 
   } catch (err) {
     if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Pay'; }
@@ -1627,86 +1665,6 @@ async function placeOrder() {
     console.error(err);
   }
 }
-
-/* ── TRACKING (แก้ไขให้ Real-time และแก้บั๊ก true/false) ── */
-function renderTrack(){
-  var el=ge('trkContent');if(!el)return;
-  if(!S.order){
-    el.innerHTML='<div style="text-align:center;padding:68px 20px;color:var(--tan3)"><div style="font-family:var(--serif);font-size:17px;color:var(--tan2);margin-bottom:5px">No active orders</div><div style="font-size:12px;margin-bottom:20px">Place an order to track it here.</div><button onclick="nav(\'pg-order\',\'nt-order\')" style="height:var(--touch);background:var(--c2);border:1px solid var(--ln2);border-radius:9px;padding:0 20px;font-size:13px;font-weight:500;color:var(--tan);cursor:pointer">Browse menu</button></div>';
-    return;
-  }
-  
-  var o = S.order;
-  // แปลงสถานะจากระบบให้เป็นคำที่ลูกค้าเข้าใจ
-  var stMap = {
-    pending:   ['Verifying', 'pending', 'tb-preparing', 'รอตรวจสอบสลิป'],
-    confirmed: ['Order Placed', 'confirmed', 'tb-preparing', 'รับออเดอร์แล้ว'],
-    preparing: ['Brewing', 'preparing', 'tb-preparing', 'กำลังชงเครื่องดื่ม'],
-    ready:     ['Ready for Pickup', 'ready', 'tb-ready', 'เชิญรับเครื่องดื่ม'],
-    completed: ['Completed', 'done', 'tb-done', 'เสร็จสิ้น'],
-    cancelled: ['Cancelled', 'cancelled', 'tb-done', 'ยกเลิกออเดอร์']
-  };
-  
-  var stKey = (o.status || 'pending').toLowerCase();
-  var st = stMap[stKey] || stMap.pending;
-
-  // กำหนด Step การทำงาน
-  var isPlaced = ['pending', 'confirmed', 'preparing', 'ready', 'completed'].includes(stKey);
-  var isBrewing = ['preparing', 'ready', 'completed'].includes(stKey);
-  var isReady = ['ready', 'completed'].includes(stKey);
-
-  var stepsHtml = `
-    <div class="trk-step ${isPlaced ? 'done' : 'active'}">
-      <div class="step-dot"><svg width="9" height="8" viewBox="0 0 9 8" fill="none"><path d="M1 4l2.5 3L8 1" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg></div>
-      <div class="step-body"><h4>Order placed</h4><p>${stKey === 'pending' ? 'รอตรวจสอบการชำระเงิน' : 'ยืนยันออเดอร์แล้ว'}</p></div>
-    </div>
-    <div class="trk-step ${isBrewing ? 'done' : (stKey === 'confirmed' ? 'active' : '')}">
-      <div class="step-dot">${isBrewing ? '<svg width="9" height="8" viewBox="0 0 9 8" fill="none"><path d="M1 4l2.5 3L8 1" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>' : ''}</div>
-      <div class="step-body"><h4>Brewing</h4><p>บาริสต้ากำลังคราฟต์เครื่องดื่มของคุณ</p></div>
-    </div>
-    <div class="trk-step ${isReady ? 'done' : (stKey === 'preparing' ? 'active' : '')}">
-      <div class="step-dot">${isReady ? '<svg width="9" height="8" viewBox="0 0 9 8" fill="none"><path d="M1 4l2.5 3L8 1" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>' : ''}</div>
-      <div class="step-body"><h4>Ready for pickup</h4><p>เชิญรับเครื่องดื่มที่เคาน์เตอร์</p></div>
-    </div>
-  `;
-
-  var isActive = stKey !== 'completed' && stKey !== 'cancelled';
-  
-  el.innerHTML='<div class="trk-card"><div class="trk-hd"><div class="trk-status">'+st[0]+'</div><div class="trk-badge '+st[2]+'">'+st[3]+'</div></div>'
-    +(isActive?'<div class="queue-num"><div class="queue-lbl">Your queue</div><div class="queue-n">'+(o.id.split('-')[1] || o.id)+'</div></div>':'')
-    +'<div class="trk-prog">'+stepsHtml+'</div>'
-    +(isActive?'<div class="cc-row"><div class="cc-lbl" id="ccCd"></div><button class="cancel-sm" onclick="doCancel()">Cancel order</button></div>':'')
-    +'</div>'
-    +(stKey==='ready'?'<div class="nv-card"><div class="nv-tag">Ready now</div><div class="nv-txt">Show this to the barista</div><div class="nv-sub" style="font-family:var(--serif);font-size:20px;color:var(--gl)">'+o.id+'</div></div>':'');
-    
-  if(isActive && stKey === 'pending') startCancelTimer();
-}
-
-function startPoll(){
-  if(pollT) clearInterval(pollT);
-  pollT = setInterval(() => {
-    if(!S.order || S.order.status.toLowerCase() === 'completed' || S.order.status.toLowerCase() === 'cancelled'){
-      clearInterval(pollT); pollT=null; return;
-    }
-    // ยิง API เช็คสถานะใหม่ทุกๆ 5 วินาที
-    API.getOrderStatus(S.order.id).then(res => {
-      if(res.success && res.status.toLowerCase() !== S.order.status.toLowerCase()) {
-        S.order.status = res.status.toLowerCase();
-        renderTrack(); // สั่งวาดหน้าจอใหม่เมื่อสถานะเปลี่ยน
-      }
-    });
-  }, 5000);
-}
-function doCancel(){
-  if(!confirm('Cancel this order?'))return;
-  S.order.status='cancelled';
-  if(pollT){clearInterval(pollT);pollT=null}
-  if(cancelT){clearInterval(cancelT);cancelT=null}
-  renderTrack();toast('Order cancelled');
-  var td=ge('trkDot'),th=ge('trkH');
-  if(td)td.classList.remove('on');if(th)th.classList.remove('on');
-}
-function doRate(n){S.rating=n;renderTrack();toast('Thank you for your review!')}
 
 /* ── LOYALTY ────────────────────────────────────────── */
 var PTS=S.user?S.user.points||0:0;
