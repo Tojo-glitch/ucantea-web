@@ -89,8 +89,8 @@ const sb = {
   async signUp(email, password) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
       method: 'POST', 
-      // 🟢 เปลี่ยนมาใช้ sb.getHeaders() เพื่อให้ได้ Header ที่ถูกต้องเสมอ
-      headers: sb.getHeaders(), 
+      // 🟢 เปลี่ยนมาใช้ sb.getheaders() เพื่อให้ได้ Header ที่ถูกต้องเสมอ
+      headers: sb.getheaders(), 
       body: JSON.stringify({ email, password }),
     });
     
@@ -104,16 +104,16 @@ const sb = {
   async signOut(token) {
     await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
       method: 'POST',
-      // 🟢 ใช้ sb.getHeaders() และใส่ Authorization ทับลงไป
-      headers: { ...sb.getHeaders(), 'Authorization': `Bearer ${token}` },
+      // 🟢 ใช้ sb.getheaders() และใส่ Authorization ทับลงไป
+      headers: { ...sb.getheaders(), 'Authorization': `Bearer ${token}` },
     });
   },
 
   async resetPassword(email) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
       method: 'POST', 
-      // 🟢 เปลี่ยนมาใช้ sb.getHeaders()
-      headers: sb.getHeaders(), 
+      // 🟢 เปลี่ยนมาใช้ sb.getheaders()
+      headers: sb.getheaders(), 
       body: JSON.stringify({ email }),
     });
     return res.json();
