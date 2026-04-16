@@ -327,16 +327,64 @@ window.API = {
     return { success: false, message: 'No account found' };
   },
 
-  async register({ phone, email, name, hashedPassword }) {
+async register({ phone, email, name, hashedPassword }) {
     if (BACKEND_MODE === 'supabase') {
-      const pseudoEmail = `${phone}@ceramic.internal`;
-      const data = await sb.signUp(pseudoEmail, hashedPassword);
-      if (data.error) return { success: false, message: data.error.message };
-      const member = await sb.insert('members', { auth_id: data.user.id, phone, email, name, points: 50, tier: 'Bronze' });
-      const user = { id: member[0].id, authId: data.user.id, name, phone, email, points: 50, tier: 'Bronze', token: data.access_token };
-      localStorage.setItem('ctb_user', JSON.stringify(user));
-      return { success: true, user };
+      try {
+        const pseudoEmail = `${phone}@ceramic.internal`;
+        
+        // 1. สร้างบัญชีใน Auth
+        const authData = await sb.signUp(pseudoEmail, hashedPassword);
+        
+        // เช็คว่าพังตอนสร้างบัญชีไหม
+        if (authData.error) {
+          // แจ้ง Error ชัดๆ ให้ลูกค้ารู้ (เช่น อีเมลซ้ำ, รหัสสั้นไป)
+          return { success: false, message: authData.error.message || authData.error.msg || 'Registration failed' };
+        }
+
+        // ดึง ID ของ User ที่เพิ่งสมัคร
+        const authId = authData.user ? authData.user.id : (authData.id || null);
+        const token = authData.session ? authData.session.access_token : (authData.access_token || 'no_token');
+
+        if (!authId) {
+          throw new Error("Supabase Auth ไม่ส่ง User ID กลับมา");
+        }
+
+        // 2. บันทึกข้อมูลลงตาราง members
+        const memberPayload = { 
+          auth_id: authId, 
+          phone: phone, 
+          email: email, 
+          name: name, 
+          points: 50, 
+          tier: 'Bronze' 
+        };
+        
+        await sb.insert('members', memberPayload);
+
+        // 3. สร้าง Object ผู้ใช้สำหรับบันทึกลง LocalStorage
+        const user = { 
+          id: authId, // ใช้ authId เป็นตัวอ้างอิงไปก่อน
+          authId: authId, 
+          name: name, 
+          phone: phone, 
+          email: email, 
+          points: 50, 
+          tier: 'Bronze', 
+          token: token 
+        };
+        
+        localStorage.setItem('ctb_user', JSON.stringify(user));
+        localStorage.setItem('ctb_token', token);
+        
+        return { success: true, user: user };
+
+      } catch (err) {
+        console.error("🔥 Register Flow Error:", err);
+        return { success: false, message: err.message || 'System error during registration.' };
+      }
     }
+    
+    // สำหรับโหมด Mock (เทสในคอม)
     return { success: true };
   },
 
