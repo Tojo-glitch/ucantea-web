@@ -1211,8 +1211,7 @@ body, #app, .ov, #splash, #loader {
 <!-- LOADER + TOAST -->
 <div id="loader"><div class="ldring"></div><div class="ldtxt" id="ldTxt">Loading...</div></div>
 <div id="toast"></div>
-<script src="/env-config.js"></script>  <!-- โหลดก่อน -->
-<script src="/api.js"></script>       <!-- โหลดทีหลัง -->
+<script src="/api.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════
    CERAMIC APP — MERGED ENGINE
@@ -1264,7 +1263,15 @@ function safeSet(id,v){var e=ge(id);if(e)e.textContent=v}
 function fmtTime(){var d=new Date();return('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
 function updClk(){var e=ge('clk');if(e)e.textContent=fmtTime()}
 var toastT2;
-function toast(msg){var e=ge('toast');if(!e)return;e.textContent=msg;e.classList.add('on');clearTimeout(toastT2);toastT2=setTimeout(function(){e.classList.remove('on')},2400)}
+function toast(msg,type){
+  var e=ge('toast');if(!e)return;
+  var cols={success:'#6dbb8a',error:'#d44f4f',warn:'#d4aa6a',info:'#d4aa6a'};
+  var col=cols[type]||null;
+  e.innerHTML=col?'<span style="width:6px;height:6px;border-radius:50%;background:'+col+';display:inline-block;margin-right:7px;flex-shrink:0"></span>'+msg:msg;
+  e.classList.add('on');
+  clearTimeout(toastT2);
+  toastT2=setTimeout(function(){e.classList.remove('on')},2600);
+}
 function showLoad(t){var e=ge('ldTxt');if(e)e.textContent=t||'Loading...';var l=ge('loader');if(l)l.classList.add('on')}
 function hideLoad(){var l=ge('loader');if(l)l.classList.remove('on')}
 async function sha256(str){var b=new TextEncoder().encode(str);var h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
@@ -1443,7 +1450,7 @@ function initSrch(){
   });
 }
 function clearSrch(){var inp=ge('srchInp'),clr=ge('srchClr');if(inp)inp.value='';if(clr)clr.classList.remove('on');renderMenu(MENUS);var es=ge('emptyState');if(es)es.classList.remove('on')}
-function loadMenu(){try{renderMenu(MENUS);ge('menuErr')&&ge('menuErr').classList.remove('on')}catch(e){ge('menuErr')&&ge('menuErr').classList.add('on')}}
+// loadMenu is defined below with full API integration
 function renderMenu(list){
   var byCat={};(list||MENUS).forEach(function(m){if(!byCat[m.cat])byCat[m.cat]=[];byCat[m.cat].push(m)});
   var el=ge('menuSecs');if(!el)return;
@@ -1535,10 +1542,7 @@ function updCartBar(){
   saveCart(); // <--- เซฟทุกครั้งที่แถบอัปเดต
 }
 function updSummary(){
-  safeSet('sumSub', '฿' + calcSub());
-  var dr = ge('sumDiscRow'); if(dr) dr.style.display = S.disc > 0 ? 'flex' : 'none';
-  if(S.disc > 0) safeSet('sumDisc', '−฿' + S.disc);
-  safeSet('sumTotal', '฿' + calcTotal());
+// updSummary is defined below with delivery fee support
 }
 function openCart(){
   checkStoreStatus();
@@ -1568,17 +1572,32 @@ function chCart(uid,d){
 
 /* ── PROMO ──────────────────────────────────────────── */
 function useCode(code){var inp=ge('promoInp');if(inp){inp.value=code;openCart();setTimeout(applyPromo,200)}}
-function applyPromo(){
+async function applyPromo(){
   var inp=ge('promoInp');if(!inp)return;
   var code=inp.value.trim().toUpperCase();
   var ok=ge('promoOk');
+  if(!code){toast('Enter a promo code','warn');return}
+  var sub=calcSub();
+  // Use API if available, fallback to local mock
+  if(window.API&&API.validatePromoCode){
+    var res=await API.validatePromoCode({code,subtotal:sub}).catch(function(){return null});
+    if(res&&res.valid){
+      S.disc=res.discountAmount;
+      if(ok){ok.style.display='block';ok.textContent='✓ '+res.description+' — saving ฿'+S.disc}
+      toast('Promo applied!','success');updSummary();
+    } else {
+      toast((res&&res.message)||'Invalid promo code','error');
+      if(ok)ok.style.display='none';S.disc=0;updSummary();
+    }
+    return;
+  }
+  // Fallback local
   var codes={'NEW10':{pct:10},'CERAMIC50':{flat:50},'FREESHIP':{flat:20}};
   var promo=codes[code];
-  if(!promo){toast('Invalid promo code');if(ok)ok.style.display='none';S.disc=0;updSummary();return}
-  var sub=calcSub();
+  if(!promo){toast('Invalid promo code','error');if(ok)ok.style.display='none';S.disc=0;updSummary();return}
   S.disc=promo.flat||Math.round(sub*promo.pct/100);
-  if(ok){ok.style.display='block';ok.textContent='Code applied — saving ฿'+S.disc}
-  toast('Promo applied!');updSummary();
+  if(ok){ok.style.display='block';ok.textContent='✓ Code applied — saving ฿'+S.disc}
+  toast('Promo applied!','success');updSummary();
 }
 
 /* ── PLACE ORDER (Validation + Force Login) ────────────────────────────────────── */
@@ -1588,9 +1607,10 @@ async function placeOrder() {
 
   // 2. บังคับ Login ก่อนจ่ายเงิน (ตาม PRD)
   if (!S.user) {
-    toast('กรุณาเข้าสู่ระบบก่อนชำระเงิน', 'warn');
-    closeCart(); // ปิดตะกร้าชั่วคราว
-    openAuth('login'); // เด้งหน้า Login
+    toast('กรุณาเข้าสู่ระบบก่อนชำระเงิน','warn');
+    S._pendingCheckout = true;
+    closeCart();
+    openAuth('login');
     return;
   }
 
@@ -1608,7 +1628,7 @@ async function placeOrder() {
   }
 
   // 4. ตรวจสอบสลิป (NO COD)
-  if (!S.slipFile) { toast('กรุณาแนบสลิปโอนเงิน', 'warn'); return; }
+  if (!S.slipFile) { toast('กรุณาแนบสลิปโอนเงิน','warn'); return; }
   
   var btn = ge('placeBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Uploading Slip...'; }
@@ -1616,8 +1636,11 @@ async function placeOrder() {
   var total = calcTotal();
 
   try {
-    let slipUrl = await API.uploadSlip(S.slipFile);
-    if (!slipUrl) throw new Error("Upload slip failed");
+    // uploadSlip may be window-level or API method
+    var uploader = (window.API&&API.uploadSlip) ? API.uploadSlip.bind(API) : (window.uploadSlip||null);
+    if(!uploader) throw new Error('Upload not configured — check api.js');
+    let slipUrl = await uploader(S.slipFile);
+    if (!slipUrl) throw new Error('Slip upload failed — check Supabase Storage bucket');
 
     if (btn) btn.textContent = 'Processing Order...';
 
@@ -1640,7 +1663,9 @@ async function placeOrder() {
     closeCart();
     
     var orderId = res.id || 'CTB-' + Date.now().toString(36).toUpperCase();
-    S.order = { id: orderId, status: 'pending', items: S.cart.slice(), total: total };
+    S.order = { id: orderId, status: 'pending', items: S.cart.slice(), total: total, branch: S.branch.name, queueNum: res.queue_number||null };
+    // Persist active order
+    try{localStorage.setItem('ctb_order',JSON.stringify(S.order))}catch(e){}
     
     // เคลียร์ตะกร้าและลบออกจาก LocalStorage
     S.cart = []; S.disc = 0; S.slipFile = null; saveCart();
@@ -1745,7 +1770,13 @@ function reorder(receipt){var o=S.orderHistory.find(function(x){return x.receipt
 ══════════════════════════════════════════════════════ */
 var _authTab='login';
 
-function openAuth(tab){ge('authOv').classList.add('on');switchAuthTab(tab||'login')}
+function openAuth(tab){
+  ge('authOv').classList.add('on');
+  switchAuthTab(tab||'login');
+  // Update header button icon if user is logged in
+  var btn=ge('authHeaderBtn');
+  if(btn)btn.style.opacity=S.user?'0.5':'1';
+}
 function closeAuthSheet(){ge('authOv').classList.remove('on')}
 function openForgotPwd(){
   ge('authTitle').textContent='Reset Password';
@@ -1777,7 +1808,13 @@ async function doLogin(){
     btn.disabled=false;btn.textContent='Sign In';
     if(!res.success){msg.textContent=res.message||'Incorrect phone or password';msg.className='auth-msg err';return}
     S.user=res.user;PTS=S.user.points||0;
-    closeAuthSheet();renderProfile();toast('Welcome back, '+S.user.name+'!');
+    // Persist session
+    try{localStorage.setItem('ctb_user',JSON.stringify(res.user))}catch(e){}
+    closeAuthSheet();
+    renderProfile();
+    toast('Welcome back, '+S.user.name+'!','success');
+    // Re-open cart if user was trying to checkout
+    if(S._pendingCheckout){S._pendingCheckout=false;setTimeout(openCart,350);}
   }).catch(function(){btn.disabled=false;btn.textContent='Sign In';msg.textContent='Connection error';msg.className='auth-msg err'});
 }
 
@@ -1798,7 +1835,9 @@ async function doRegister(){
     btn.disabled=false;btn.textContent='Create Account';
     if(!res.success){msg.textContent=res.message||'Registration failed';msg.className='auth-msg err';return}
     S.user=res.user;PTS=50;
-    closeAuthSheet();renderProfile();toast('Welcome to Ceramic, '+res.user.name+'!');
+    try{localStorage.setItem('ctb_user',JSON.stringify(res.user))}catch(e){}
+    closeAuthSheet();renderProfile();toast('Welcome to Ceramic, '+res.user.name+'!','success');
+    if(S._pendingCheckout){S._pendingCheckout=false;setTimeout(openCart,350);}
   }).catch(function(){btn.disabled=false;btn.textContent='Create Account';msg.textContent='Connection error';msg.className='auth-msg err'});
 }
 
@@ -1816,9 +1855,10 @@ function doForgot(){
 }
 
 function doSignOut(){
-  API.logout(S.user);
-  S.user=null;PTS=0;
-  renderProfile();toast('Signed out');
+  if(window.API&&API.logout)API.logout(S.user);
+  S.user=null;PTS=0;S._pendingCheckout=false;
+  try{localStorage.removeItem('ctb_user');localStorage.removeItem('ctb_token');}catch(e){}
+  renderProfile();toast('Signed out','info');
 }
 
 /* ── PROFILE EDIT ───────────────────────────────────── */
@@ -1930,27 +1970,213 @@ function checkStoreStatus() {
 }
 
 
-/* ── INIT ───────────────────────────────────────────── */
+/* ── HANDLE SLIP ─────────────────────────────────────── */
+function handleSlip(e){
+  var f=e.target.files[0];if(!f)return;
+  S.slipFile=f;
+  var r=new FileReader();
+  r.onload=function(ev){
+    var prev=ge('slipPrev'),chg=ge('slipChg'),lbl=ge('slipLbl'),zone=ge('slipZone');
+    if(prev){prev.src=ev.target.result;prev.classList.add('on')}
+    if(chg)chg.classList.add('on');
+    if(lbl)lbl.style.display='none';
+    if(zone)zone.style.borderStyle='solid';
+  };
+  r.readAsDataURL(f);
+}
+
+/* ── RENDER TRACK ─────────────────────────────────────── */
+function renderTrack(){
+  var el=ge('trkContent');if(!el)return;
+  if(!S.order){
+    el.innerHTML='<div style="text-align:center;padding:68px 20px;color:var(--tan3)">'
+      +'<div style="font-family:var(--serif);font-size:17px;color:var(--tan2);margin-bottom:5px">No active orders</div>'
+      +'<div style="font-size:12px;margin-bottom:20px">Place an order to track it here.</div>'
+      +'<button onclick="nav(\'pg-order\',\'nt-order\')" style="height:var(--touch);background:var(--c2);border:1px solid var(--ln2);border-radius:9px;padding:0 20px;font-size:13px;font-weight:500;color:var(--tan);cursor:pointer">Browse menu</button></div>';
+    ge('trkDot').classList.remove('on');
+    return;
+  }
+  var o=S.order;
+  var statusMap={
+    pending:{label:'Order Received',badge:'Pending',cls:'tb-preparing',step:0},
+    confirmed:{label:'Order Confirmed',badge:'Confirmed',cls:'tb-preparing',step:1},
+    preparing:{label:'Preparing',badge:'Preparing',cls:'tb-preparing',step:2},
+    ready:{label:'Ready for Pickup',badge:'Ready!',cls:'tb-ready',step:3},
+    completed:{label:'Completed',badge:'Completed',cls:'tb-done',step:4},
+    cancelled:{label:'Cancelled',badge:'Cancelled',cls:'tb-done',step:-1},
+  };
+  var st=statusMap[o.status]||statusMap.pending;
+  var steps=['Order Received','Confirmed','Preparing','Ready for Pickup','Completed'];
+  var stepsHtml=steps.map(function(s,i){
+    var done=i<st.step;var active=i===st.step;
+    return '<div class="trk-step'+(done?' done':'')+(active?' active':'')+'">'
+      +'<div class="step-dot">'+(done?'<svg width="8" height="7" viewBox="0 0 8 7" fill="none"><path d="M1 3.5l2.5 2.5L7 1" stroke="var(--c0)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>':'')+'</div>'
+      +'<div class="step-body"><h4>'+s+'</h4><p>'+(active?'In progress…':done?'Done':'Waiting')+'</p></div></div>';
+  }).join('');
+  var isActive=o.status!=='completed'&&o.status!=='cancelled';
+  var queueHtml=o.queueNum?'<div class="queue-num"><div class="queue-lbl">Queue Number</div><div class="queue-n">#'+o.queueNum+'</div></div>':'';
+  var etaHtml=isActive?'<div class="trk-eta"><span class="eta-lbl">Estimated time</span><span class="eta-val">8–12 min</span></div>':'';
+  var ratingHtml=o.status==='completed'&&!S.rating?'<div class="rat-wrap"><div class="rat-ask">How was your experience?</div><div class="stars">'
+    +'<button class="starbtn" onclick="doRate(1)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>'
+    +'<button class="starbtn" onclick="doRate(2)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>'
+    +'<button class="starbtn" onclick="doRate(3)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>'
+    +'<button class="starbtn" onclick="doRate(4)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>'
+    +'<button class="starbtn" onclick="doRate(5)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>'
+    +'</div></div>':'';
+  var cancelRow=isActive?'<div class="cc-row"><div class="cc-lbl cc-cd" id="ccCd"></div><button class="cancel-sm" onclick="doCancel()">Cancel order</button></div>':'';
+
+  el.innerHTML='<div class="nv-card">'
+    +'<div class="nv-tag">Order '+o.id+'</div>'
+    +'<div class="nv-txt">'+o.items.map(function(i){return i.name+(i.qty>1?' ×'+i.qty:'')}).join(', ')+'</div>'
+    +'<div class="nv-sub">Total: ฿'+o.total+' · '+(o.branch||S.branch.name)+'</div>'
+    +'</div>'
+    +queueHtml
+    +'<div class="trk-card">'
+    +'<div class="trk-hd"><div class="trk-status">'+st.label+'</div><span class="trk-badge '+st.cls+'">'+st.badge+'</span></div>'
+    +'<div class="trk-prog">'+stepsHtml+'</div>'
+    +etaHtml
+    +cancelRow
+    +'</div>'
+    +ratingHtml;
+
+  ge('trkDot').classList.toggle('on', isActive);
+  startPoll();
+}
+
+/* ── POLL (track order status) ───────────────────────── */
+function startPoll(){
+  if(pollT)clearInterval(pollT);
+  if(!S.order||S.order.status==='completed'||S.order.status==='cancelled')return;
+  pollT=setInterval(function(){
+    if(!window.API||!API.getOrderStatus)return;
+    API.getOrderStatus(S.order.id).then(function(res){
+      if(!res.success)return;
+      var prev=S.order.status;
+      S.order.status=res.status.toLowerCase();
+      if(S.order.status!==prev){
+        renderTrack();
+        // Update cancel countdown if cancelled
+        if(S.order.status==='completed'||S.order.status==='cancelled'){
+          clearInterval(pollT);pollT=null;
+          // Add to history
+          var h={receipt:S.order.id,items:S.order.items,total:S.order.total,disc:S.disc||0,created:new Date().toISOString(),status:S.order.status};
+          S.orderHistory.unshift(h);
+          try{localStorage.setItem('ctb_history',JSON.stringify(S.orderHistory))}catch(e){}
+          if(S.order.status==='completed'){
+            setTimeout(function(){if(ge('pg-track').classList.contains('active'))renderTrack()},400);
+          }
+        }
+      }
+    });
+  },8000);
+
+  // Cancel countdown timer
+  if(cancelT)clearInterval(cancelT);
+  var cancelDeadline=Date.now()+5*60*1000; // 5 min cancel window
+  cancelT=setInterval(function(){
+    var el=ge('ccCd');if(!el){clearInterval(cancelT);return}
+    var rem=Math.max(0,Math.round((cancelDeadline-Date.now())/1000));
+    if(rem<=0){clearInterval(cancelT);el.textContent='Cancel window closed';return}
+    var m=Math.floor(rem/60),s=rem%60;
+    el.textContent='Cancel within: '+m+'m '+('0'+s).slice(-2)+'s';
+  },1000);
+}
+
+function doCancel(){
+  if(!S.order)return;
+  if(!confirm('Cancel this order?'))return;
+  if(!window.API||!API.updateOrderStatus){
+    S.order.status='cancelled';renderTrack();toast('Order cancelled','warn');return;
+  }
+  API.updateOrderStatus(S.order.id,'CANCELLED').then(function(res){
+    if(res.success){
+      S.order.status='cancelled';
+      clearInterval(pollT);clearInterval(cancelT);pollT=null;cancelT=null;
+      renderTrack();toast('Order cancelled','warn');
+    }
+  }).catch(function(){toast('Cancel failed — try again','error')});
+}
+
+function doRate(n){
+  S.rating=n;
+  var stars=document.querySelectorAll('.starbtn');
+  stars.forEach(function(b,i){
+    b.classList.toggle('on',i<n);
+    var poly=b.querySelector('polygon');
+    if(poly)poly.setAttribute('fill',i<n?'var(--gl)':'none');
+  });
+  renderTrack();
+  toast('Thanks for your '+'★'.repeat(n)+' review!','success');
+}
+
+/* ── LOAD MENU from API ────────────────────────────────── */
+function loadMenu(){
+  var errEl=ge('menuErr');if(errEl)errEl.classList.remove('on');
+  if(window.API&&API.getMenu){
+    API.getMenu().then(function(res){
+      if(res&&res.products&&res.products.length){
+        MENUS=res.products;
+        if(res.customization&&res.customization.addons)TOPS=res.customization.addons;
+        buildCats();renderMenu(MENUS);buildHome();
+        buildSpFeat();buildTopGrid();
+      } else {
+        renderMenu(MENUS); // use fallback
+      }
+    }).catch(function(){
+      if(errEl)errEl.classList.add('on');
+      renderMenu(MENUS); // use fallback
+    });
+  } else {
+    try{renderMenu(MENUS)}catch(e){if(errEl)errEl.classList.add('on')}
+  }
+}
+
+/* ── DELIVERY FEE in summary ─────────────────────────── */
+function updSummary(){
+  safeSet('sumSub','฿'+calcSub());
+  var delFeeRow=ge('sumDelRow');
+  if(delFeeRow)delFeeRow.style.display=S.orderType==='delivery'?'flex':'none';
+  safeSet('sumDel','฿20');
+  var dr=ge('sumDiscRow');if(dr)dr.style.display=S.disc>0?'flex':'none';
+  if(S.disc>0)safeSet('sumDisc','−฿'+S.disc);
+  safeSet('sumTotal','฿'+calcTotal());
+}
+
+/* ── FIX INIT ─────────────────────────────────────────── */
 function init(){
+  // Restore session FIRST so renderLoyalty etc have user data
+  var savedUser=null;
+  try{savedUser=JSON.parse(localStorage.getItem('ctb_user')||'null')}catch(e){}
+  if(savedUser){S.user=savedUser;PTS=savedUser.points||0;}
+
+  // Restore history
+  var savedHist=null;
+  try{savedHist=JSON.parse(localStorage.getItem('ctb_history')||'null')}catch(e){}
+  if(savedHist&&savedHist.length)S.orderHistory=savedHist;
+
+  // Restore cart
+  loadCart();
+
   checkStoreStatus();
-  setInterval(checkStoreStatus, 60000);
-  if(!isStoreOpen) { S.orderType = 'preorder'; } 
+  setInterval(checkStoreStatus,60000);
+  if(!isStoreOpen){S.orderType='preorder';}
   applyTheme(S.theme);
   updClk();setInterval(updClk,10000);
   if(isRet()){ge('splash').style.display='none'}
   else{buildSpFeat();setTimeout(closeSplash,8000)}
-  loadBr();buildHome();buildCats();loadMenu();initSrch();
+  loadBr();loadMenu();initSrch();
   renderLoyalty();buildTopGrid();syncOT(S.orderType);startUrgency();renderHistory();
+  if(S.user)renderProfile();
 
-  // Restore session
-  var savedUser=null;try{savedUser=JSON.parse(localStorage.getItem('ctb_user')||'null')}catch(e){}
-  if(savedUser){
-    S.user=savedUser;PTS=savedUser.points||0;
+  // If order is active, start tracking
+  var savedOrder=null;
+  try{savedOrder=JSON.parse(localStorage.getItem('ctb_order')||'null')}catch(e){}
+  if(savedOrder&&savedOrder.status!=='completed'&&savedOrder.status!=='cancelled'){
+    S.order=savedOrder;
+    ge('trkDot').classList.add('on');
   }
-
-  // Persist user on changes
-  var _origLogin=doLogin;
 }
+
 init();
 /* ══════════════════════════════════════════════════════
    ⚡️ REAL-TIME STORE STATUS LISTENER (ฟังเสียงจาก Admin)
