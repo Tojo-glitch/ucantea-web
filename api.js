@@ -13,16 +13,16 @@ const GAS_URL       = '';
 
 /* ── SUPABASE CLIENT ───────────────────────────────── */
 const sb = {
-  get headers() {
+  // ฟังก์ชันนี้ดึง Headers (สังเกตตัว H ต้องพิมพ์ใหญ่)
+  getHeaders() {
     const adminToken = localStorage.getItem('ctb_admin_token');
-    const clientToken = localStorage.getItem('ctb_token'); 
+    const clientToken = localStorage.getItem('ctb_token');
     const tokenToUse = adminToken || clientToken || SUPABASE_ANON;
-    
     return {
-      'apikey':        SUPABASE_ANON,
+      'apikey': SUPABASE_ANON,
       'Authorization': `Bearer ${tokenToUse}`,
-      'Content-Type':  'application/json',
-      'Prefer':        'return=representation',
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
     };
   },
 
@@ -33,26 +33,18 @@ const sb = {
     if (params.neq)     Object.entries(params.neq).forEach(([k,v]) => url += `${k}=neq.${v}&`);
     if (params.order)   url += `order=${params.order}&`;
     if (params.limit)   url += `limit=${params.limit}&`;
-    const res = await fetch(url, { headers: sb.headers });
+    const res = await fetch(url, { headers: sb.getHeaders() }); // 👈 เรียกฟังก์ชันแบบมีวงเล็บ
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   },
 
   async insert(table, data) {
-    const headerData = sb.headers; 
-    console.log("Sending POST to:", table, "Headers:", headerData);
-    
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method: 'POST', 
-      headers: headerData, 
+      headers: sb.getHeaders(), // 👈 เรียกฟังก์ชันแบบมีวงเล็บ
       body: JSON.stringify(data),
     });
-    
-    if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Supabase Insert Error:", errorText);
-        throw new Error(errorText);
-    }
+    if (!res.ok) throw new Error(await res.text());
     return res.json();
   },
 
@@ -61,7 +53,7 @@ const sb = {
     Object.entries(eq).forEach(([k,v]) => url += `${k}=eq.${v}&`);
     const res = await fetch(url, {
       method: 'PATCH',
-      headers: sb.headers,
+      headers: sb.getHeaders(), // 👈 เรียกฟังก์ชันแบบมีวงเล็บ
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error(await res.text());
@@ -71,54 +63,48 @@ const sb = {
   async delete(table, eq) {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
     Object.entries(eq).forEach(([k,v]) => url += `${k}=eq.${v}&`);
-    const res = await fetch(url, { method: 'DELETE', headers: sb.headers });
+    const res = await fetch(url, { 
+      method: 'DELETE', 
+      headers: sb.getHeaders() // 👈 เรียกฟังก์ชันแบบมีวงเล็บ
+    });
     if (!res.ok) throw new Error(await res.text());
     return true;
   },
 
   async signIn(email, password) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST', headers: { ...sb.headers, 'apikey': SUPABASE_ANON },
+      method: 'POST', 
+      headers: { ...sb.getHeaders(), 'apikey': SUPABASE_ANON }, // 👈 เรียกฟังก์ชันแบบมีวงเล็บ
       body: JSON.stringify({ email, password }),
     });
     return res.json();
   },
 
-// ใน object 'sb' ให้แก้ 3 ฟังก์ชันนี้ครับ
-
   async signUp(email, password) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
       method: 'POST', 
-      // 🟢 เปลี่ยนมาใช้ sb.getheaders() เพื่อให้ได้ Header ที่ถูกต้องเสมอ
-      headers: sb.getheaders(), 
+      headers: { ...sb.getHeaders(), 'apikey': SUPABASE_ANON }, // 👈 เรียกฟังก์ชันแบบมีวงเล็บ
       body: JSON.stringify({ email, password }),
     });
-    
-    const data = await res.json();
-    if (!res.ok) {
-      console.error("Supabase Auth Error:", data); // เอาไว้ดูใน Console ว่าทำไมถึงพัง
-    }
-    return data;
+    return res.json();
   },
 
   async signOut(token) {
     await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
       method: 'POST',
-      // 🟢 ใช้ sb.getheaders() และใส่ Authorization ทับลงไป
-      headers: { ...sb.getheaders(), 'Authorization': `Bearer ${token}` },
+      headers: { ...sb.getHeaders(), 'Authorization': `Bearer ${token}` }, // 👈 เรียกฟังก์ชันแบบมีวงเล็บ
     });
   },
 
   async resetPassword(email) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
       method: 'POST', 
-      // 🟢 เปลี่ยนมาใช้ sb.getheaders()
-      headers: sb.getheaders(), 
+      headers: sb.getHeaders(), // 👈 เรียกฟังก์ชันแบบมีวงเล็บ
       body: JSON.stringify({ email }),
     });
     return res.json();
-  }
-}; // 🟢 ปิด Object sb
+  },
+};
 
 /* ── HELPERS ───────────────────────────────────────── */
 const _delay = (ms = 600) => new Promise(r => setTimeout(r, ms));
