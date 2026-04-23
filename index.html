@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ceramic Tea">
+<meta name="theme-color" content="#0c0b09" id="themeColorMeta">
+<meta name="description" content="Artisan tea — single-origin leaves, brewed to order">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%230c0b09'/%3E%3Ccircle cx='96' cy='80' r='32' stroke='%23d4aa6a' stroke-width='6' fill='none'/%3E%3Cpath d='M64 80c0 0 8 32 32 32s32-32 32-32' stroke='%23d4aa6a' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3Crect x='72' y='120' width='48' height='8' rx='4' fill='%23d4aa6a'/%3E%3C/svg%3E">
+<link rel="manifest" id="pwaManifest">
 <title>Ceramic — Artisan Tea</title>
 <script src="/env-config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -44,7 +50,8 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
 
 /* ─── IMAGE SLOTS ─── */
 .slot{position:relative;overflow:hidden;background:var(--c2);display:block}
-.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s}
+.slot img.loaded{opacity:1}
 .slot::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1}
 .slot.ob::after{background:linear-gradient(to top,rgba(12,11,9,.88) 0%,rgba(12,11,9,.2) 45%,transparent 80%)}
 .slot.of::after{background:rgba(12,11,9,.4)}
@@ -224,7 +231,110 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
 .madd{width:32px;height:32px;background:var(--tan);border-radius:8px;display:flex;align-items:center;justify-content:center;min-width:var(--touch);min-height:var(--touch);transition:transform .1s}
 .madd:active{transform:scale(.88)}
 
-/* ─── SEARCH ─── */
+/* ─── MENU VIEW TABS (All / Saved) ─── */
+.menu-tabs{display:flex;gap:0;margin:0 16px 12px;background:var(--c2);border:1px solid var(--ln2);border-radius:10px;padding:3px;flex-shrink:0}
+.menu-tab{flex:1;height:32px;border-radius:8px;font-size:12px;font-weight:600;color:var(--tan3);cursor:pointer;transition:all .15s;border:none;background:none;font-family:var(--sans)}
+.menu-tab.on{background:var(--c0);color:var(--tan);box-shadow:0 1px 4px rgba(0,0,0,.18)}
+
+/* ─── BIRTHDAY BADGE ─── */
+.bday-card{margin:0 14px 12px;background:linear-gradient(135deg,rgba(212,170,106,.12),rgba(184,146,74,.06));border:1px solid rgba(212,170,106,.3);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.bday-icon{font-size:28px;line-height:1;flex-shrink:0}
+.bday-title{font-family:var(--serif);font-size:15px;color:var(--tan);margin-bottom:3px}
+.bday-sub{font-size:11px;color:var(--tan3);line-height:1.5}
+.bday-btn{height:36px;background:var(--gold);border-radius:9px;padding:0 16px;font-size:12px;font-weight:700;color:var(--c0);cursor:pointer;border:none;font-family:var(--sans);flex-shrink:0;transition:transform .1s}
+.bday-btn:active{transform:scale(.95)}
+
+/* ─── EMPTY SAVED ─── */
+.saved-empty{padding:60px 20px;text-align:center;color:var(--tan3)}
+.saved-empty svg{opacity:.12;display:block;margin:0 auto 14px}
+
+
+#pushPrompt{display:none;margin:0 14px 12px;background:rgba(74,173,117,.07);border:1px solid rgba(74,173,117,.2);border-radius:12px;padding:12px 14px;align-items:center;gap:12px}
+#pushPrompt.on{display:flex}
+.pp-ico{width:38px;height:38px;background:rgba(74,173,117,.12);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pp-body{flex:1}
+.pp-title{font-size:13px;font-weight:600;color:var(--grnl);margin-bottom:2px}
+.pp-sub{font-size:11px;color:var(--tan3)}
+.pp-btn{height:32px;background:var(--grn);border-radius:8px;padding:0 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;border:none;font-family:var(--sans);flex-shrink:0}
+.pp-close{cursor:pointer;color:var(--tan3);flex-shrink:0;min-width:var(--touch);min-height:var(--touch);display:flex;align-items:center;justify-content:center}
+
+/* ─── BRANCH MENU BADGE ─── */
+.mtag.t-avail{background:rgba(74,173,117,.08);color:var(--grnl);border:1px solid rgba(74,173,117,.15)}
+.mtag.t-unavail{background:rgba(212,79,79,.06);color:#e88080;border:1px solid rgba(212,79,79,.12)}
+.branch-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+
+/* ─── DYNAMIC BANNER ─── */
+.dyn-banner{margin:0 16px 14px;border-radius:12px;overflow:hidden;cursor:pointer;position:relative;height:72px;background:var(--c2);border:1px solid var(--ln2)}
+.dyn-banner img{width:100%;height:100%;object-fit:cover}
+.dyn-banner-body{position:absolute;inset:0;padding:12px 16px;background:linear-gradient(to right,rgba(12,11,9,.8),transparent);display:flex;flex-direction:column;justify-content:center}
+.dyn-banner-tag{font-size:9px;font-weight:700;color:var(--gl);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:3px}
+.dyn-banner-txt{font-size:13px;font-weight:600;color:#fff}
+.dyn-banner-code{font-size:11px;font-weight:700;color:var(--gl)}
+
+/* ─── REALTIME INDICATOR ─── */
+.rt-dot{width:6px;height:6px;border-radius:50%;background:var(--grnl);display:inline-block;margin-right:5px;animation:pls 2s infinite}
+.rt-dot.off{background:var(--tan3);animation:none}
+
+
+.fav-btn{position:absolute;top:8px;right:8px;z-index:3;width:32px;height:32px;background:rgba(12,11,9,.55);backdrop-filter:blur(4px);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:transform .15s}
+.fav-btn:active{transform:scale(.88)}
+.fav-btn svg{transition:fill .15s}
+.fav-btn.on svg{fill:var(--red);stroke:var(--red)}
+.recent-wrap{padding:0 16px 0;margin-top:4px}
+.recent-scroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.recent-scroll::-webkit-scrollbar{display:none}
+.rcard{flex-shrink:0;width:110px;background:var(--c2);border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .15s}
+.rcard:active{transform:scale(.95)}
+.rc-img{height:72px;background:var(--c3);position:relative;overflow:hidden}
+.rc-body{padding:7px 9px 9px}
+.rc-name{font-size:11px;font-weight:500;color:var(--tan);line-height:1.3;margin-bottom:3px}
+.rc-price{font-size:12px;font-weight:600;color:var(--gl)}
+
+/* ─── GALLERY DOTS ─── */
+.cs-hero{position:relative}
+.gal-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:3}
+.gal-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.35);transition:background .2s,width .2s}
+.gal-dot.on{background:#fff;width:12px;border-radius:3px}
+
+/* ─── POINTS REDEMPTION ─── */
+.pts-redeem{margin:8px 20px;background:rgba(74,173,117,.07);border:1px solid rgba(74,173,117,.18);border-radius:10px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pts-redeem-info{flex:1}
+.pts-redeem-lbl{font-size:12px;font-weight:600;color:var(--grnl);margin-bottom:2px}
+.pts-redeem-sub{font-size:10px;color:var(--tan3)}
+.pts-toggle{height:30px;padding:0 14px;background:var(--grn);border-radius:8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;transition:background .15s;border:none;font-family:var(--sans)}
+.pts-toggle.on{background:var(--c3);color:var(--tan2);border:1px solid var(--ln2)}
+.pts-toggle:active{opacity:.8}
+
+/* ─── GUEST CHECKOUT ─── */
+.guest-field{margin:8px 20px;background:rgba(212,170,106,.06);border:1px solid rgba(212,170,106,.2);border-radius:10px;padding:12px 14px}
+.guest-field-lbl{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.guest-inp-row{display:flex;flex-direction:column;gap:6px}
+
+/* ─── REFERRAL ─── */
+.ref-code-box{background:var(--c2);border:1px solid var(--ln2);border-radius:10px;padding:12px 14px;margin:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ref-code{font-family:var(--serif);font-size:20px;color:var(--gl);letter-spacing:2px}
+.ref-copy{height:34px;background:var(--c3);border:1px solid var(--ln2);border-radius:8px;padding:0 14px;font-size:12px;font-weight:600;color:var(--tan2);cursor:pointer;transition:background .15s;font-family:var(--sans)}
+.ref-copy:active{background:var(--tan);color:var(--c0)}
+.ref-stats{display:flex;gap:8px;margin:0 14px 14px}
+.ref-stat{flex:1;background:var(--c2);border:1px solid var(--ln2);border-radius:10px;padding:10px;text-align:center}
+.ref-stat-n{font-family:var(--serif);font-size:18px;color:var(--gl)}
+.ref-stat-l{font-size:9px;color:var(--tan3);text-transform:uppercase;letter-spacing:.5px}
+
+
+@keyframes skshimmer{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
+.sk{background:var(--c2);border-radius:6px;display:inline-block}
+.sk-anim{background-size:200px 100%;animation:skshimmer 1.4s infinite linear}
+[data-theme="dark"] .sk-anim{background-image:linear-gradient(90deg,var(--c2) 0px,var(--c3) 80px,var(--c2) 160px)}
+[data-theme="light"] .sk-anim{background-image:linear-gradient(90deg,var(--c2) 0px,#f5f0e8 80px,var(--c2) 160px)}
+.sk-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.sk-thumb{width:70px;height:70px;flex-shrink:0;border-radius:10px}
+.sk-body{flex:1;display:flex;flex-direction:column;gap:8px}
+.sk-h{height:14px;width:60%;border-radius:4px}
+.sk-d{height:10px;width:85%;border-radius:4px}
+.sk-t{height:10px;width:40%;border-radius:4px}
+.sk-price{width:32px;height:16px;border-radius:4px;flex-shrink:0;align-self:center}
+
+
 .srch-wrap{padding:8px 16px;flex-shrink:0}
 .srch-box{height:40px;background:var(--c2);border:1px solid var(--ln2);border-radius:10px;display:flex;align-items:center;padding:0 12px;gap:8px}
 .srch-ico{opacity:.4;flex-shrink:0}
@@ -440,7 +550,23 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
 .sico{width:36px;height:36px;background:var(--c2);border:1px solid var(--ln2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .slbl{flex:1;font-size:13px;font-weight:500;color:var(--tan2)}
 
-/* ─── LOADER + TOAST ─── */
+/* ─── PWA INSTALL BANNER ─── */
+#installBanner{display:none;position:fixed;bottom:calc(var(--nh) + 8px);left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:398px;background:var(--c2);border:1px solid var(--ln2);border-radius:14px;padding:12px 14px;z-index:400;box-shadow:0 8px 32px rgba(0,0,0,.35);animation:slideup .3s cubic-bezier(.22,.6,.36,1)}
+#installBanner.on{display:flex;align-items:center;gap:12px}
+@keyframes slideup{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.ib-icon{width:42px;height:42px;background:var(--c0);border-radius:10px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ib-body{flex:1;min-width:0}
+.ib-title{font-size:13px;font-weight:600;color:var(--tan);margin-bottom:2px}
+.ib-sub{font-size:11px;color:var(--tan3)}
+.ib-btn{height:34px;background:var(--tan);border-radius:8px;padding:0 14px;font-size:12px;font-weight:700;color:var(--c0);cursor:pointer;flex-shrink:0;transition:transform .1s}
+.ib-btn:active{transform:scale(.95)}
+.ib-close{width:28px;height:28px;background:var(--c3);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--tan3);min-width:var(--touch);min-height:var(--touch)}
+
+/* ─── OFFLINE INDICATOR ─── */
+#offlineBadge{display:none;position:fixed;top:52px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px;z-index:9100;letter-spacing:.3px}
+#offlineBadge.on{display:block}
+
+
 #loader{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);z-index:9200;flex-direction:column;align-items:center;justify-content:center;gap:13px;max-width:430px;left:50%;transform:translateX(-50%)}
 #loader.on{display:flex}
 .ldring{width:46px;height:46px;border:2px solid var(--ln2);border-top-color:var(--gl);border-radius:50%;animation:spin .9s linear infinite}
@@ -535,133 +661,66 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
 .theme-btn:active{background:var(--c3)}
 
   /* ════════════════════════════════════════════
-   🛠 MOBILE BROWSER PATCH (FIX UI BUGS)
+   🛠 MOBILE PATCH — consolidated
 ════════════════════════════════════════════ */
 
-/* 1. แก้ปัญหาความสูงหน้าจอ (โดนแถบ URL Safari บัง) */
-#app {
-  height: 100vh;
-  height: 100dvh; /* ใช้ Dynamic Viewport แทน vh ธรรมดา */
+/* Dynamic viewport height (Safari URL bar fix) */
+#app { height: 100dvh; }
+
+/* Max-width lock */
+body, #app { max-width: 430px; margin: 0 auto; }
+
+/* Modal / overlay positioning */
+.ov, #splash, #loader {
+  inset: auto;
+  top: 0; bottom: 0;
+  left: 50%; right: auto;
+  width: 100%;
+  max-width: 430px;
+  transform: translateX(-50%);
 }
 
-/* 2. แก้ปัญหา Add-ons ตัวอักษรบีบแตกเป็นแนวตั้ง */
-.tbtn {
-  width: 100%;
-  text-align: left;
+/* Bottom sheet — scrollable, sticky footer */
+.sht {
+  display: block;
+  overflow-y: auto;
+  max-height: 90dvh;
 }
-/* บังคับไม่ให้ Flexbox บีบความกว้างของข้อความ */
+.cs-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  box-shadow: 0 -5px 15px rgba(0,0,0,.15);
+}
+
+/* Add-ons button layout */
 .tbtn > div:last-child {
-  flex: 1;
-  min-width: 0; 
-  display: flex;
-  justify-content: space-between; /* ดันชื่อไปซ้าย ดันราคาไปขวา */
-  align-items: center;
+  width: 100%;
+  gap: 8px;
 }
 .tname {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; /* ถ้ายาวไปให้เป็น ... */
-  font-size: 14px;
-}
-.tprice {
-  flex-shrink: 0;
+  white-space: normal;
+  word-break: keep-all;
+  overflow: visible;
+  line-height: 1.3;
   font-size: 13px;
 }
+.tprice { flex-shrink: 0; font-size: 11px; }
 
-/* 3. แก้ปัญหาปุ่ม "Add to order" ซ้อนทับเนื้อหา */
-.sht {
-  display: flex;
-  flex-direction: column;
-  max-height: 85dvh; /* ลดความสูงลงนิดนึงไม่ให้ชนขอบบน */
-  overflow: hidden; /* ปิดการเลื่อนของตัวแม่ */
-}
-/* ให้เลื่อนได้เฉพาะส่วนเนื้อหาตรงกลาง */
-.cs-body, #panelLogin, #panelRegister, #panelForgot {
-  overflow-y: auto;
-  flex: 1;
-  padding-bottom: 24px;
-}
-/* ล็อกปุ่ม Add to order ให้อยู่ล่างสุดเสมอ */
-.cs-foot {
-  position: relative; 
-  flex-shrink: 0;
-  box-shadow: 0 -4px 12px rgba(0,0,0,0.05); /* เพิ่มเงาแยกส่วนให้ดูแพงขึ้น */
-  z-index: 10;
-}
-
-/* 4. จัดปุ่มปรับจำนวน (Quantity) ให้อยู่ตรงกลางสวยๆ */
-.qty-row {
-  max-width: 160px; /* ไม่ให้กล่องยาวเกินไป */
-}
-
-/* 5. แก้ไขช่อง Sign In ลอยแปลกๆ */
-.auth-field {
-  text-align: left;
-}
-/* =======================================================
-   🔥 HOTFIX: แก้อาการหน้าจอพังบน Mobile / Safari
-   ======================================================= */
-
-/* 1. แก้บั๊ก Modal โดนบีบแคบครึ่งจอ (แทนที่ inset: 0 เดิม) */
-.ov, #splash, #loader {
-    inset: auto !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    width: 100% !important; /* บังคับให้กว้างเต็มจอ (ไม่เกิน 430px) */
-}
-
-/* 2. คืนค่าการ Scroll ให้หน้าต่าง Popup ทั้งหมดกลับมาลื่นไหล */
-.sht {
-    display: block !important;
-    overflow-y: auto !important; 
-    max-height: 90dvh !important;
-}
-.cs-body, #panelLogin, #panelRegister, #panelForgot {
-    overflow-y: visible !important; 
-}
-
-/* 3. แก้ตัวหนังสือ Add-ons แตกเรียงเป็นแนวตั้ง (S n o w...) */
-.tbtn > div:last-child {
-    width: 100% !important;
-    gap: 8px;
-}
-.tname {
-    white-space: normal !important; /* ปล่อยให้ข้อความขึ้นบรรทัดใหม่ได้ถ้าที่จำกัด */
-    word-break: keep-all !important;
-    overflow: visible !important;
-    line-height: 1.3;
-}
-.tprice {
-    flex-shrink: 0 !important; /* ล็อคราคาไว้ไม่ให้โดนบีบจนเบี้ยว */
-}
-
-/* 4. อัปเกรดปุ่ม Add to order ให้ยึดติดขอบล่างอย่างสวยงาม */
-.cs-foot {
-    position: sticky !important;
-    bottom: 0 !important;
-    z-index: 10 !important;
-    box-shadow: 0 -5px 15px rgba(0,0,0,0.15) !important; /* เพิ่มเงาแบ่งเลเยอร์เนื้อหาชัดเจน */
-}
-/* =======================================================
-   ล็อคหน้าจอไม่ให้อ้วน และ ล็อคปุ่มด้านบนให้เป็นจัตุรัสเป๊ะๆ
-   ======================================================= */
-body, #app, .ov, #splash, #loader {
-    max-width: 430px !important;
-    margin: 0 auto !important;
-}
-.ov, #splash, #loader {
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    right: auto !important;
-    width: 100% !important;
-}
+/* Header buttons — fixed square */
 .tbar .tbtn {
-    width: 44px !important;
-    height: 44px !important;
-    flex: 0 0 44px !important; /* ล็อคห้ามยืดเด็ดขาด */
-    padding: 0 !important;
-    justify-content: center !important;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  padding: 0;
+  justify-content: center;
 }
+
+/* Quantity control */
+.qty-row { max-width: 160px; }
+
+/* Auth form alignment */
+.auth-field { text-align: left; }
 </style>
 </head>
 <body>
@@ -679,8 +738,8 @@ body, #app, .ov, #splash, #loader {
         <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       </button>
       <div class="tbtn" onclick="nav('pg-track','nt-track')"><svg width="15" height="13" viewBox="0 0 15 13" fill="none"><path d="M1 2h13M1 6.5h9M1 11h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
-      <div class="tbtn" onclick="openAuth(null)" id="authHeaderBtn">
-        <svg width="14" height="16" viewBox="0 0 14 16" fill="none"><path d="M7 1a4 4 0 00-4 4v3L1 11h12l-2-3V5a4 4 0 00-4-4z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M5 13a2 2 0 004 0" stroke="currentColor" stroke-width="1.2"/></svg>
+      <div class="tbtn" onclick="S.user?nav('pg-profile','nt-profile'):openAuth('login')" id="authHeaderBtn" aria-label="Account">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       </div>
     </div>
   </div>
@@ -696,6 +755,11 @@ body, #app, .ov, #splash, #loader {
       </div>
     </div>
     <div class="ubar" onclick="nav('pg-order','nt-order')"><div class="u-dot"></div><div class="u-txt">Happy Hour — buy 2 get 1 free. Ends in</div><div class="u-timer" id="uTimer">—</div></div>
+    <!-- Recently Viewed (hidden until populated) -->
+    <div id="recentSec" style="display:none;margin-top:14px">
+      <div class="sch" style="padding-bottom:8px"><div class="sct" style="font-size:16px">Recently Viewed</div></div>
+      <div class="recent-wrap"><div class="recent-scroll" id="recentScroll"></div></div>
+    </div>
     <div class="h-trust">
       <div class="ht-item"><div class="ht-num">4.9★</div><div class="ht-lbl">Avg rating<br>12k+ reviews</div></div>
       <div class="ht-item"><div class="ht-num">≤3 min</div><div class="ht-lbl">Avg prep<br>time</div></div>
@@ -708,7 +772,10 @@ body, #app, .ov, #splash, #loader {
       </div>
       <div class="lp-ch">Change</div>
     </div>
-    <div class="pstrip" onclick="useCode('NEW10')"><div class="ps-tag">Welcome offer</div><div class="ps-txt">10% off first order — code NEW10</div><div class="ps-code">NEW10</div></div>
+    <!-- Dynamic CMS banner (populated by loadBanners) -->
+    <div id="dynBannerWrap"></div>
+    <!-- Fallback static promo (hidden when CMS loads) -->
+    <div class="pstrip" id="staticPromo" onclick="useCode('NEW10')"><div class="ps-tag">Welcome offer</div><div class="ps-txt">10% off first order — code NEW10</div><div class="ps-code">NEW10</div></div>
     <div class="sch"><div class="sct">Bestsellers</div><button class="scm" onclick="nav('pg-order','nt-order')">Full menu</button></div>
     <div class="feat-wrap"><div class="feat" id="featScroll"></div></div>
     <div class="sch" style="margin-top:20px"><div class="sct">Menu</div><button class="scm" onclick="nav('pg-order','nt-order')">See all</button></div>
@@ -735,6 +802,10 @@ body, #app, .ov, #splash, #loader {
     </div>
   </div>
   <div class="scroll" style="position:relative">
+    <div class="menu-tabs">
+      <button class="menu-tab on" id="tabAll" onclick="switchMenuTab('all',this)">All</button>
+      <button class="menu-tab" id="tabSaved" onclick="switchMenuTab('saved',this)">❤ Saved</button>
+    </div>
     <div class="cat-sticky"><div class="cat-scroll" id="catScroll"></div></div>
     <div class="ot-row">
       <div class="otbtn on" id="ot-pickup" onclick="setOT('pickup',this)"><div class="ot-ico"><svg width="16" height="18" viewBox="0 0 16 18" fill="none"><path d="M8 1C5.24 1 3 3.24 3 6c0 4 5 10 5 10s5-6 5-10c0-2.76-2.24-5-5-5z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="6" r="2" stroke="currentColor" stroke-width="1.2"/></svg></div><div class="ot-lbl">Pickup</div></div>
@@ -749,6 +820,9 @@ body, #app, .ov, #splash, #loader {
       <input class="inp" type="datetime-local" id="preTime">
     </div>
     <div class="empty" id="emptyState"><div style="font-family:var(--serif);font-size:17px;color:var(--tan2);margin-bottom:5px">Nothing found</div><div style="font-size:12px" id="emptyTxt">Try a different term.</div></div>
+    <div id="menuSkel" style="padding:0 16px">
+      <!-- Skeleton rows shown while API loads -->
+    </div>
     <div id="menuSecs"></div>
     <div style="height:90px"></div>
   </div>
@@ -760,7 +834,25 @@ body, #app, .ov, #splash, #loader {
 
 <!-- ══════════════════ TRACK ══════════════════ -->
 <div class="pg" id="pg-track">
-  <div class="tbar"><div class="tbar-t">Track Order</div><div class="tbtn" onclick="if(S.order)renderTrack()"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M13 7.5A5.5 5.5 0 112 7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M11 5.5l2 2 2-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+  <div class="tbar">
+    <div class="tbar-t">Track Order</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="rt-dot" id="rtDot" title="Realtime"></div>
+      <div class="tbtn" onclick="if(S.order)renderTrack()"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M13 7.5A5.5 5.5 0 112 7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M11 5.5l2 2 2-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+  </div>
+  <!-- Push permission prompt -->
+  <div id="pushPrompt">
+    <div class="pp-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--grnl)" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+    <div class="pp-body">
+      <div class="pp-title">Order notifications</div>
+      <div class="pp-sub">รู้ทันทีเมื่อชาพร้อม</div>
+    </div>
+    <button class="pp-btn" onclick="requestPush()">Allow</button>
+    <div class="pp-close" onclick="ge('pushPrompt').classList.remove('on')">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+  </div>
   <div class="scroll" id="trkContent">
     <div style="text-align:center;padding:68px 20px;color:var(--tan3)">
       <svg width="44" height="44" viewBox="0 0 44 44" fill="none" style="opacity:.12;display:block;margin:0 auto 14px"><rect x="4" y="4" width="36" height="36" rx="6" stroke="currentColor" stroke-width="1.5"/><path d="M11 16h22M11 23h15M11 30h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -850,18 +942,45 @@ body, #app, .ov, #splash, #loader {
             <div><div class="edit-key">Phone number</div><div class="edit-val" id="ed-phone">—</div></div>
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="opacity:.3"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/><path d="M6 5v4M6 3.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
           </div>
+          <div class="edit-row" onclick="openEditField('birthday','Birthday (DD/MM)','','text')">
+            <div><div class="edit-key">Birthday</div><div class="edit-val" id="ed-birthday">—</div></div>
+            <svg width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </div>
         </div>
+      </div>
+      <!-- Birthday reward (shown in birth month) -->
+      <div id="bdayCard" class="bday-card" style="display:none">
+        <div class="bday-icon">🎂</div>
+        <div style="flex:1">
+          <div class="bday-title">Happy Birthday!</div>
+          <div class="bday-sub">Free drink on us this month — use code below</div>
+          <div style="font-size:13px;font-weight:700;color:var(--gl);margin-top:4px" id="bdayCode">BDAY-FREE</div>
+        </div>
+        <button class="bday-btn" onclick="useCode(ge('bdayCode').textContent)">Claim</button>
       </div>
       <!-- Tier table -->
       <div class="tier-wrap">
         <div class="tier-lbl">Tier Benefits</div>
         <div class="tier-tbl" id="tierTbl"></div>
       </div>
-      <!-- Refer -->
-      <div class="refer-card" onclick="shareRef()">
-        <div class="refer-ico"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="14" cy="4" r="2.5" stroke="currentColor" stroke-width="1.2"/><circle cx="4" cy="9" r="2.5" stroke="currentColor" stroke-width="1.2"/><circle cx="14" cy="14" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M6.4 10l5.2 2.5M11.6 5.5L6.4 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></div>
-        <div><div class="refer-t">Refer a friend</div><div class="refer-s">Earn 100 pts when they order</div></div>
-        <svg width="7" height="12" viewBox="0 0 7 12" fill="none" style="color:var(--tan3)"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <!-- Referral -->
+      <div style="padding:14px 0 0">
+        <div style="font-size:10px;font-weight:700;color:var(--tan3);letter-spacing:1.5px;text-transform:uppercase;padding:0 14px;margin-bottom:10px">Refer a Friend</div>
+        <div style="padding:0 14px;font-size:12px;color:var(--tan3);margin-bottom:10px">Share your code — get <span style="color:var(--gl);font-weight:600">100 pts</span> when they place their first order</div>
+        <div class="ref-code-box">
+          <div class="ref-code" id="refCode">—</div>
+          <button class="ref-copy" onclick="copyRefCode()">Copy</button>
+        </div>
+        <div class="ref-stats">
+          <div class="ref-stat"><div class="ref-stat-n" id="refSent">0</div><div class="ref-stat-l">Invited</div></div>
+          <div class="ref-stat"><div class="ref-stat-n" id="refEarned">0</div><div class="ref-stat-l">Pts Earned</div></div>
+        </div>
+        <div style="padding:0 14px 14px;display:flex;gap:8px">
+          <button onclick="shareRef()" style="flex:1;height:44px;background:var(--tan);border-radius:10px;font-size:13px;font-weight:600;color:var(--c0);cursor:pointer;font-family:var(--sans)">Share Link</button>
+          <button onclick="shareRef()" style="height:44px;width:44px;background:var(--c2);border:1px solid var(--ln2);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
+        </div>
       </div>
       <!-- Settings -->
       <div class="set-list">
@@ -955,6 +1074,10 @@ body, #app, .ov, #splash, #loader {
     <div class="grip"></div>
     <div class="cs-hero slot ob" id="csHero" style="height:160px">
       <div class="ph"><svg width="24" height="18" viewBox="0 0 24 18" fill="none"><rect x="1" y="1" width="22" height="13" rx="2" stroke="currentColor" stroke-width="1.1"/><circle cx="7" cy="6" r="2.5" stroke="currentColor" stroke-width="1"/><path d="M1 13l6-5 5 4 4-3 7 4" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Product Image</span></div>
+      <div class="fav-btn" id="csFavBtn" onclick="toggleFav()" aria-label="Favourite">
+        <svg width="14" height="13" viewBox="0 0 24 22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z"/></svg>
+      </div>
+      <div class="gal-dots" id="galDots"></div>
     </div>
     <div class="cs-body">
       <div class="cs-name" id="csName">—</div>
@@ -1028,9 +1151,34 @@ body, #app, .ov, #splash, #loader {
       <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M6 1C3.79 1 2 2.79 2 5c0 3 4 8 4 8s4-5 4-8c0-2.21-1.79-4-4-4z" stroke="var(--gl)" stroke-width="1.2"/><circle cx="6" cy="5" r="1.5" stroke="var(--gl)" stroke-width="1.1"/></svg>
       <span id="cartBrName">Main Branch — Siam</span>
     </div>
+    <!-- Delivery form (shown when delivery mode) -->
+    <div id="cartDelWrap" style="display:none;padding:0 16px 8px;display:flex;flex-direction:column;gap:6px">
+      <input class="inp" id="cartDelAddr" placeholder="Delivery address" style="margin-bottom:0">
+      <input class="inp" id="cartDelPhone" placeholder="Phone number" type="tel" style="margin-bottom:0">
+    </div>
+    <!-- Pre-order form (shown when preorder mode) -->
+    <div id="cartPreWrap" style="display:none;padding:0 16px 8px">
+      <input class="inp" id="cartPreTime" type="datetime-local" style="margin-bottom:0">
+    </div>
     <div style="padding:0 16px" id="cartItems"></div>
     <div class="promo-row"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.1"/><path d="M10 4L4 10M4.5 5a.5.5 0 110-1 .5.5 0 010 1zM9.5 10a.5.5 0 110-1 .5.5 0 010 1z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><input class="promo-inp" id="promoInp" placeholder="Promo code" onkeydown="if(event.key==='Enter')applyPromo()"><button class="promo-apply" onclick="applyPromo()">Apply</button></div>
     <div class="promo-ok" id="promoOk" style="display:none"></div>
+    <!-- Points redemption (shown when logged in + has pts) -->
+    <div class="pts-redeem" id="ptsRedeemRow" style="display:none">
+      <div class="pts-redeem-info">
+        <div class="pts-redeem-lbl">🎁 Redeem Points</div>
+        <div class="pts-redeem-sub" id="ptsRedeemSub">You have <span id="ptsAvail">0</span> pts · 100 pts = ฿10</div>
+      </div>
+      <button class="pts-toggle" id="ptsToggleBtn" onclick="togglePtsRedeem()">Use pts</button>
+    </div>
+    <!-- Guest checkout fields (shown when not logged in) -->
+    <div class="guest-field" id="guestFields" style="display:none">
+      <div class="guest-field-lbl">Your Info (Guest)</div>
+      <div class="guest-inp-row">
+        <input class="inp" id="guestName" placeholder="Display name" style="margin-bottom:0">
+        <input class="inp" id="guestPhone" placeholder="Phone number" type="tel" style="margin-bottom:0">
+      </div>
+    </div>
     <div class="sum-div"></div>
     <div class="sum-row"><span>Subtotal</span><span class="rv" id="sumSub">฿0</span></div>
     <div class="sum-row" id="sumDelRow" style="display:none"><span>Delivery fee</span><span class="rv">฿20</span></div>
@@ -1048,22 +1196,32 @@ body, #app, .ov, #splash, #loader {
       </div>
     </div>
 
-    <!-- โอนเงินธนาคาร (บังคับใช้อันนี้) -->
-    <div style="margin:0 20px 12px; padding:12px 16px; background:rgba(212,170,106,.08); border:1px solid rgba(212,170,106,.3); border-radius:10px; display:flex; align-items:center; gap:10px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
-      <div style="flex:1;">
-        <div style="font-size:13px; font-weight:600; color:var(--gl);">Bank Transfer (โอนเงิน)</div>
-        <div style="font-size:10px; color:var(--tan3);">Kasikorn Bank: 123-4-56789-0<br>Name: Ceramic Tea Co.</div>
+    <!-- โอนเงินธนาคาร + PromptPay QR -->
+    <div style="margin:0 20px 12px;background:rgba(212,170,106,.06);border:1px solid rgba(212,170,106,.25);border-radius:12px;overflow:hidden">
+      <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--gl)">Bank Transfer · PromptPay</div>
+          <div style="font-size:10px;color:var(--tan3)">Kasikorn Bank: 123-4-56789-0 · Ceramic Tea Co.</div>
+        </div>
+      </div>
+      <!-- QR Zone -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:14px;gap:8px">
+        <div style="font-size:10px;color:var(--tan3);letter-spacing:.3px;text-transform:uppercase">Scan to pay</div>
+        <div id="qrWrap" style="width:140px;height:140px;background:var(--c1);border-radius:10px;border:1px solid var(--ln2);display:flex;align-items:center;justify-content:center;overflow:hidden">
+          <div id="qrPlaceholder" style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.4">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h2M14 18h2M18 14h2v2M18 18h2"/></svg>
+            <span style="font-size:9px;color:var(--tan3)">Add items to generate</span>
+          </div>
+          <img id="qrImg" src="" alt="PromptPay QR" style="display:none;width:130px;height:130px;object-fit:contain;border-radius:6px">
+        </div>
+        <div id="qrAmt" style="font-family:var(--serif);font-size:18px;color:var(--gl);display:none">฿0</div>
+        <div style="font-size:10px;color:var(--tan3);text-align:center;line-height:1.6">กรุณาโอนตามยอดที่แสดง<br>แล้วอัปโหลดสลิปด้านล่าง</div>
       </div>
     </div>
 
-    <!-- กล่องอัปโหลดสลิป -->
-    <div style="margin:8px 20px 0;overflow:hidden;border-radius:8px">
-      <img class="slip-prev" id="slipPrev" src="" alt="">
-      <div class="slip-chg" id="slipChg" onclick="document.getElementById('slipFile').click()">Change image</div>
-    </div>
     <div style="margin:12px 20px 8px;font-size:10px;font-weight:700;color:var(--tan3);letter-spacing:1.5px;text-transform:uppercase">Payment slip</div>
-    <div class="slip-zone" onclick="document.getElementById('slipFile').click()">
+    <div class="slip-zone" id="slipZone" onclick="document.getElementById('slipFile').click()">
       <input type="file" id="slipFile" accept="image/*" style="display:none" onchange="handleSlip(event)">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 14V4M7 8l4-4 4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 17v1a2 2 0 002 2h12a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <div class="slip-lbl" id="slipLbl">Upload payment slip</div>
@@ -1202,6 +1360,23 @@ body, #app, .ov, #splash, #loader {
   </div>
 </div>
 
+<!-- PWA INSTALL BANNER -->
+<div id="installBanner">
+  <div class="ib-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+  </div>
+  <div class="ib-body">
+    <div class="ib-title">Add Ceramic to Home Screen</div>
+    <div class="ib-sub">สั่งชาได้เร็วขึ้น ใช้งานเหมือนแอปจริง</div>
+  </div>
+  <button class="ib-btn" id="installBtn">Install</button>
+  <div class="ib-close" onclick="dismissInstall()">
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </div>
+</div>
+<!-- OFFLINE BADGE -->
+<div id="offlineBadge">⚡ Offline — using cached menu</div>
+
 <!-- LOADER + TOAST -->
 <div id="loader"><div class="ldring"></div><div class="ldtxt" id="ldTxt">Loading...</div></div>
 <div id="toast"></div>
@@ -1324,9 +1499,17 @@ function nav(pgId,tabId){
 /* ── URGENCY ────────────────────────────────────────── */
 function startUrgency(){
   function tick(){
-    var now=new Date(),end=new Date();end.setHours(16,0,0,0);
-    var diff=end-now;var el=ge('uTimer');if(!el)return;
-    if(diff<=0){var b=el.closest('.ubar');if(b)b.style.display='none';return}
+    // Admin can set: localStorage.setItem('ctb_happy_hour_end','18:00')
+    // Default: 16:00
+    var hhEndStr=localStorage.getItem('ctb_happy_hour_end')||'16:00';
+    var parts=hhEndStr.split(':').map(Number);
+    var now=new Date(),end=new Date();
+    end.setHours(parts[0]||16,parts[1]||0,0,0);
+    var diff=end-now;
+    var el=ge('uTimer');if(!el)return;
+    var ubar=el.closest('.ubar');
+    if(diff<=0){if(ubar)ubar.style.display='none';return}
+    if(ubar)ubar.style.display='flex';
     var h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
     el.textContent=(h>0?h+'h ':'')+m+'m '+s+'s';
   }
@@ -1367,6 +1550,10 @@ function syncOT(type){
   var dw=ge('dWrap'),pw=ge('pWrap');
   if(dw)dw.style.display=type==='delivery'?'block':'none';
   if(pw)pw.style.display=type==='preorder'?'block':'none';
+  // Cart sheet forms
+  var cdw=ge('cartDelWrap'),cpw=ge('cartPreWrap');
+  if(cdw)cdw.style.display=type==='delivery'?'flex':'none';
+  if(cpw)cpw.style.display=type==='preorder'?'block':'none';
   var sdr=ge('sumDelRow');if(sdr)sdr.style.display=type==='delivery'?'flex':'none';
   updSummary();
 }
@@ -1386,17 +1573,28 @@ function setOT(type, el){
 }
 
 /* ── HOME ───────────────────────────────────────────── */
+function imgSlot(src,cls,style,ph){
+  // Returns a .slot div; uses data-src for lazy loading if src provided
+  var s='<div class="slot '+(cls||'')+'" style="'+(style||'')+'">';
+  if(src){s+='<img data-src="'+src+'" alt="" loading="lazy">';}
+  s+='<div class="ph">'+ph+'</div></div>';
+  return s;
+}
+
 function buildHome(){
   var bs=MENUS.filter(function(m){return m.hot}).slice(0,5);
   var fs=ge('featScroll');
   if(fs){fs.innerHTML=bs.map(function(m){
+    var phSvg='<svg width="24" height="18" viewBox="0 0 24 18" fill="none"><rect x="1" y="1" width="22" height="13" rx="2" stroke="currentColor" stroke-width="1.1"/></svg><span>'+m.cat+'</span>';
     return '<div class="fcard" onclick="openCS(\''+m.id+'\')">'
-      +'<div class="slot ob" style="width:100%;height:152px"><div class="ph"><svg width="24" height="18" viewBox="0 0 24 18" fill="none"><rect x="1" y="1" width="22" height="13" rx="2" stroke="currentColor" stroke-width="1.1"/></svg><span>'+m.cat+'</span></div></div>'
+      +imgSlot(m.img,'ob','width:100%;height:152px',phSvg)
       +'<div class="fbody"><div class="fname">'+m.name+'</div><div class="fdesc">'+m.desc+'</div>'
       +'<div class="frow"><div class="fprice">฿'+m.price+'</div>'
       +(m.rating?'<div class="frat"><div class="star"></div>'+m.rating+' ('+m.rev+')</div>':'')
       +'</div></div></div>';
-  }).join('')}
+  }).join('');
+  observeLazy();
+  }
   var cats=['Popular'].concat(Array.from(new Set(MENUS.map(function(m){return m.cat}))));
   var hc=ge('homeCats');
   if(hc){hc.innerHTML=cats.map(function(c,i){return'<button class="ctab'+(i===0?' on':'')+'" onclick="homeFilter(\''+c+'\',this)">'+c+'</button>'}).join('')}
@@ -1410,12 +1608,14 @@ function homeFilter(cat,el){
 function renderHomeList(list){
   var el=ge('homeList');if(!el)return;
   el.innerHTML=list.map(function(m){
+    var phSvg='<svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x="1" y="1" width="14" height="8" rx="1.5" stroke="currentColor" stroke-width="1"/></svg>';
     return '<div class="mrow" onclick="openCS(\''+m.id+'\')">'
-      +'<div class="mthumb"><div class="slot no" style="width:100%;height:100%"><div class="ph"><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x="1" y="1" width="14" height="8" rx="1.5" stroke="currentColor" stroke-width="1"/></svg></div></div></div>'
+      +'<div class="mthumb">'+imgSlot(m.img,'no','width:100%;height:100%',phSvg)+'</div>'
       +'<div class="mbody"><div class="mname">'+m.name+'</div><div class="mdesc">'+m.desc+'</div>'
       +'<div class="mmeta">'+(m.hot?'<span class="mtag t-best">Bestseller</span>':'')+(m.nw?'<span class="mtag t-new">New</span>':'')+(m.ltd?'<span class="mtag t-ltd">Limited</span>':'')+(m.rating?'<div class="mrat"><div class="star"></div>'+m.rating+'</div>':'')+(m.today?'<span class="mtoday">'+m.today+' today</span>':'')+'</div></div>'
       +'<div class="mright"><div class="mprice">฿'+m.price+'</div><button class="madd" onclick="event.stopPropagation();openCS(\''+m.id+'\')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="var(--c0)" stroke-width="2" stroke-linecap="round"/></svg></button></div></div>';
   }).join('');
+  observeLazy();
 }
 
 /* ── MENU PAGE ──────────────────────────────────────── */
@@ -1429,6 +1629,14 @@ function filterCat(cat,el){
   el.classList.add('on');
   renderMenu(cat==='All'?MENUS:MENUS.filter(function(m){return m.cat===cat}));
 }
+/* ── SEARCH HIGHLIGHT ───────────────────────────────── */
+function hlText(str, q){
+  if(!q)return str;
+  var re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  return str.replace(re,'<mark style="background:rgba(212,170,106,.25);color:var(--gl);border-radius:2px;padding:0 1px">$1</mark>');
+}
+
+var _srchQ=''; // current search query for highlight
 function initSrch(){
   var inp=ge('srchInp'),clr=ge('srchClr');if(!inp)return;
   inp.addEventListener('input',function(){
@@ -1436,27 +1644,32 @@ function initSrch(){
     clearTimeout(srchT);
     srchT=setTimeout(function(){
       var q=inp.value.trim().toLowerCase();
-      if(!q){renderMenu(MENUS);var es=ge('emptyState');if(es)es.classList.remove('on');return}
+      _srchQ=q;
+      if(!q){_srchQ='';renderMenu(MENUS);var es=ge('emptyState');if(es)es.classList.remove('on');return}
       var res=MENUS.filter(function(m){return m.name.toLowerCase().includes(q)||(m.desc||'').toLowerCase().includes(q)});
-      if(res.length){renderMenu(res);ge('emptyState')&&ge('emptyState').classList.remove('on')}
-      else{renderMenu([]);var es=ge('emptyState');if(es){es.classList.add('on');safeSet('emptyTxt','No results for "'+inp.value+'"')}}
+      if(res.length){renderMenu(res,q);ge('emptyState')&&ge('emptyState').classList.remove('on')}
+      else{renderMenu([],q);var es=ge('emptyState');if(es){es.classList.add('on');safeSet('emptyTxt','No results for "'+inp.value+'"')}}
     },300);
   });
 }
-function clearSrch(){var inp=ge('srchInp'),clr=ge('srchClr');if(inp)inp.value='';if(clr)clr.classList.remove('on');renderMenu(MENUS);var es=ge('emptyState');if(es)es.classList.remove('on')}
+function clearSrch(){var inp=ge('srchInp'),clr=ge('srchClr');if(inp)inp.value='';if(clr)clr.classList.remove('on');_srchQ='';renderMenu(MENUS);var es=ge('emptyState');if(es)es.classList.remove('on')}
 // loadMenu is defined below with full API integration
-function renderMenu(list){
+function renderMenu(list, q){
   var byCat={};(list||MENUS).forEach(function(m){if(!byCat[m.cat])byCat[m.cat]=[];byCat[m.cat].push(m)});
   var el=ge('menuSecs');if(!el)return;
+  var phSvg='<svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x="1" y="1" width="14" height="8" rx="1.5" stroke="currentColor" stroke-width="1"/></svg>';
   el.innerHTML=Object.keys(byCat).map(function(cat){
     return '<div class="msec"><div class="msec-lbl">'+cat+'</div>'+byCat[cat].map(function(m){
+      var nm=q?hlText(m.name,q):m.name;
+      var ds=q?hlText(m.desc||'',q):(m.desc||'');
       return '<div class="mrow" onclick="openCS(\''+m.id+'\')">'
-        +'<div class="mthumb"><div class="slot no" style="width:100%;height:100%"><div class="ph"><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x="1" y="1" width="14" height="8" rx="1.5" stroke="currentColor" stroke-width="1"/></svg></div></div></div>'
-        +'<div class="mbody"><div class="mname">'+m.name+'</div><div class="mdesc">'+m.desc+'</div>'
+        +'<div class="mthumb">'+imgSlot(m.img,'no','width:100%;height:100%',phSvg)+'</div>'
+        +'<div class="mbody"><div class="mname">'+nm+'</div><div class="mdesc">'+ds+'</div>'
         +'<div class="mmeta">'+(m.hot?'<span class="mtag t-best">Bestseller</span>':'')+(m.nw?'<span class="mtag t-new">New</span>':'')+(m.ltd?'<span class="mtag t-ltd">Limited</span>':'')+(m.today?'<span class="mtoday">'+m.today+' today</span>':'')+'</div></div>'
         +'<div class="mright"><div class="mprice">฿'+m.price+'</div><button class="madd" onclick="event.stopPropagation();openCS(\''+m.id+'\')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="var(--c0)" stroke-width="2" stroke-linecap="round"/></svg></button></div></div>';
     }).join('')+'</div>';
   }).join('');
+  observeLazy();
 }
 
 /* ── CUSTOMIZE ──────────────────────────────────────── */
@@ -1535,9 +1748,6 @@ function updCartBar(){
   var badge = ge('cartBadge'); if(badge){ badge.textContent = n; badge.classList.toggle('on', n > 0); }
   saveCart(); // <--- เซฟทุกครั้งที่แถบอัปเดต
 }
-function updSummary(){
-// updSummary is defined below with delivery fee support
-}
 function openCart(){
   checkStoreStatus();
   renderCartItems(); updSummary(); ge('cartOv').classList.add('on');
@@ -1546,9 +1756,17 @@ function closeCart(){ge('cartOv').classList.remove('on')}
 function renderCartItems(){
   var el=ge('cartItems');if(!el)return;
   if(!S.cart.length){el.innerHTML='<div style="text-align:center;padding:30px 0;color:var(--tan3);font-size:13px">Your cart is empty</div>';return}
-  el.innerHTML=S.cart.map(function(it){
+  // Palette for product color chips (cycles by index)
+  var chips=['rgba(184,146,74,.18)','rgba(74,173,117,.18)','rgba(212,79,79,.12)','rgba(180,130,200,.18)','rgba(100,160,200,.18)'];
+  el.innerHTML=S.cart.map(function(it,idx){
+    var chip=chips[idx%chips.length];
+    var menuItem=MENUS.find(function(m){return m.id===it.id});
+    var initials=it.name.split(' ').slice(0,2).map(function(w){return w[0]}).join('').toUpperCase();
+    var thumb=menuItem&&menuItem.img
+      ?'<img src="'+menuItem.img+'" style="width:100%;height:100%;object-fit:cover;border-radius:9px" onerror="this.style.display=\'none\'">'
+      :'<div style="width:100%;height:100%;background:'+chip+';border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:15px;font-weight:400;color:var(--tan2)">'+initials+'</div>';
     return '<div class="cart-row">'
-      +'<div class="cart-img"><div class="ph"><svg width="14" height="10" viewBox="0 0 14 10" fill="none"><rect x="1" y="1" width="12" height="7" rx="1" stroke="currentColor" stroke-width="1"/></svg></div></div>'
+      +'<div class="cart-img">'+thumb+'</div>'
       +'<div class="cart-info"><div class="cart-nm">'+it.name+'</div><div class="cart-opts">'+it.opts+'</div>'
       +(it.note?'<div class="cart-note-txt">Note: '+it.note+'</div>':'')
       +'<div class="cart-price-row"><div class="cart-price">฿'+(it.price*it.qty)+'</div></div></div>'
@@ -1571,6 +1789,8 @@ async function applyPromo(){
   var code=inp.value.trim().toUpperCase();
   var ok=ge('promoOk');
   if(!code){toast('Enter a promo code','warn');return}
+  // Conflict: block promo if points already redeemed
+  if(_ptsRedeemed){toast('Remove points first before applying a promo code','warn');return}
   var sub=calcSub();
   // Use API if available, fallback to local mock
   if(window.API&&API.validatePromoCode){
@@ -1728,7 +1948,7 @@ function renderProfile(){
     ge('profileMember').style.display='none';
   }
 }
-function shareRef(){navigator.share?navigator.share({title:'Try Ceramic Tea',text:'Get ฿50 off your first order!',url:location.href}):toast('Referral link copied!')}
+function shareRef(){/* replaced by Phase 4 referral block below */}
 
 /* ── HISTORY ────────────────────────────────────────── */
 var histSortDesc=true;
@@ -1757,7 +1977,35 @@ function viewHistOrder(receipt){
   if(sum)sum.innerHTML='<div class="rcpt-divider"></div><div class="rcpt-total"><span>Total Paid</span><span class="rv">฿'+o.total+'</span></div>';
   ge('rcptOv').classList.add('on');
 }
-function reorder(receipt){var o=S.orderHistory.find(function(x){return x.receipt===receipt});if(!o)return;toast('Opening menu — select items to reorder');nav('pg-order','nt-order')}
+function reorder(receipt){
+  var o=S.orderHistory.find(function(x){return x.receipt===receipt});
+  if(!o||!o.items||!o.items.length)return;
+  var added=0;
+  o.items.forEach(function(it){
+    // Find matching menu item to verify it still exists
+    var m=MENUS.find(function(m){return m.id===it.id});
+    if(m){
+      S.cart.push({
+        uid:Date.now()+Math.random(),
+        id:it.id,
+        name:it.name,
+        price:it.price,
+        qty:it.qty,
+        opts:it.opts||'M · regular · regular ice',
+        note:it.note||'',
+        tops:it.tops||[]
+      });
+      added++;
+    }
+  });
+  if(added){
+    updCartBar();
+    toast(added+' item'+(added>1?'s':'')+' added to cart','success');
+    setTimeout(openCart,300);
+  } else {
+    toast('Items no longer available','warn');
+  }
+}
 
 /* ══════════════════════════════════════════════════════
    NEW: AUTH SYSTEM (Phone + Email)
@@ -1832,13 +2080,7 @@ async function doRegister(){
     try{localStorage.setItem('ctb_user',JSON.stringify(res.user))}catch(e){}
     closeAuthSheet();renderProfile();toast('Welcome to Ceramic, '+res.user.name+'!','success');
     if(S._pendingCheckout){S._pendingCheckout=false;setTimeout(openCart,350);}
-  }).catch(function(err){ // รับค่า err มาด้วย
-      btn.disabled=false;
-      btn.textContent='Create Account';
-      msg.textContent='Connection error (See Console)';
-      msg.className='auth-msg err';
-      console.error("🔥 รหัสแดง! เกิด Error ตอนสมัครสมาชิก:", err); // พ่นออกมาดูเลย!
-  });
+  }).catch(function(){btn.disabled=false;btn.textContent='Create Account';msg.textContent='Connection error';msg.className='auth-msg err'});
 }
 
 function doForgot(){
@@ -2015,7 +2257,11 @@ function renderTrack(){
   }).join('');
   var isActive=o.status!=='completed'&&o.status!=='cancelled';
   var queueHtml=o.queueNum?'<div class="queue-num"><div class="queue-lbl">Queue Number</div><div class="queue-n">#'+o.queueNum+'</div></div>':'';
-  var etaHtml=isActive?'<div class="trk-eta"><span class="eta-lbl">Estimated time</span><span class="eta-val">8–12 min</span></div>':'';
+  var etaHtml='';
+  if(isActive){
+    var etaVal=o.eta||(localStorage.getItem('ctb_default_eta')||'8–12 min');
+    etaHtml='<div class="trk-eta"><span class="eta-lbl">Estimated time</span><span class="eta-val">'+etaVal+'</span></div>';
+  }
   var ratingHtml=o.status==='completed'&&!S.rating?'<div class="rat-wrap"><div class="rat-ask">How was your experience?</div><div class="stars">'
     +'<button class="starbtn" onclick="doRate(1)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>'
     +'<button class="starbtn" onclick="doRate(2)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gl)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>'
@@ -2040,58 +2286,148 @@ function renderTrack(){
     +ratingHtml;
 
   ge('trkDot').classList.toggle('on', isActive);
-  startPoll();
 }
 
-/* ── POLL (track order status) ───────────────────────── */
-function startPoll(){
-  if(pollT)clearInterval(pollT);
+/* ── REALTIME ORDER TRACKING ─────────────────────────
+   Priority: 1) Supabase Realtime  2) SSE  3) Poll 8s
+   ───────────────────────────────────────────────────── */
+var _rtChannel=null;  // Supabase channel
+var _rtSSE=null;      // EventSource
+var _rtPollT=null;    // fallback interval
+
+function setRtDot(on){
+  var d=ge('rtDot');if(d)d.classList.toggle('off',!on);
+}
+
+function onOrderStatusChange(newStatus){
+  if(!S.order)return;
+  var prev=S.order.status;
+  var normalized=newStatus.toLowerCase();
+  if(normalized===prev)return;
+  S.order.status=normalized;
+  try{localStorage.setItem('ctb_order',JSON.stringify(S.order))}catch(e){}
+  renderTrack();
+  // Toast per status
+  var msgs={
+    confirmed:'✅ Order confirmed — barista is on it!',
+    preparing:'☕ Your tea is being prepared',
+    ready:'🎉 Ready for pickup!',
+    completed:'Thanks for visiting Ceramic',
+    cancelled:'Order was cancelled'
+  };
+  if(msgs[normalized])toast(msgs[normalized], normalized==='cancelled'?'warn':'success');
+  // Web Push
+  sendPushIfAllowed(normalized);
+  // Earn points on completion (1 pt per ฿10, multiplied by tier)
+  if(normalized==='completed'&&S.user&&!S.user.isGuest){
+    var tier=getTier(PTS);
+    var multipliers={1:1,2:1.5,3:2,4:3,5:5};
+    var mult=multipliers[tier.id]||1;
+    var earned=Math.floor((S.order.total||0)/10*mult);
+    if(earned>0){
+      PTS+=earned;
+      if(S.user){S.user.points=PTS;try{localStorage.setItem('ctb_user',JSON.stringify(S.user))}catch(e){}}
+      renderLoyalty();
+      toast('+'+earned+' pts earned! ('+tier.name+' '+mult+'×)','success');
+      // Sync to API if available
+      if(window.API&&API.updatePoints){API.updatePoints({userId:S.user.id,points:PTS}).catch(function(){});}
+    }
+  }
+  // Cleanup when terminal
+  if(normalized==='completed'||normalized==='cancelled'){
+    stopRealtime();
+    var h={receipt:S.order.id,items:S.order.items,total:S.order.total,disc:S.disc||0,created:new Date().toISOString(),status:normalized};
+    S.orderHistory.unshift(h);
+    try{localStorage.setItem('ctb_history',JSON.stringify(S.orderHistory))}catch(e){}
+  }
+}
+
+function startRealtime(){
   if(!S.order||S.order.status==='completed'||S.order.status==='cancelled')return;
-  pollT=setInterval(function(){
-    if(!window.API||!API.getOrderStatus)return;
-    API.getOrderStatus(S.order.id).then(function(res){
-      if(!res.success)return;
-      var prev=S.order.status;
-      S.order.status=res.status.toLowerCase();
-      if(S.order.status!==prev){
-        renderTrack();
-        // Update cancel countdown if cancelled
-        if(S.order.status==='completed'||S.order.status==='cancelled'){
-          clearInterval(pollT);pollT=null;
-          // Add to history
-          var h={receipt:S.order.id,items:S.order.items,total:S.order.total,disc:S.disc||0,created:new Date().toISOString(),status:S.order.status};
-          S.orderHistory.unshift(h);
-          try{localStorage.setItem('ctb_history',JSON.stringify(S.orderHistory))}catch(e){}
-          if(S.order.status==='completed'){
-            setTimeout(function(){if(ge('pg-track').classList.contains('active'))renderTrack()},400);
-          }
-        }
-      }
-    });
-  },8000);
+  stopRealtime();
+  setRtDot(false);
 
-  // Cancel countdown timer
-  if(cancelT)clearInterval(cancelT);
-  var cancelDeadline=Date.now()+5*60*1000; // 5 min cancel window
-  cancelT=setInterval(function(){
-    var el=ge('ccCd');if(!el){clearInterval(cancelT);return}
-    var rem=Math.max(0,Math.round((cancelDeadline-Date.now())/1000));
-    if(rem<=0){clearInterval(cancelT);el.textContent='Cancel window closed';return}
-    var m=Math.floor(rem/60),s=rem%60;
-    el.textContent='Cancel within: '+m+'m '+('0'+s).slice(-2)+'s';
-  },1000);
+  // ── Strategy 1: Supabase Realtime ───────────────────
+  if(window.supabase&&supabase.channel){
+    try{
+      _rtChannel=supabase.channel('order:'+S.order.id)
+        .on('postgres_changes',{
+          event:'UPDATE',schema:'public',table:'orders',
+          filter:'id=eq.'+S.order.id
+        },function(payload){
+          if(payload.new&&payload.new.status)onOrderStatusChange(payload.new.status);
+        })
+        .subscribe(function(status){
+          setRtDot(status==='SUBSCRIBED');
+          if(status==='CHANNEL_ERROR')_startSSEorPoll(); // fallback
+        });
+      return; // Supabase handling — done
+    }catch(e){/* fall through */}
+  }
+
+  _startSSEorPoll();
 }
+
+function _startSSEorPoll(){
+  // ── Strategy 2: SSE endpoint (/api/order-status/stream) ──
+  if(window.EventSource&&window.API&&API.SSE_BASE){
+    try{
+      var url=API.SSE_BASE+'/order-status/'+S.order.id;
+      _rtSSE=new EventSource(url);
+      _rtSSE.onopen=function(){setRtDot(true);};
+      _rtSSE.onmessage=function(e){
+        try{var d=JSON.parse(e.data);if(d.status)onOrderStatusChange(d.status);}catch(_){}
+      };
+      _rtSSE.onerror=function(){
+        _rtSSE.close();_rtSSE=null;
+        setRtDot(false);
+        _startPollFallback(); // final fallback
+      };
+      return;
+    }catch(e){/* fall through */}
+  }
+  _startPollFallback();
+}
+
+function _startPollFallback(){
+  // ── Strategy 3: Poll every 8s ────────────────────────
+  if(!window.API||!API.getOrderStatus)return;
+  _rtPollT=setInterval(function(){
+    if(!S.order||S.order.status==='completed'||S.order.status==='cancelled'){
+      clearInterval(_rtPollT);return;
+    }
+    API.getOrderStatus(S.order.id).then(function(res){
+      if(res&&res.success&&res.status)onOrderStatusChange(res.status);
+    }).catch(function(){});
+  },8000);
+  setRtDot(false); // poll = not true realtime
+}
+
+function stopRealtime(){
+  if(_rtChannel){try{_rtChannel.unsubscribe();}catch(e){}  _rtChannel=null;}
+  if(_rtSSE){_rtSSE.close();_rtSSE=null;}
+  if(_rtPollT){clearInterval(_rtPollT);_rtPollT=null;}
+  setRtDot(false);
+}
+
+// Alias so existing code still works
+function startPoll(){startRealtime();}
+
+
 
 function doCancel(){
   if(!S.order)return;
   if(!confirm('Cancel this order?'))return;
   if(!window.API||!API.updateOrderStatus){
-    S.order.status='cancelled';renderTrack();toast('Order cancelled','warn');return;
+    S.order.status='cancelled';
+    stopRealtime();
+    renderTrack();toast('Order cancelled','warn');return;
   }
   API.updateOrderStatus(S.order.id,'CANCELLED').then(function(res){
     if(res.success){
       S.order.status='cancelled';
-      clearInterval(pollT);clearInterval(cancelT);pollT=null;cancelT=null;
+      stopRealtime();
+      if(cancelT){clearInterval(cancelT);cancelT=null;}
       renderTrack();toast('Order cancelled','warn');
     }
   }).catch(function(){toast('Cancel failed — try again','error')});
@@ -2109,11 +2445,21 @@ function doRate(n){
   toast('Thanks for your '+'★'.repeat(n)+' review!','success');
 }
 
+/* ── SKELETON ───────────────────────────────────────── */
+function showMenuSkeleton(){
+  var el=ge('menuSkel');if(!el)return;
+  var row='<div class="sk-row"><div class="sk sk-anim sk-thumb"></div><div class="sk-body"><div class="sk sk-anim sk-h"></div><div class="sk sk-anim sk-d"></div><div class="sk sk-anim sk-t"></div></div><div class="sk sk-anim sk-price"></div></div>';
+  el.innerHTML=row+row+row+row+row;
+}
+function hideMenuSkeleton(){var el=ge('menuSkel');if(el)el.innerHTML='';}
+
 /* ── LOAD MENU from API ────────────────────────────────── */
 function loadMenu(){
   var errEl=ge('menuErr');if(errEl)errEl.classList.remove('on');
   if(window.API&&API.getMenu){
+    showMenuSkeleton();
     API.getMenu().then(function(res){
+      hideMenuSkeleton();
       if(res&&res.products&&res.products.length){
         MENUS=res.products;
         if(res.customization&&res.customization.addons)TOPS=res.customization.addons;
@@ -2123,12 +2469,31 @@ function loadMenu(){
         renderMenu(MENUS); // use fallback
       }
     }).catch(function(){
+      hideMenuSkeleton();
       if(errEl)errEl.classList.add('on');
       renderMenu(MENUS); // use fallback
     });
   } else {
     try{renderMenu(MENUS)}catch(e){if(errEl)errEl.classList.add('on')}
   }
+}
+
+/* ── PROMPTPAY QR ───────────────────────────────────── */
+function updQR(){
+  var total=calcTotal();
+  var img=ge('qrImg'),ph=ge('qrPlaceholder'),amt=ge('qrAmt');
+  if(!img||!ph||!amt)return;
+  if(total<=0){img.style.display='none';ph.style.display='flex';amt.style.display='none';return;}
+  // PromptPay ID: replace with real number (0066-8x-xxx-xxxx format for phone, or 13-digit tax ID)
+  var ppid='0081234567890'; // ← ใส่เลข PromptPay จริงตรงนี้
+  var qrData='00020101021229370016A000000677010111'+('0'+(ppid.length)).slice(-2)+ppid+'5303764'
+    +('0'+(String(total.toFixed(2).length)).slice(-2))+total.toFixed(2)+'5802TH6304';
+  // Use public QR API (quickchart)
+  var url='https://quickchart.io/qr?text='+encodeURIComponent(qrData)+'&size=130&margin=1&ecLevel=M&format=png';
+  img.onload=function(){img.style.display='block';ph.style.display='none';};
+  img.onerror=function(){img.style.display='none';ph.style.display='flex';};
+  img.src=url;
+  amt.style.display='block';amt.textContent='฿'+total;
 }
 
 /* ── DELIVERY FEE in summary ─────────────────────────── */
@@ -2140,6 +2505,7 @@ function updSummary(){
   var dr=ge('sumDiscRow');if(dr)dr.style.display=S.disc>0?'flex':'none';
   if(S.disc>0)safeSet('sumDisc','−฿'+S.disc);
   safeSet('sumTotal','฿'+calcTotal());
+  updQR(); // refresh QR whenever totals change
 }
 
 /* ── FIX INIT ─────────────────────────────────────────── */
@@ -2177,7 +2543,608 @@ function init(){
   }
 }
 
+/* ══════════════════════════════════════════════════════
+   PHASE 4 FEATURES
+   ══════════════════════════════════════════════════════ */
+
+/* ── FAVOURITES ─────────────────────────────────────── */
+var FAV_KEY='ctb_favs';
+function loadFavs(){try{return JSON.parse(localStorage.getItem(FAV_KEY)||'[]')}catch(e){return[]}}
+function saveFavs(f){try{localStorage.setItem(FAV_KEY,JSON.stringify(f))}catch(e){}}
+function isFav(id){return loadFavs().indexOf(id)>=0}
+function toggleFav(){
+  var id=S.cur&&S.cur.id;if(!id)return;
+  var favs=loadFavs();
+  var idx=favs.indexOf(id);
+  if(idx>=0){favs.splice(idx,1);toast('Removed from favourites')}
+  else{favs.push(id);toast('Added to favourites ♥','success')}
+  saveFavs(favs);
+  var btn=ge('csFavBtn');if(btn)btn.classList.toggle('on',idx<0);
+}
+function syncFavBtn(){
+  var btn=ge('csFavBtn');if(!btn||!S.cur)return;
+  btn.classList.toggle('on',isFav(S.cur.id));
+}
+
+/* ── RECENTLY VIEWED ─────────────────────────────────── */
+var REC_KEY='ctb_recent';
+function loadRecent(){try{return JSON.parse(localStorage.getItem(REC_KEY)||'[]')}catch(e){return[]}}
+function trackRecent(id){
+  var r=loadRecent().filter(function(x){return x!==id});
+  r.unshift(id);r=r.slice(0,6);
+  try{localStorage.setItem(REC_KEY,JSON.stringify(r))}catch(e){}
+  renderRecent();
+}
+function renderRecent(){
+  var ids=loadRecent();
+  var sec=ge('recentSec');if(!sec)return;
+  if(!ids.length){sec.style.display='none';return;}
+  var items=ids.map(function(id){return MENUS.find(function(m){return m.id===id})}).filter(Boolean);
+  if(!items.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  var chips=['rgba(184,146,74,.18)','rgba(74,173,117,.18)','rgba(100,160,200,.18)','rgba(180,130,200,.18)','rgba(212,79,79,.12)','rgba(200,180,100,.18)'];
+  var el=ge('recentScroll');if(!el)return;
+  el.innerHTML=items.map(function(m,i){
+    return '<div class="rcard" onclick="openCS(\''+m.id+'\')">'
+      +'<div class="rc-img" style="background:'+chips[i%chips.length]+'"><div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:var(--serif);font-size:22px;color:var(--tan2);opacity:.6">'
+      +m.name.split(' ').slice(0,2).map(function(w){return w[0]}).join('').toUpperCase()
+      +'</div></div>'
+      +'<div class="rc-body"><div class="rc-name">'+m.name+'</div><div class="rc-price">฿'+m.price+'</div></div></div>';
+  }).join('');
+}
+
+/* ── GALLERY (multi-image swipe in customize sheet) ─── */
+var _galIdx=0;
+function buildGallery(images){
+  var hero=ge('csHero');if(!hero)return;
+  // Remove previous images
+  hero.querySelectorAll('img.gal-img').forEach(function(el){el.remove()});
+  var dots=ge('galDots');if(dots)dots.innerHTML='';
+  _galIdx=0;
+  if(!images||!images.length)return;
+  images.forEach(function(src,i){
+    var img=document.createElement('img');
+    img.className='gal-img';
+    img.alt='';
+    img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .3s;opacity:'+(i===0?1:0);
+    img.src=src;
+    hero.insertBefore(img,hero.firstChild);
+    if(dots){var d=document.createElement('div');d.className='gal-dot'+(i===0?' on':'');dots.appendChild(d);}
+  });
+  if(images.length>1){
+    var startX=0;
+    hero.ontouchstart=function(e){startX=e.touches[0].clientX};
+    hero.ontouchend=function(e){
+      var dx=e.changedTouches[0].clientX-startX;
+      if(Math.abs(dx)>40)galTo(_galIdx+(dx<0?1:-1),images.length);
+    };
+  }
+}
+function galTo(idx,total){
+  var imgs=ge('csHero').querySelectorAll('img.gal-img');
+  var dots=ge('galDots');if(!imgs.length)return;
+  _galIdx=((idx%total)+total)%total;
+  imgs.forEach(function(img,i){img.style.opacity=i===_galIdx?1:0;});
+  if(dots){dots.querySelectorAll('.gal-dot').forEach(function(d,i){d.classList.toggle('on',i===_galIdx);});}
+}
+
+/* ── POINTS REDEMPTION ───────────────────────────────── */
+var _ptsRedeemed=false;
+function openCartPts(){
+  var row=ge('ptsRedeemRow');if(!row)return;
+  if(S.user&&PTS>=100){
+    row.style.display='flex';
+    safeSet('ptsAvail',PTS);
+    var btn=ge('ptsToggleBtn');
+    if(btn){btn.textContent=_ptsRedeemed?'Remove':'Use pts';btn.classList.toggle('on',_ptsRedeemed);}
+  } else {row.style.display='none';}
+  // Guest fields
+  var gf=ge('guestFields');
+  if(gf)gf.style.display=S.user?'none':'block';
+}
+function togglePtsRedeem(){
+  _ptsRedeemed=!_ptsRedeemed;
+  if(_ptsRedeemed){
+    // Clear any active promo code first
+    if(S.disc>0){
+      var ok=ge('promoOk');if(ok)ok.style.display='none';
+      var inp=ge('promoInp');if(inp)inp.value='';
+    }
+    // Max redeem: all pts, max ฿(pts/10), max 50% of subtotal
+    var maxDisc=Math.floor(PTS/100)*10;
+    var halfSub=Math.floor(calcSub()*0.5);
+    S.disc=Math.min(maxDisc,halfSub);
+    toast('Redeemed '+(S.disc*10)+' pts → ฿'+S.disc+' off','success');
+  } else {
+    S.disc=0;
+    toast('Points removed');
+  }
+  var btn=ge('ptsToggleBtn');
+  if(btn){btn.textContent=_ptsRedeemed?'Remove':'Use pts';btn.classList.toggle('on',_ptsRedeemed);}
+  updSummary();
+}
+
+/* ── GUEST CHECKOUT ──────────────────────────────────── */
+// Override openCart to also show/hide guest + points widgets
+var _origOpenCart=openCart;
+openCart=function(){
+  _origOpenCart();
+  openCartPts();
+};
+
+/* ── REFERRAL CODE ───────────────────────────────────── */
+function genRefCode(user){
+  if(!user)return null;
+  // Simple deterministic code from phone/id — replace with server-generated code in production
+  var raw=(user.phone||user.id||'CERAMIC').replace(/\D/g,'').slice(-6);
+  return 'CER'+raw.toUpperCase();
+}
+function copyRefCode(){
+  var code=ge('refCode');if(!code||code.textContent==='—')return;
+  navigator.clipboard?navigator.clipboard.writeText(code.textContent).then(function(){toast('Referral code copied!','success')}):toast('Code: '+code.textContent);
+}
+function renderRefBlock(){
+  if(!S.user)return;
+  var code=genRefCode(S.user);
+  safeSet('refCode',code||'—');
+  // Fake stats from history (replace with API in production)
+  var earned=S.user.referrals||0;
+  safeSet('refSent',earned);
+  safeSet('refEarned',earned*100);
+}
+function shareRef(){
+  var code=ge('refCode');
+  var refUrl=location.origin+location.pathname+'?ref='+(code?code.textContent:'');
+  navigator.share
+    ?navigator.share({title:'Try Ceramic Tea',text:'Use my code '+( code?code.textContent:'')+' — get ฿50 off your first order!',url:refUrl})
+    :navigator.clipboard&&navigator.clipboard.writeText(refUrl).then(function(){toast('Referral link copied!','success')});
+}
+
+/* ── PATCH openCS to track recent + sync fav + gallery ── */
+var _origOpenCS=openCS;
+openCS=function(id){
+  _origOpenCS(id);
+  var m=MENUS.find(function(x){return x.id===id});if(!m)return;
+  trackRecent(id);
+  syncFavBtn();
+  // Build gallery from m.images array or single m.img
+  var imgs=m.images||(m.img?[m.img]:[]);
+  buildGallery(imgs);
+};
+
+/* ── PATCH placeOrder: allow guest + deduct pts on success ── */
+var _origPlaceOrder=placeOrder;
+placeOrder=async function(){
+  // Guest: collect name + phone if not logged in
+  if(!S.user){
+    var gname=(ge('guestName')?ge('guestName').value.trim():'');
+    var gphone=(ge('guestPhone')?ge('guestPhone').value.trim():'');
+    if(!gname||!gphone){toast('กรุณากรอกชื่อและเบอร์โทรก่อนสั่ง','warn');return;}
+    // Create a temp guest user object so placeOrder can proceed
+    S.user={id:'guest_'+Date.now(),name:gname,phone:gphone,isGuest:true};
+  }
+  await _origPlaceOrder();
+  // On success: deduct redeemed points
+  if(_ptsRedeemed&&!S.user.isGuest){
+    var used=S.disc*10;
+    PTS=Math.max(0,PTS-used);
+    if(S.user){S.user.points=PTS;try{localStorage.setItem('ctb_user',JSON.stringify(S.user))}catch(e){}}
+    _ptsRedeemed=false;
+    renderLoyalty();
+  }
+  // Clear guest temp user
+  if(S.user&&S.user.isGuest)S.user=null;
+};
+
+/* ── PATCH renderProfile to show referral block ── */
+var _origRenderProfile=renderProfile;
+renderProfile=function(){
+  _origRenderProfile();
+  renderRefBlock();
+};
+
+/* ── MENU TAB: ALL / SAVED ───────────────────────────── */
+var _menuTab='all';
+function switchMenuTab(tab, el){
+  _menuTab=tab;
+  document.querySelectorAll('.menu-tab').forEach(function(t){t.classList.remove('on');});
+  if(el)el.classList.add('on');
+  var catSticky=document.querySelector('#pg-order .cat-sticky');
+  if(tab==='saved'){
+    if(catSticky)catSticky.style.display='none';
+    renderSaved();
+  } else {
+    if(catSticky)catSticky.style.display='';
+    renderMenu(MENUS);
+  }
+}
+function renderSaved(){
+  var el=ge('menuSecs');if(!el)return;
+  var ids=loadFavs();
+  var saved=MENUS.filter(function(m){return ids.indexOf(m.id)>=0;});
+  if(!saved.length){
+    ge('menuSkel').innerHTML='';
+    el.innerHTML='<div class="saved-empty">'
+      +'<svg width="44" height="44" viewBox="0 0 24 22" fill="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      +'<div style="font-family:var(--serif);font-size:17px;color:var(--tan2);margin-bottom:5px">No saved drinks</div>'
+      +'<div style="font-size:12px">Tap ♥ on any item to save it</div>'
+      +'</div>';
+    return;
+  }
+  renderMenu(saved);
+}
+
+/* ── BIRTHDAY REWARD ─────────────────────────────────── */
+function checkBirthday(user){
+  if(!user||!user.birthday)return;
+  var card=ge('bdayCard');if(!card)return;
+  // birthday stored as "DD/MM"
+  var parts=(user.birthday||'').split('/');
+  if(parts.length<2)return;
+  var bdayMonth=parseInt(parts[1]);
+  var nowMonth=new Date().getMonth()+1;
+  if(bdayMonth===nowMonth){
+    // Generate personalised code
+    var code='BDAY-'+(user.phone||user.id||'FREE').replace(/\D/g,'').slice(-4).toUpperCase();
+    safeSet('bdayCode',code);
+    card.style.display='flex';
+  } else {
+    card.style.display='none';
+  }
+}
+
+/* ── PATCH renderProfile to show birthday field + check birthday ── */
+var _origRenderProfileB=renderProfile;
+renderProfile=function(){
+  _origRenderProfileB();
+  if(S.user){
+    safeSet('ed-birthday',S.user.birthday||'—');
+    checkBirthday(S.user);
+  }
+};
+
+/* ── PATCH saveEditField to handle birthday field ── */
+var _origSaveEditField=saveEditField;
+saveEditField=function(){
+  // Validate birthday format DD/MM before saving
+  if(S.editFieldKey==='birthday'){
+    var val=(ge('editInp')?ge('editInp').value.trim():'');
+    var ok=/^\d{2}\/\d{2}$/.test(val);
+    if(!ok){var m=ge('editMsg');if(m)m.textContent='Format must be DD/MM (e.g. 25/12)';return;}
+  }
+  _origSaveEditField();
+};
+
+
+renderRecent();
+
+/* ══════════════════════════════════════════════════════
+   PHASE 5 — REALTIME · PUSH · CMS BANNERS · BRANCH DIFF
+   ══════════════════════════════════════════════════════ */
+
+/* ── WEB PUSH NOTIFICATIONS ─────────────────────────── */
+var _pushAllowed=false;
+
+function requestPush(){
+  if(!('Notification' in window)){toast('Notifications not supported','warn');return;}
+  Notification.requestPermission().then(function(perm){
+    _pushAllowed=perm==='granted';
+    var p=ge('pushPrompt');if(p)p.classList.remove('on');
+    if(_pushAllowed){
+      toast('Notifications enabled 🔔','success');
+      try{localStorage.setItem('ctb_push','granted');}catch(e){}
+    } else {
+      toast('Notifications blocked','warn');
+    }
+  });
+}
+
+function sendPushIfAllowed(status){
+  if(!_pushAllowed||Notification.permission!=='granted')return;
+  var msgs={
+    confirmed:{title:'Order Confirmed ✅',body:'Your tea order has been confirmed'},
+    preparing:{title:'Brewing your tea ☕',body:'Your order is being prepared now'},
+    ready:{title:'Ready for Pickup! 🎉',body:'Your order is ready — come grab it!'},
+    completed:{title:'Enjoy your tea 🍵',body:'Thanks for choosing Ceramic'},
+    cancelled:{title:'Order Cancelled',body:'Your order has been cancelled'}
+  };
+  var m=msgs[status];if(!m)return;
+  try{
+    new Notification(m.title,{
+      body:m.body,
+      icon:'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 64 64\'%3E%3Crect width=\'64\' height=\'64\' rx=\'14\' fill=\'%230c0b09\'/%3E%3Ccircle cx=\'32\' cy=\'26\' r=\'11\' stroke=\'%23d4aa6a\' stroke-width=\'2.5\' fill=\'none\'/%3E%3Cpath d=\'M21 26c0 0 3 11 11 11s11-11 11-11\' stroke=\'%23d4aa6a\' stroke-width=\'2.5\' fill=\'none\' stroke-linecap=\'round\'/%3E%3Crect x=\'24\' y=\'40\' width=\'16\' height=\'3\' rx=\'1.5\' fill=\'%23d4aa6a\'/%3E%3C/svg%3E',
+      badge:'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 32 32\'%3E%3Ccircle cx=\'16\' cy=\'16\' r=\'16\' fill=\'%23d4aa6a\'/%3E%3C/svg%3E',
+      tag:'ceramic-order',
+      renotify:true,
+      vibrate:[200,100,200]
+    });
+  }catch(e){}
+}
+
+// Check push permission on startup
+(function(){
+  try{
+    _pushAllowed=localStorage.getItem('ctb_push')==='granted'&&Notification.permission==='granted';
+  }catch(e){}
+})();
+
+// Show push prompt when user navigates to track page (if order active + not yet granted)
+var _origNav=nav;
+nav=function(pgId,tabId){
+  _origNav(pgId,tabId);
+  if(pgId==='pg-track'&&S.order&&!_pushAllowed&&'Notification' in window&&Notification.permission==='default'){
+    setTimeout(function(){var p=ge('pushPrompt');if(p)p.classList.add('on');},600);
+  }
+};
+
+/* ── DYNAMIC CMS BANNERS ─────────────────────────────── */
+function loadBanners(){
+  if(!window.API||!API.getBanners){return;} // no CMS — static fallback visible
+  API.getBanners().then(function(res){
+    if(!res||!res.banners||!res.banners.length)return;
+    var wrap=ge('dynBannerWrap');
+    var staticP=ge('staticPromo');
+    if(!wrap)return;
+    // Hide static fallback
+    if(staticP)staticP.style.display='none';
+    // Render up to 3 banners
+    wrap.innerHTML=res.banners.slice(0,3).map(function(b){
+      var onclick=b.code?'useCode(\''+b.code+'\')':b.url?'window.open(\''+b.url+'\',\'_blank\')':'';
+      return '<div class="dyn-banner" onclick="'+onclick+'">'
+        +(b.img?'<img data-src="'+b.img+'" alt="">':'')
+        +'<div class="dyn-banner-body">'
+        +(b.tag?'<div class="dyn-banner-tag">'+b.tag+'</div>':'')
+        +(b.text?'<div class="dyn-banner-txt">'+b.text+'</div>':'')
+        +(b.code?'<div class="dyn-banner-code">'+b.code+'</div>':'')
+        +'</div></div>';
+    }).join('');
+    observeLazy();
+  }).catch(function(){/* keep static fallback */});
+}
+
+/* ── MULTI-BRANCH MENU DIFF ──────────────────────────── */
+// Each menu item can have an `availability` map: {BR001:true, BR002:false, ...}
+// If map missing → assume available everywhere
+
+function filterMenuForBranch(items, branchId){
+  return items.map(function(m){
+    var avail=!m.availability||(m.availability[branchId]!==false);
+    return Object.assign({},m,{_unavail:!avail});
+  });
+}
+
+function renderMenuWithBranch(list, q){
+  var branchId=S.branch?S.branch.id:'BR001';
+  var tagged=filterMenuForBranch(list||MENUS, branchId);
+  var byCat={};
+  tagged.forEach(function(m){if(!byCat[m.cat])byCat[m.cat]=[];byCat[m.cat].push(m)});
+  var el=ge('menuSecs');if(!el)return;
+  var phSvg='<svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x="1" y="1" width="14" height="8" rx="1.5" stroke="currentColor" stroke-width="1"/></svg>';
+  el.innerHTML=Object.keys(byCat).map(function(cat){
+    return '<div class="msec"><div class="msec-lbl">'+cat+'</div>'+byCat[cat].map(function(m){
+      var nm=q?hlText(m.name,q):m.name;
+      var ds=q?hlText(m.desc||'',q):(m.desc||'');
+      var unavailTag=m._unavail?'<span class="mtag t-unavail">Not at this branch</span>':'';
+      var rowStyle=m._unavail?'opacity:.45;pointer-events:none':'';
+      return '<div class="mrow" onclick="openCS(\''+m.id+'\')" style="'+rowStyle+'">'
+        +'<div class="mthumb">'+imgSlot(m.img,'no','width:100%;height:100%',phSvg)+'</div>'
+        +'<div class="mbody"><div class="mname">'+nm+'</div><div class="mdesc">'+ds+'</div>'
+        +'<div class="mmeta">'
+        +(m.hot?'<span class="mtag t-best">Bestseller</span>':'')
+        +(m.nw?'<span class="mtag t-new">New</span>':'')
+        +(m.ltd?'<span class="mtag t-ltd">Limited</span>':'')
+        +unavailTag
+        +(m.today?'<span class="mtoday">'+m.today+' today</span>':'')
+        +'</div></div>'
+        +'<div class="mright"><div class="mprice">฿'+m.price+'</div>'
+        +(!m._unavail?'<button class="madd" onclick="event.stopPropagation();openCS(\''+m.id+'\')"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="var(--c0)" stroke-width="2" stroke-linecap="round"/></svg></button>':'')
+        +'</div></div>';
+    }).join('')+'</div>';
+  }).join('');
+  observeLazy();
+}
+
+// Patch renderMenu to use branch-aware version
+var _origRenderMenu=renderMenu;
+renderMenu=function(list,q){renderMenuWithBranch(list,q);};
+
+// Re-render menu when branch changes
+var _origConfirmBr=confirmBr;
+confirmBr=function(){
+  _origConfirmBr();
+  renderMenu(MENUS); // re-render with new branch filter
+  loadBanners();     // reload banners (branch-specific offers possible)
+};
+
+/* ── CANCEL COUNTDOWN (kept from original, wired to new flow) ── */
+function startCancelCountdown(){
+  if(cancelT)clearInterval(cancelT);
+  var cancelDeadline=Date.now()+5*60*1000;
+  cancelT=setInterval(function(){
+    var el=ge('ccCd');if(!el){clearInterval(cancelT);return;}
+    var rem=Math.max(0,Math.round((cancelDeadline-Date.now())/1000));
+    if(rem<=0){clearInterval(cancelT);el.textContent='Cancel window closed';return;}
+    var m=Math.floor(rem/60),s=rem%60;
+    el.textContent='Cancel within: '+m+'m '+('0'+s).slice(-2)+'s';
+  },1000);
+}
+
+// Hook into renderTrack so countdown starts automatically
+var _origRenderTrack=renderTrack;
+renderTrack=function(){
+  _origRenderTrack();
+  if(S.order&&S.order.status!=='completed'&&S.order.status!=='cancelled'){
+    startCancelCountdown();
+    startRealtime(); // ensure subscription active
+  }
+};
+
+/* ── BOOT SEQUENCE ───────────────────────────────────── */
+// loadBanners is called after init so API is ready
+
+
+
+/* ── 1. MANIFEST (inline via data URI) ─────────────── */
+(function(){
+  var manifest={
+    name:'Ceramic — Artisan Tea',
+    short_name:'Ceramic',
+    description:'Single-origin leaves, brewed to order',
+    start_url:'/',
+    display:'standalone',
+    orientation:'portrait',
+    background_color:'#0c0b09',
+    theme_color:'#0c0b09',
+    icons:[
+      {src:'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 192 192\'%3E%3Crect width=\'192\' height=\'192\' rx=\'40\' fill=\'%230c0b09\'/%3E%3Ccircle cx=\'96\' cy=\'80\' r=\'32\' stroke=\'%23d4aa6a\' stroke-width=\'6\' fill=\'none\'/%3E%3Cpath d=\'M64 80c0 0 8 32 32 32s32-32 32-32\' stroke=\'%23d4aa6a\' stroke-width=\'6\' fill=\'none\' stroke-linecap=\'round\'/%3E%3Crect x=\'72\' y=\'120\' width=\'48\' height=\'8\' rx=\'4\' fill=\'%23d4aa6a\'/%3E%3C/svg%3E',sizes:'192x192',type:'image/svg+xml',purpose:'any maskable'},
+      {src:'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 512 512\'%3E%3Crect width=\'512\' height=\'512\' rx=\'100\' fill=\'%230c0b09\'/%3E%3Ccircle cx=\'256\' cy=\'210\' r=\'84\' stroke=\'%23d4aa6a\' stroke-width=\'16\' fill=\'none\'/%3E%3Cpath d=\'M172 210c0 0 20 84 84 84s84-84 84-84\' stroke=\'%23d4aa6a\' stroke-width=\'16\' fill=\'none\' stroke-linecap=\'round\'/%3E%3Crect x=\'196\' y=\'320\' width=\'120\' height=\'20\' rx=\'10\' fill=\'%23d4aa6a\'/%3E%3C/svg%3E',sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}
+    ],
+    categories:['food','lifestyle'],
+    shortcuts:[
+      {name:'Order Now',short_name:'Order',description:'Browse our menu',url:'/','icons':[{src:'data:image/png;base64,iVBORw0KGgo=',sizes:'96x96'}]}
+    ]
+  };
+  var blob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+  var url=URL.createObjectURL(blob);
+  var link=ge('pwaManifest');
+  if(link){link.href=url;}
+  else{var l=document.createElement('link');l.rel='manifest';l.href=url;document.head.appendChild(l);}
+})();
+
+/* ── 2. SERVICE WORKER (Blob — requires Service-Worker-Allowed: / on server) ── */
+(function(){
+  if(!('serviceWorker' in navigator))return;
+  // Version auto-increments on each page load — forces stale cache eviction
+  var BUILD=localStorage.getItem('ctb_sw_build')||'1';
+  var NEXT=String(parseInt(BUILD)+1);
+  var CACHE='ceramic-v'+NEXT;
+  try{localStorage.setItem('ctb_sw_build',NEXT);}catch(e){}
+  var ASSETS=['/','./','api.js','env-config.js',
+    'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap'
+  ];
+  var swCode=[
+    'var CACHE="'+CACHE+'";',
+    'var ASSETS='+JSON.stringify(ASSETS)+';',
+    'self.addEventListener("install",function(e){',
+    '  e.waitUntil(caches.open(CACHE).then(function(c){',
+    '    return Promise.allSettled(ASSETS.map(function(u){return c.add(u).catch(function(){});}));',
+    '  }).then(function(){return self.skipWaiting();}));',
+    '});',
+    'self.addEventListener("activate",function(e){',
+    '  e.waitUntil(caches.keys().then(function(keys){',
+    '    return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));',
+    '  }).then(function(){return self.clients.claim();}));',
+    '});',
+    'self.addEventListener("fetch",function(e){',
+    '  if(e.request.method!=="GET")return;',
+    '  e.respondWith(caches.match(e.request).then(function(cached){',
+    '    var fresh=fetch(e.request).then(function(res){',
+    '      if(res&&res.status===200&&res.type!=="opaque"){',
+    '        var clone=res.clone();',
+    '        caches.open(CACHE).then(function(c){c.put(e.request,clone);});',
+    '      }',
+    '      return res;',
+    '    }).catch(function(){return cached;});',
+    '    return cached||fresh;',
+    '  }));',
+    '});'
+  ].join('\n');
+  var blob=new Blob([swCode],{type:'application/javascript'});
+  var url=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url,{scope:'./'})
+    .then(function(reg){
+      console.log('[SW] registered scope:',reg.scope);
+    })
+    .catch(function(err){
+      // Fallback: try registering as /sw.js if server hosts it
+      console.warn('[SW] Blob registration failed — add Service-Worker-Allowed header or host sw.js:',err.message);
+    });
+})();
+
+/* ── 3. LAZY IMAGE OBSERVER ────────────────────────── */
+var _lazyObs=null;
+function observeLazy(){
+  var imgs=document.querySelectorAll('img[data-src]:not([data-src=""])');
+  if(!imgs.length)return;
+  if('IntersectionObserver' in window){
+    if(!_lazyObs){
+      _lazyObs=new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting){
+            var img=en.target;
+            img.src=img.dataset.src;
+            img.onload=function(){img.classList.add('loaded');};
+            img.onerror=function(){img.style.display='none';};
+            _lazyObs.unobserve(img);
+          }
+        });
+      },{rootMargin:'120px 0px',threshold:0});
+    }
+    imgs.forEach(function(img){_lazyObs.observe(img);});
+  } else {
+    // Fallback: load all immediately
+    imgs.forEach(function(img){
+      img.src=img.dataset.src;
+      img.onload=function(){img.classList.add('loaded');};
+    });
+  }
+}
+
+/* ── 4. INSTALL PROMPT ─────────────────────────────── */
+var _installEvt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  _installEvt=e;
+  // Show banner after 3s if not dismissed before
+  if(!localStorage.getItem('ctb_install_dismissed')){
+    setTimeout(function(){
+      var b=ge('installBanner');if(b)b.classList.add('on');
+    },3000);
+  }
+});
+window.addEventListener('appinstalled',function(){
+  var b=ge('installBanner');if(b)b.classList.remove('on');
+  _installEvt=null;
+  toast('Ceramic added to home screen 🎉','success');
+});
+ge('installBtn')&&ge('installBtn').addEventListener('click',function(){
+  if(!_installEvt)return;
+  _installEvt.prompt();
+  _installEvt.userChoice.then(function(r){
+    if(r.outcome==='accepted'){var b=ge('installBanner');if(b)b.classList.remove('on');}
+    _installEvt=null;
+  });
+});
+function dismissInstall(){
+  var b=ge('installBanner');if(b)b.classList.remove('on');
+  try{localStorage.setItem('ctb_install_dismissed','1');}catch(e){}
+}
+
+/* ── 5. OFFLINE DETECTION ──────────────────────────── */
+function updOnline(){
+  var badge=ge('offlineBadge');
+  if(!badge)return;
+  badge.classList.toggle('on',!navigator.onLine);
+}
+window.addEventListener('online',function(){updOnline();toast('Back online','success');});
+window.addEventListener('offline',function(){updOnline();toast('You\'re offline — showing cached menu','warn');});
+updOnline(); // check on load
+
+/* ── 6. THEME-COLOR META sync with dark/light toggle ── */
+var _origApplyTheme=applyTheme;
+applyTheme=function(t){
+  _origApplyTheme(t);
+  var meta=ge('themeColorMeta');
+  if(meta)meta.content=t==='dark'?'#0c0b09':'#f5f2ec';
+};
+
 init();
+// Phase 5 boot
+loadBanners();
+// Restore realtime if order was active before refresh
+if(S.order&&S.order.status!=='completed'&&S.order.status!=='cancelled'){
+  startRealtime();
+}
 /* ══════════════════════════════════════════════════════
    ⚡️ REAL-TIME STORE STATUS LISTENER (ฟังเสียงจาก Admin)
    ══════════════════════════════════════════════════════ */
