@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="th" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -11,6 +11,18 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%230c0b09'/%3E%3Ccircle cx='96' cy='80' r='32' stroke='%23d4aa6a' stroke-width='6' fill='none'/%3E%3Cpath d='M64 80c0 0 8 32 32 32s32-32 32-32' stroke='%23d4aa6a' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3Crect x='72' y='120' width='48' height='8' rx='4' fill='%23d4aa6a'/%3E%3C/svg%3E">
 <link rel="manifest" id="pwaManifest">
 <title>Ceramic — Artisan Tea</title>
+<script>
+/* Sync theme with OS preference on very first visit */
+(function(){
+  var saved=localStorage.getItem('ctb_theme');
+  if(!saved){
+    var prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme',prefersDark?'dark':'light');
+  } else {
+    document.documentElement.setAttribute('data-theme',saved);
+  }
+})();
+</script>
 <script src="/env-config.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -737,7 +749,7 @@ body, #app { max-width: 430px; margin: 0 auto; }
       <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" aria-label="Toggle theme">
         <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       </button>
-      <div class="tbtn" onclick="nav('pg-track','nt-track')"><svg width="15" height="13" viewBox="0 0 15 13" fill="none"><path d="M1 2h13M1 6.5h9M1 11h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+      <div class="tbtn" onclick="nav('pg-track','nt-track')" aria-label="ดูออเดอร์"><svg width="15" height="13" viewBox="0 0 15 13" fill="none"><path d="M1 2h13M1 6.5h9M1 11h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
       <div class="tbtn" onclick="S.user?nav('pg-profile','nt-profile'):openAuth('login')" id="authHeaderBtn" aria-label="Account">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       </div>
@@ -787,7 +799,7 @@ body, #app { max-width: 430px; margin: 0 auto; }
 
 <!-- ══════════════════ MENU ══════════════════ -->
 <div class="pg" id="pg-order">
-  <div class="tbar"><div class="tbar-t">Menu</div><div class="tbtn" onclick="openCart()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h3l2.5 9h7l2-7H4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="13.5" r="1.5" fill="currentColor"/><circle cx="11.5" cy="13.5" r="1.5" fill="currentColor"/></svg></div></div>
+  <div class="tbar"><div class="tbar-t">Menu</div><div class="tbtn" onclick="openCart()" aria-label="เปิดตะกร้า"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h3l2.5 9h7l2-7H4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="13.5" r="1.5" fill="currentColor"/><circle cx="11.5" cy="13.5" r="1.5" fill="currentColor"/></svg></div></div>
   <div class="lpill" onclick="openBr()" id="oLoc">
     <div class="lp-l"><svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M6 1C3.79 1 2 2.79 2 5c0 3 4 8 4 8s4-5 4-8c0-2.21-1.79-4-4-4z" stroke="var(--gl)" stroke-width="1.2"/><circle cx="6" cy="5" r="1.5" stroke="var(--gl)" stroke-width="1.1"/></svg>
       <div><div class="lp-tp" id="oLocT">Pickup</div><div class="lp-nm" id="oLocN">Main Branch — Siam</div></div>
@@ -798,7 +810,7 @@ body, #app { max-width: 430px; margin: 0 auto; }
   <div class="srch-wrap">
     <div class="srch-box"><div class="srch-ico"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.3"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
       <input class="sinp" type="text" id="srchInp" placeholder="Search drinks...">
-      <button class="sclear" id="srchClr" onclick="clearSrch()"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 1l9 9M10 1L1 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
+      <button class="sclear" id="srchClr" onclick="clearSrch()" aria-label="ล้างคำค้นหา"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1 1l9 9M10 1L1 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button>
     </div>
   </div>
   <div class="scroll" style="position:relative">
@@ -838,7 +850,7 @@ body, #app { max-width: 430px; margin: 0 auto; }
     <div class="tbar-t">Track Order</div>
     <div style="display:flex;align-items:center;gap:6px">
       <div class="rt-dot" id="rtDot" title="Realtime"></div>
-      <div class="tbtn" onclick="if(S.order)renderTrack()"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M13 7.5A5.5 5.5 0 112 7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M11 5.5l2 2 2-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="tbtn" onclick="if(S.order)renderTrack()" aria-label="รีเฟรชสถานะ"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M13 7.5A5.5 5.5 0 112 7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M11 5.5l2 2 2-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     </div>
   </div>
   <!-- Push permission prompt -->
@@ -1013,30 +1025,30 @@ body, #app { max-width: 430px; margin: 0 auto; }
 </div><!-- /pages -->
 
 <!-- ══════════════════ BOTTOM NAV ══════════════════ -->
-<div class="bnav">
-  <div class="ntab active" id="nt-home" onclick="nav('pg-home','nt-home')">
+<div class="bnav" role="navigation" aria-label="เมนูหลัก">
+  <div class="ntab active" id="nt-home" onclick="nav('pg-home','nt-home')" role="tab" aria-label="หน้าหลัก" aria-selected="true">
     <svg class="ni" width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M2 9l9-7 9 7v11a1.5 1.5 0 01-1.5 1.5H14v-6H8v6H3.5A1.5 1.5 0 012 20V9z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
     <span class="nl">Home</span>
   </div>
-  <div class="ntab" id="nt-order" onclick="nav('pg-order','nt-order')">
+  <div class="ntab" id="nt-order" onclick="nav('pg-order','nt-order')" role="tab" aria-label="สั่งออเดอร์" aria-selected="false">
     <div style="position:relative">
       <svg class="ni" width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6 2v2M10 2v2M14 2v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       <div class="cart-badge" id="cartBadge"></div>
     </div>
     <span class="nl">Order</span>
   </div>
-  <div class="nctr" onclick="nav('pg-order','nt-order')">
+  <div class="nctr" onclick="nav('pg-order','nt-order')" role="button" aria-label="สั่งชาใหม่">
     <div class="nring">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 4v14M4 11h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
     </div>
     <span class="nlbl">New</span>
   </div>
-  <div class="ntab" id="nt-track" onclick="nav('pg-track','nt-track')">
+  <div class="ntab" id="nt-track" onclick="nav('pg-track','nt-track')" role="tab" aria-label="ติดตามออเดอร์" aria-selected="false">
     <svg class="ni" width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M20 11A9 9 0 113 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M17 8.5l3 2.5 3-2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="nl">Track</span>
     <div class="ndot" id="trkDot"></div>
   </div>
-  <div class="ntab" id="nt-profile" onclick="nav('pg-profile','nt-profile')">
+  <div class="ntab" id="nt-profile" onclick="nav('pg-profile','nt-profile')" role="tab" aria-label="โปรไฟล์" aria-selected="false">
     <svg class="ni" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="7" r="4" stroke="currentColor" stroke-width="1.4"/><path d="M3 20c0-4.4 3.6-7 8-7s8 2.6 8 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
     <span class="nl">Me</span>
   </div>
@@ -1049,7 +1061,7 @@ body, #app { max-width: 430px; margin: 0 auto; }
 <div class="ov" id="brOv">
   <div class="sht">
     <div class="grip"></div>
-    <div class="shd"><div class="sht-t">Choose Location</div><button class="xbtn" onclick="closeBr()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+    <div class="shd"><div class="sht-t">Choose Location</div><button class="xbtn" onclick="closeBr()" aria-label="ปิด"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
     <div class="br-types">
       <div class="br-type on" id="brt-pickup" onclick="setBrT('pickup',this)"><svg width="18" height="20" viewBox="0 0 18 20" fill="none"><path d="M9 1C5.69 1 3 3.69 3 7c0 4.5 6 11 6 11s6-6.5 6-11c0-3.31-2.69-6-6-6z" stroke="currentColor" stroke-width="1.3"/><circle cx="9" cy="7" r="2" stroke="currentColor" stroke-width="1.2"/></svg><div class="br-tl">Pickup</div></div>
       <div class="br-type" id="brt-delivery" onclick="setBrT('delivery',this)"><svg width="22" height="16" viewBox="0 0 22 16" fill="none"><rect x="1" y="3" width="13" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M14 6l4 1.5V12h-4V6z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="5.5" cy="14" r="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="17" cy="14" r="1.5" stroke="currentColor" stroke-width="1.2"/></svg><div class="br-tl">Delivery</div></div>
@@ -1901,7 +1913,7 @@ async function placeOrder() {
   } catch (err) {
     if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Pay'; }
     toast('Order failed. Please try again.', 'error');
-    console.error(err);
+    if(window.isDev)console.error(err);
   }
 }
 
@@ -2819,6 +2831,242 @@ saveEditField=function(){
 renderRecent();
 
 /* ══════════════════════════════════════════════════════
+   PHASE D — ANALYTICS · ERROR BOUNDARY · DEV GATING
+   ══════════════════════════════════════════════════════ */
+
+/* ── 1. DEV MODE GATE ────────────────────────────────── */
+window.isDev = location.hostname==='localhost'||location.hostname==='127.0.0.1'||location.search.indexOf('debug=1')>=0;
+
+/* ── 2. EVENT TRACKING ───────────────────────────────── */
+function trackEvent(name, props){
+  try{
+    var payload=Object.assign({
+      event:name,
+      ts:Date.now(),
+      session:_sessionId(),
+      userId:S.user?S.user.id:null,
+      branch:S.branch?S.branch.id:null,
+      orderType:S.orderType
+    },props||{});
+    if(window.isDev){console.log('[track]',name,props);}
+    // Send to API if available
+    if(window.API&&API.track){API.track(payload).catch(function(){});}
+    // Fallback: push to gtag / dataLayer if present
+    if(window.gtag){gtag('event',name,props);}
+    if(window.dataLayer){window.dataLayer.push(Object.assign({event:name},props));}
+  }catch(e){}
+}
+var _sid=null;
+function _sessionId(){
+  if(!_sid){
+    try{_sid=sessionStorage.getItem('ctb_sid');}catch(e){}
+    if(!_sid){_sid=Math.random().toString(36).slice(2);try{sessionStorage.setItem('ctb_sid',_sid);}catch(e){}}
+  }
+  return _sid;
+}
+
+/* ── 3. FUNNEL HOOKS ─────────────────────────────────── */
+// Page view
+var _origNav_D=nav;
+nav=function(pgId,tabId){
+  _origNav_D(pgId,tabId);
+  trackEvent('page_view',{page:pgId});
+};
+
+// Product view
+var _origOpenCS_D=openCS;
+openCS=function(id){
+  _origOpenCS_D(id);
+  var m=MENUS.find(function(x){return x.id===id});
+  if(m)trackEvent('product_view',{id:m.id,name:m.name,price:m.price,cat:m.cat});
+};
+
+// Add to cart
+var _origAddToCart=addToCart;
+addToCart=function(){
+  _origAddToCart();
+  var m=S.cur;if(!m)return;
+  trackEvent('add_to_cart',{
+    id:m.id,name:m.name,
+    size:S.cust.sz,qty:S.cust.qty,
+    price:(parseInt(m.price)+S.cust.szX),
+    tops:S.cust.tops.map(function(t){return t.name})
+  });
+};
+
+// Cart open (checkout start)
+var _origOpenCart_D=openCart;
+openCart=function(){
+  _origOpenCart_D();
+  trackEvent('checkout_start',{items:S.cart.length,subtotal:calcSub()});
+};
+
+// Order placed — hooked inside placeOrder success path via onOrderStatusChange
+var _origOnOrderStatus=onOrderStatusChange;
+onOrderStatusChange=function(newStatus){
+  _origOnOrderStatus(newStatus);
+  if(newStatus.toLowerCase()==='confirmed'&&S.order){
+    trackEvent('order_placed',{
+      orderId:S.order.id,
+      total:S.order.total||calcTotal(),
+      items:S.cart.length,
+      orderType:S.orderType,
+      disc:S.disc||0
+    });
+  }
+};
+
+// Search
+var _origInitSrch=initSrch;
+initSrch=function(){
+  _origInitSrch();
+  var inp=ge('srchInp');if(!inp)return;
+  var _srchTrack=null;
+  inp.addEventListener('input',function(){
+    clearTimeout(_srchTrack);
+    _srchTrack=setTimeout(function(){
+      if(inp.value.trim())trackEvent('search',{query:inp.value.trim()});
+    },1000);
+  });
+};
+
+/* ── 4. ERROR BOUNDARY ───────────────────────────────── */
+function withErrorBoundary(fn, fallbackId, label){
+  return function(){
+    try{
+      return fn.apply(this,arguments);
+    }catch(err){
+      if(window.isDev)console.error('[ErrorBoundary] '+label+':',err);
+      trackEvent('render_error',{label:label,msg:err&&err.message});
+      // Show inline fallback if a container ID is provided
+      if(fallbackId){
+        var el=ge(fallbackId);
+        if(el)el.innerHTML='<div style="padding:24px;text-align:center;color:var(--tan3);font-size:13px">'
+          +'<div style="font-size:22px;margin-bottom:8px">⚠️</div>'
+          +'<div>เกิดข้อผิดพลาดในการโหลด</div>'
+          +'<button onclick="location.reload()" style="margin-top:12px;height:36px;padding:0 16px;background:var(--c3);border:1px solid var(--ln2);border-radius:8px;color:var(--tan2);font-family:var(--sans);font-size:12px;cursor:pointer">โหลดใหม่</button>'
+          +'</div>';
+      }
+    }
+  };
+}
+
+// Wrap key render functions
+renderCartItems = withErrorBoundary(renderCartItems, 'cartItems', 'renderCartItems');
+renderTrack     = withErrorBoundary(renderTrack,     'trkContent', 'renderTrack');
+buildHome       = withErrorBoundary(buildHome,       'featScroll', 'buildHome');
+renderMenu      = withErrorBoundary(renderMenu,      'menuSecs',   'renderMenu');
+renderProfile   = withErrorBoundary(renderProfile,   'profileMember', 'renderProfile');
+
+/* ── 5. GLOBAL UNHANDLED ERROR CATCH ─────────────────── */
+window.addEventListener('error',function(e){
+  trackEvent('js_error',{msg:e.message,file:e.filename,line:e.lineno});
+  if(window.isDev)console.error('[GlobalError]',e.message,e.filename+':'+e.lineno);
+});
+window.addEventListener('unhandledrejection',function(e){
+  var msg=e.reason&&e.reason.message?e.reason.message:String(e.reason);
+  trackEvent('unhandled_rejection',{msg:msg});
+  if(window.isDev)console.error('[UnhandledRejection]',msg);
+});
+
+
+   ══════════════════════════════════════════════════════ */
+
+/* ── 1. FOCUS TRAP for bottom sheets ────────────────── */
+var FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+function trapFocus(containerEl){
+  var nodes=containerEl.querySelectorAll(FOCUSABLE);
+  var first=nodes[0];var last=nodes[nodes.length-1];
+  if(!first)return;
+  first.focus();
+  containerEl._trapHandler=function(e){
+    if(e.key!=='Tab')return;
+    if(e.shiftKey){if(document.activeElement===first){e.preventDefault();last.focus();}}
+    else{if(document.activeElement===last){e.preventDefault();first.focus();}}
+  };
+  containerEl.addEventListener('keydown',containerEl._trapHandler);
+}
+function releaseFocus(containerEl){
+  if(containerEl&&containerEl._trapHandler){
+    containerEl.removeEventListener('keydown',containerEl._trapHandler);
+    delete containerEl._trapHandler;
+  }
+}
+function trapSheet(ovId){var ov=ge(ovId);if(!ov)return;var sht=ov.querySelector('.sht');if(sht)trapFocus(sht);}
+function releaseSheet(ovId){var ov=ge(ovId);if(!ov)return;var sht=ov.querySelector('.sht');if(sht)releaseFocus(sht);}
+
+var _origOpenCS_C=openCS;
+openCS=function(id){_origOpenCS_C(id);setTimeout(function(){trapSheet('csOv');},50);};
+var _origCloseCS_C=closeCS;
+closeCS=function(){_origCloseCS_C();releaseSheet('csOv');};
+var _origOpenCart_C=openCart;
+openCart=function(){_origOpenCart_C();setTimeout(function(){trapSheet('cartOv');},50);};
+var _origCloseCart_C=closeCart;
+closeCart=function(){_origCloseCart_C();releaseSheet('cartOv');};
+var _origOpenBr_C=openBr;
+openBr=function(){_origOpenBr_C();setTimeout(function(){trapSheet('brOv');},50);};
+var _origCloseBr_C=closeBr;
+closeBr=function(){_origCloseBr_C();releaseSheet('brOv');};
+var _origOpenAuth_C=openAuth;
+openAuth=function(m){_origOpenAuth_C(m);setTimeout(function(){trapSheet('authOv');},50);};
+var _origCloseAuth_C=closeAuth;
+closeAuth=function(){_origCloseAuth_C();releaseSheet('authOv');};
+
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape')return;
+  if(ge('csOv')&&ge('csOv').classList.contains('on')){closeCS();return;}
+  if(ge('cartOv')&&ge('cartOv').classList.contains('on')){closeCart();return;}
+  if(ge('authOv')&&ge('authOv').classList.contains('on')){closeAuth();return;}
+  if(ge('brOv')&&ge('brOv').classList.contains('on')){closeBr();}
+});
+
+/* ── 2. THAI ERROR MESSAGES ──────────────────────────── */
+var TH={
+  cart_empty:'ยังไม่มีสินค้าในตะกร้า',
+  store_closed:'ขณะนี้ร้านปิดอยู่',
+  slip_required:'กรุณาอัปโหลดสลิปการโอนเงิน',
+  delivery_addr:'กรุณากรอกที่อยู่สำหรับจัดส่ง',
+  delivery_phone:'กรุณากรอกเบอร์โทรสำหรับจัดส่ง',
+  promo_invalid:'โค้ดโปรโมชันไม่ถูกต้องหรือหมดอายุแล้ว',
+  order_failed:'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+  birthday_format:'รูปแบบวันเกิดต้องเป็น DD/MM (เช่น 25/12)',
+  cancel_failed:'ไม่สามารถยกเลิกออเดอร์ได้ กรุณาลองใหม่'
+};
+
+var _origPlaceOrder_C=placeOrder;
+placeOrder=async function(){
+  if(!S.cart||!S.cart.length){toast(TH.cart_empty,'warn');return;}
+  if(S.orderType==='delivery'){
+    var da=ge('cartDelAddr'),dp=ge('cartDelPhone');
+    if(da&&!da.value.trim()){toast(TH.delivery_addr,'warn');return;}
+    if(dp&&!dp.value.trim()){toast(TH.delivery_phone,'warn');return;}
+  }
+  var slipPrev=ge('slipPrev');
+  if(!slipPrev||!slipPrev.src||slipPrev.src===location.href||slipPrev.src===window.location.href){
+    toast(TH.slip_required,'warn');return;
+  }
+  await _origPlaceOrder_C();
+};
+
+/* ── 3. OS THEME LIVE LISTENER ───────────────────────── */
+(function(){
+  if(!window.matchMedia)return;
+  window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(e){
+    if(!localStorage.getItem('ctb_theme'))applyTheme(e.matches?'dark':'light');
+  });
+})();
+
+/* ── 4. ARIA-SELECTED sync on nav ────────────────────── */
+var _origNav_C=nav;
+nav=function(pgId,tabId){
+  _origNav_C(pgId,tabId);
+  document.querySelectorAll('.ntab').forEach(function(t){
+    t.setAttribute('aria-selected',t.id===tabId?'true':'false');
+  });
+};
+
+/* ══════════════════════════════════════════════════════
    PHASE 5 — REALTIME · PUSH · CMS BANNERS · BRANCH DIFF
    ══════════════════════════════════════════════════════ */
 
@@ -3053,11 +3301,10 @@ renderTrack=function(){
   var url=URL.createObjectURL(blob);
   navigator.serviceWorker.register(url,{scope:'./'})
     .then(function(reg){
-      console.log('[SW] registered scope:',reg.scope);
+      if(window.isDev)console.log('[SW] registered scope:',reg.scope);
     })
     .catch(function(err){
-      // Fallback: try registering as /sw.js if server hosts it
-      console.warn('[SW] Blob registration failed — add Service-Worker-Allowed header or host sw.js:',err.message);
+      if(window.isDev)console.warn('[SW] Blob registration failed — add Service-Worker-Allowed header or host sw.js:',err.message);
     });
 })();
 
