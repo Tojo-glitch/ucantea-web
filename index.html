@@ -2023,7 +2023,9 @@ function reorder(receipt){
    NEW: AUTH SYSTEM (Phone + Email)
 ══════════════════════════════════════════════════════ */
 var _authTab='login';
-
+function closeAuth() {
+  ge('authOv').classList.remove('on');
+}
 function openAuth(tab){
   ge('authOv').classList.add('on');
   switchAuthTab(tab||'login');
@@ -2520,39 +2522,58 @@ function updSummary(){
   updQR(); // refresh QR whenever totals change
 }
 
-/* ── FIX INIT ─────────────────────────────────────────── */
-function init(){
-  // Restore session FIRST so renderLoyalty etc have user data
-  var savedUser=null;
-  try{savedUser=JSON.parse(localStorage.getItem('ctb_user')||'null')}catch(e){}
-  if(savedUser){S.user=savedUser;PTS=savedUser.points||0;}
+/* ── INIT (Optimized Boot Sequence) ─────────────────────────────────── */
+function init() {
+  // 1. นำข้อมูลเก่ากลับมา (Session, History, Cart, Order)
+  try {
+    var savedUser = JSON.parse(localStorage.getItem('ctb_user') || 'null');
+    if (savedUser) { S.user = savedUser; PTS = savedUser.points || 0; }
 
-  // Restore history
-  var savedHist=null;
-  try{savedHist=JSON.parse(localStorage.getItem('ctb_history')||'null')}catch(e){}
-  if(savedHist&&savedHist.length)S.orderHistory=savedHist;
+    var savedHist = JSON.parse(localStorage.getItem('ctb_history') || 'null');
+    if (savedHist && savedHist.length) S.orderHistory = savedHist;
 
-  // Restore cart
-  loadCart();
+    var savedOrder = JSON.parse(localStorage.getItem('ctb_order') || 'null');
+    // ดึงออเดอร์ล่าสุดกลับมาติดตามต่อ ถ้ายกเลิก/เสร็จแล้ว ให้เคลียร์ทิ้ง
+    if (savedOrder && savedOrder.status !== 'completed' && savedOrder.status !== 'cancelled') {
+      S.order = savedOrder;
+      ge('trkDot').classList.add('on');
+    }
 
-  checkStoreStatus();
-  setInterval(checkStoreStatus,60000);
-  if(!isStoreOpen){S.orderType='preorder';}
-  applyTheme(S.theme);
-  updClk();setInterval(updClk,10000);
-  if(isRet()){ge('splash').style.display='none'}
-  else{buildSpFeat();setTimeout(closeSplash,8000)}
-  loadBr();loadMenu();initSrch();
-  renderLoyalty();buildTopGrid();syncOT(S.orderType);startUrgency();renderHistory();
-  if(S.user)renderProfile();
-
-  // If order is active, start tracking
-  var savedOrder=null;
-  try{savedOrder=JSON.parse(localStorage.getItem('ctb_order')||'null')}catch(e){}
-  if(savedOrder&&savedOrder.status!=='completed'&&savedOrder.status!=='cancelled'){
-    S.order=savedOrder;
-    ge('trkDot').classList.add('on');
+    loadCart(); // ดึงตะกร้า
+  } catch (e) {
+    console.warn("Restore state error:", e);
   }
+
+  // 2. จัดการตั้งค่าร้านและเวลา
+  checkStoreStatus(); // เช็คเปิด-ปิดร้าน
+  setInterval(checkStoreStatus, 60000); // เช็คทุก 1 นาที
+  if (!isStoreOpen) { S.orderType = 'preorder'; } // ถ้าร้านปิด บังคับพรีออเดอร์
+  
+  applyTheme(S.theme); // โหลดธีมสี
+
+  // 3. เริ่มโหลดข้อมูลหน้าร้าน
+  loadMenu(); // โหลดเมนูจาก Supabase (เรียกแค่ครั้งเดียว!)
+  loadBr();   // โหลดสาขา
+  initSrch(); // โหลดระบบค้นหา
+  buildTopGrid(); // โหลดหน้า Customize Toppings
+  
+  // 4. อัปเดต UI หน้าจอต่างๆ
+  syncOT(S.orderType); // อัปเดตปุ่ม Order Type (Delivery/Pickup)
+  renderLoyalty();     // โชว์แต้ม Profile
+  renderHistory();     // โชว์ประวัติ
+  if (S.user) renderProfile(); // อัปเดตข้อมูลบัญชี
+  
+  // 5. ลูกเล่นอื่นๆ (Splash Screen & Urgency Timer)
+  if (isRet()) { 
+    ge('splash').style.display = 'none'; 
+  } else { 
+    buildSpFeat(); 
+    setTimeout(closeSplash, 8000); 
+  }
+  
+  updClk(); 
+  setInterval(updClk, 10000); // นาฬิกามุมซ้ายบน
+  startUrgency(); // แถบจับเวลาลดราคา
 }
 
 /* ══════════════════════════════════════════════════════
@@ -3389,6 +3410,41 @@ loadBanners();
 // Restore realtime if order was active before refresh
 if(S.order&&S.order.status!=='completed'&&S.order.status!=='cancelled'){
   startRealtime();
+}
+
+/* ── SKELETON ───────────────────────────────────────── */
+function showMenuSkeleton(){
+  var el=ge('menuSkel');if(!el)return;
+  var row='<div style="padding:16px; border-bottom:1px solid var(--line); color:var(--tan3);">Loading menu...</div>';
+  el.innerHTML=row+row+row;
+}
+function hideMenuSkeleton(){var el=ge('menuSkel');if(el)el.innerHTML='';}
+
+/* ── LOAD MENU from API ────────────────────────────────── */
+function loadMenu(){
+  var errEl=ge('menuErr');if(errEl)errEl.classList.remove('on');
+  if(window.API&&API.getMenu){
+    showMenuSkeleton();
+    API.getMenu().then(function(res){
+      hideMenuSkeleton();
+      if(res&&res.products&&res.products.length){
+        MENUS=res.products;
+        if(res.customization&&res.customization.addons)TOPS=res.customization.addons;
+        buildCats();
+        renderMenu(MENUS); // ฟังก์ชัน renderMenu ต้องมีอยู่ในไฟล์
+        buildHome();
+      } else {
+        renderMenu(MENUS); // use fallback
+      }
+    }).catch(function(err){
+      hideMenuSkeleton();
+      if(errEl)errEl.classList.add('on');
+      console.error("Menu load error:", err);
+      renderMenu(MENUS); // use fallback
+    });
+  } else {
+    try{renderMenu(MENUS)}catch(e){if(errEl)errEl.classList.add('on')}
+  }
 }
 /* ══════════════════════════════════════════════════════
    ⚡️ REAL-TIME STORE STATUS LISTENER (ฟังเสียงจาก Admin)
