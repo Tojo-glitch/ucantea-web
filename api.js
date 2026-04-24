@@ -109,8 +109,8 @@ const sb = {
 /* ── HELPERS ───────────────────────────────────────── */
 const _delay = (ms = 600) => new Promise(r => setTimeout(r, ms));
 
-// Use environment variable for salt or generate secure random salt
-const CTB_SALT = window.ENV?.SALT || 'CTB_SALT_2025'; // TODO: Move to environment variable in production
+// Use environment variable for salt - configured in env-config.js
+const CTB_SALT = window.ENV?.SALT || 'CTB_SALT_2025'; // ⚠️ IMPORTANT: Change this value in production!
 
 async function _sha256(str) {
   const enc = new TextEncoder();
