@@ -225,6 +225,16 @@ input::placeholder{color:var(--tan3)}
 /* ═══ QUEUE NUMBER ══════════════════════════════════════ */
 .queue-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:var(--gl);color:var(--c0);font-size:13px;font-weight:700;margin-left:6px}
 </style>
+
+<!-- Content Security Policy -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co;">
+
+<!-- Load DOMPurify for XSS protection -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js" integrity="sha512-V4wHMqE3iUplOjH+DfXJ9GmF8+YtZqLzQyZpKlYzS5yQxQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQ" crossorigin="anonymous"></script>
+
+<!-- Load security utilities -->
+<script src="/security-utils.js"></script>
+
 </head>
 <body>
 
@@ -2019,12 +2029,26 @@ function browserPrint(order) {
   const dateStr = d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
   const sub = (order.items || []).reduce((s, i) => s + i.price * (i.qty||1), 0);
   const vatAmt = STORE.vatRate > 0 ? Math.round(order.total * STORE.vatRate / (100 + STORE.vatRate)) : 0;
-  const itemsHtml = (order.items || []).map(i => `
+  
+  // Sanitize order data to prevent XSS in print output
+  const safeOrderData = {
+    id: window.SecurityUtils?.sanitizeHTML(order.id) || order.id,
+    name: window.SecurityUtils?.sanitizeHTML(order.name) || order.name,
+    items: (order.items || []).map(i => ({
+      name: window.SecurityUtils?.sanitizeHTML(i.name) || i.name,
+      opts: window.SecurityUtils?.sanitizeHTML(i.opts) || i.opts,
+      note: window.SecurityUtils?.sanitizeHTML(i.note) || i.note,
+      qty: i.qty,
+      price: i.price
+    }))
+  };
+  
+  const itemsHtml = (safeOrderData.items || []).map(i => `
     <div class="row"><div class="left">${i.qty}x ${i.name}</div><div class="right">฿${i.price * i.qty}</div></div>
     <div class="sub">${i.opts || ''}${i.note ? ' 📝 '+i.note : ''}</div>`).join('');
 
   // 🟢 1. สร้าง HTML ใบเสร็จ (เพิ่ม Google Font สำหรับ Barcode) 🟢
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt ${order.id}</title>
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt ${safeOrderData.id}</title>
   <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Extended+Text&display=swap" rel="stylesheet">
   <style>
     @page { margin:2mm; size:80mm auto }

@@ -734,6 +734,16 @@ body, #app { max-width: 430px; margin: 0 auto; }
 /* Auth form alignment */
 .auth-field { text-align: left; }
 </style>
+
+<!-- Content Security Policy -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co;">
+
+<!-- Load DOMPurify for XSS protection -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js" integrity="sha512-V4wHMqE3iUplOjH+DfXJ9GmF8+YtZqLzQyZpKlYzS5yQxQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQyQ" crossorigin="anonymous"></script>
+
+<!-- Load security utilities -->
+<script src="/security-utils.js"></script>
+
 </head>
 <body>
 

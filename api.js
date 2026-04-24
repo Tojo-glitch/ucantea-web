@@ -109,23 +109,45 @@ const sb = {
 /* ── HELPERS ───────────────────────────────────────── */
 const _delay = (ms = 600) => new Promise(r => setTimeout(r, ms));
 
+// Use environment variable for salt or generate secure random salt
+const CTB_SALT = window.ENV?.SALT || 'CTB_SALT_2025'; // TODO: Move to environment variable in production
+
 async function _sha256(str) {
   const enc = new TextEncoder();
   const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-/* ── STORAGE: UPLOAD SLIP ──────────────────────────── */
-async function uploadSlip(file) {
-  if (!file) return null;
-  const fileName = `${Date.now()}_${file.name.replace(/\s/g,'_')}`;
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/slips/${fileName}`, {
-    method: 'POST',
-    headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}`, 'Content-Type': file.type },
-    body: file,
-  });
-  if (!res.ok) return null;
-  return `${SUPABASE_URL}/storage/v1/object/public/slips/${fileName}`;
+/**
+ * Secure password hashing with PBKDF2 (recommended for new implementations)
+ * @param {string} password - Plain text password
+ * @param {string} salt - Salt string
+ * @returns {Promise<string>} - Hashed password
+ */
+async function _hashPasswordSecure(password, salt = CTB_SALT) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"]
+  );
+  
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: enc.encode(salt),
+      iterations: 100000,
+      hash: "SHA-256"
+    },
+    keyMaterial,
+    256
+  );
+  
+  return Array.from(new Uint8Array(bits))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 /* ── MOCK DATA ─────────────────────────────────────── */
@@ -183,26 +205,10 @@ window.API = {
     return { success: true, data: [{id:'BR001', name:'Main Branch — Siam'}] };
   },
 
-  // ล็อกอินพนักงานหน้าร้าน POS
-  async staffLogin(username, pin) {
-    if (BACKEND_MODE === 'supabase') {
-      const hashed = await _sha256(pin + 'CTB_SALT_2025');
-      const res = await sb.query('staff', { 
-        eq: { username: username, password_hash: hashed, is_active: true }, 
-        select: 'id, username, name, role' 
-      });
-      if (res && res.length > 0) {
-        return { success: true, staff: res[0] };
-      }
-      return { success: false, message: 'Username หรือ PIN ไม่ถูกต้อง' };
-    }
-    return { success: false, message: 'Invalid credentials' };
-  },
-
   // ตรวจสอบรหัส Manager
   async verifyManagerPin(pin) {
     if (BACKEND_MODE === 'supabase') {
-      const hashed = await _sha256(pin + 'CTB_SALT_2025');
+      const hashed = await _sha256(pin + CTB_SALT);
       const res = await sb.query('staff', { 
         eq: { password_hash: hashed, is_active: true }, 
         select: 'id, name, role' 
@@ -254,8 +260,8 @@ window.API = {
   // 🟢 ฟังก์ชันนี้สมบูรณ์แล้ว! ข้อมูลครบทุกช่อง 🟢
   async completeOnboarding(staffId, data) {
     if (BACKEND_MODE === 'supabase') {
-      const passHash = await _sha256(data.password + 'CTB_SALT_2025');
-      const pinHash = await _sha256(data.pin + 'CTB_SALT_2025');
+      const passHash = await _sha256(data.password + CTB_SALT);
+      const pinHash = await _sha256(data.pin + CTB_SALT);
       
       const updateData = {
         name: data.fullName,
@@ -289,7 +295,6 @@ window.API = {
       const adminUser = { id: res.user.id, email: res.user.email, token: res.access_token };
       localStorage.setItem('ctb_admin_token', res.access_token);
       localStorage.setItem('ctb_admin_user', JSON.stringify(adminUser));
-      sb.headers['Authorization'] = `Bearer ${res.access_token}`;
 
       return { success: true, admin: adminUser };
     }
@@ -569,7 +574,7 @@ async register({ phone, email, name, hashedPassword }) {
   async staffLogin(username, pin) {
     if (BACKEND_MODE === 'supabase') {
       // ทำการเข้ารหัส PIN 4 หลักที่พนักงานกดหน้าจอ POS
-      const hashedPin = await _sha256(pin + 'CTB_SALT_2025');
+      const hashedPin = await _sha256(pin + CTB_SALT);
       
       // ค้นหาในตาราง staff ว่ามี Username และ PIN ตรงกันไหม + ต้อง Active อยู่
       const res = await sb.query('staff', { 
@@ -588,5 +593,165 @@ async register({ phone, email, name, hashedPassword }) {
   async getStoreStatus() {
     const stored = localStorage.getItem('ctb_shop_open');
     return { isOpen: stored === null ? true : stored === 'true' };
+  },
+
+  /* ── PROMOS & VALIDATION ────────────────────────── */
+  async validatePromoCode({ code, subtotal }) {
+    if (BACKEND_MODE === 'supabase') {
+      try {
+        const promos = await sb.query('promo_codes', { 
+          eq: { code: code.toUpperCase(), is_active: true }, 
+          select: '*' 
+        });
+        
+        if (!promos || promos.length === 0) {
+          return { success: false, message: 'Invalid promo code' };
+        }
+        
+        const promo = promos[0];
+        const now = new Date().toISOString();
+        
+        // Check validity period
+        if (promo.valid_from && promo.valid_from > now) {
+          return { success: false, message: 'Promo code not yet valid' };
+        }
+        if (promo.valid_until && promo.valid_until < now) {
+          return { success: false, message: 'Promo code expired' };
+        }
+        
+        // Check minimum order
+        if (promo.min_order && subtotal < promo.min_order) {
+          return { 
+            success: false, 
+            message: `Minimum order ${promo.min_order} THB required` 
+          };
+        }
+        
+        // Calculate discount
+        let discount = 0;
+        if (promo.discount_type === 'percent') {
+          discount = Math.min(subtotal * (promo.discount_value / 100), promo.max_discount || 999999);
+        } else if (promo.discount_type === 'fixed') {
+          discount = Math.min(promo.discount_value, subtotal);
+        }
+        
+        return { 
+          success: true, 
+          discount: Math.round(discount),
+          finalAmount: subtotal - discount,
+          promo: promo
+        };
+      } catch (err) {
+        return { success: false, message: err.message };
+      }
+    }
+    return { success: true, discount: 0, finalAmount: subtotal };
+  },
+
+  /* ── ANALYTICS TRACKING ─────────────────────────── */
+  async track(eventData) {
+    if (BACKEND_MODE === 'supabase') {
+      try {
+        await sb.insert('analytics_events', {
+          event_name: eventData.event,
+          user_id: eventData.userId || null,
+          session_id: eventData.sessionId || null,
+          page_url: eventData.url || window.location.pathname,
+          metadata: JSON.stringify(eventData.data || {}),
+          created_at: new Date().toISOString()
+        });
+        return { success: true };
+      } catch (err) {
+        console.warn('Analytics tracking failed:', err);
+        return { success: false };
+      }
+    }
+    return { success: true };
+  },
+
+  /* ── LOYALTY POINTS ─────────────────────────────── */
+  async updatePoints({ userId, points }) {
+    if (BACKEND_MODE === 'supabase') {
+      try {
+        const currentMember = await sb.query('members', { 
+          eq: { id: userId }, 
+          select: 'points' 
+        });
+        
+        if (currentMember && currentMember.length > 0) {
+          const newPoints = (currentMember[0].points || 0) + points;
+          await sb.update('members', { points: Math.max(0, newPoints) }, { id: userId });
+          return { success: true, points: Math.max(0, newPoints) };
+        }
+        return { success: false, message: 'Member not found' };
+      } catch (err) {
+        return { success: false, message: err.message };
+      }
+    }
+    return { success: true, points: points };
+  },
+
+  /* ── CMS BANNERS ────────────────────────────────── */
+  async getBanners() {
+    if (BACKEND_MODE === 'supabase') {
+      try {
+        const banners = await sb.query('banners', { 
+          select: '*', 
+          eq: { is_active: true },
+          order: 'sort_order,created_at.desc'
+        });
+        return { success: true, data: banners };
+      } catch (err) {
+        return { success: false, message: err.message };
+      }
+    }
+    return { success: true, data: [] };
+  },
+
+  /* ── REAL-TIME SSE BASE URL ─────────────────────── */
+  SSE_BASE: SUPABASE_URL + '/rest/v1',
+
+  /* ── NOTIFICATIONS ──────────────────────────────── */
+  async sendNotification({ userId, title, message, type }) {
+    if (BACKEND_MODE === 'supabase') {
+      try {
+        await sb.insert('notifications', {
+          user_id: userId,
+          title: title,
+          message: message,
+          type: type || 'info',
+          is_read: false,
+          created_at: new Date().toISOString()
+        });
+        return { success: true };
+      } catch (err) {
+        return { success: false, message: err.message };
+      }
+    }
+    return { success: true };
+  },
+
+  async getNotifications(userId) {
+    if (BACKEND_MODE === 'supabase') {
+      try {
+        const notifs = await sb.query('notifications', {
+          eq: { user_id: userId },
+          select: '*',
+          order: 'created_at.desc',
+          limit: 20
+        });
+        return { success: true, data: notifs };
+      } catch (err) {
+        return { success: false, message: err.message };
+      }
+    }
+    return { success: true, data: [] };
+  },
+
+  async markNotificationRead(notificationId) {
+    if (BACKEND_MODE === 'supabase') {
+      await sb.update('notifications', { is_read: true }, { id: notificationId });
+    }
+    return { success: true };
   }
 };

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ceramic — ERP Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c0:#0c0b09;--c1:#141310;--c2:#1c1a17;--c3:#252320;--c4:#2f2d29;
+  --tan:#e8e0d4;--tan2:#b8ad9e;--tan3:#9e9080;--tan4:#6a5e52;
+  --gold:#b8924a;--gl:#d4aa6a;--gl2:rgba(212,170,106,.12);
+  --grn:#4aad75;--grnl:#6dbb8a;--grn2:rgba(74,173,117,.12);
+  --red:#d44f4f;--red2:rgba(212,79,79,.12);
+  --blue:#4a7fbf;--blue2:rgba(74,127,191,.12);
+  --line:rgba(255,255,255,.07);--ln2:rgba(255,255,255,.12);
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'Plus Jakarta Sans','Helvetica Neue',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--c0);color:var(--tan);font-family:var(--sans);min-height:100vh}
+button{cursor:pointer;border:none;background:none;font-family:var(--sans)}
+
+/* Layout */
+.erp-layout{display:flex;min-height:100vh}
+.sidebar{width:260px;background:var(--c1);border-right:1px solid var(--line);padding:24px 16px;position:fixed;height:100vh;overflow-y:auto}
+.main-content{margin-left:260px;flex:1;padding:28px}
+
+/* Branding */
+.brand{font-family:var(--serif);font-size:22px;font-style:italic;color:var(--tan);margin-bottom:8px;display:flex;align-items:baseline;gap:8px}
+.brand-badge{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);background:rgba(184,146,74,.12);border:1px solid rgba(184,146,74,.2);padding:2px 7px;border-radius:4px}
+.sidebar-subtitle{font-size:11px;color:var(--tan3);margin-bottom:24px}
+
+/* Navigation */
+.nav-section{margin-bottom:24px}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--tan4);padding:8px 12px 4px}
+.nav-item{padding:10px 12px;border-radius:8px;color:var(--tan3);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:2px;transition:all .15s}
+.nav-item:hover{background:var(--c2);color:var(--tan)}
+.nav-item.active{background:var(--gl2);color:var(--gl);border:1px solid rgba(212,170,106,.18)}
+.nav-icon{width:18px;height:18px;opacity:.7}
+.nav-item.active .nav-icon{opacity:1}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:28px}
+.kpi-card{background:var(--c1);border:1px solid var(--line);border-radius:12px;padding:20px}
+.kpi-title{font-size:12px;color:var(--tan3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.kpi-value{font-family:var(--serif);font-size:28px;color:var(--tan);margin-bottom:4px}
+.kpi-delta{font-size:11px;font-weight:600}
+.kpi-delta.up{color:var(--grnl)}
+.kpi-delta.down{color:var(--red)}
+
+/* Section Headers */
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.section-title{font-family:var(--serif);font-size:20px;color:var(--tan)}
+.btn{height:38px;padding:0 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .15s}
+.btn-primary{background:var(--gold);color:var(--c0)}
+.btn-primary:hover{background:var(--gl)}
+.btn-outline{border:1px solid var(--ln2);color:var(--tan3);background:var(--c2)}
+.btn-outline:hover{border-color:var(--gl);color:var(--tan)}
+
+/* Tables */
+.data-table{width:100%;border-collapse:collapse;background:var(--c1);border-radius:12px;overflow:hidden}
+.data-table th,.data-table td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line)}
+.data-table th{font-size:11px;font-weight:700;color:var(--tan3);text-transform:uppercase;letter-spacing:.5px;background:var(--c2)}
+.data-table tr:hover{background:var(--c2)}
+.data-table td{font-size:13px}
+.status-badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase}
+.status-badge.success{background:var(--grn2);color:var(--grnl)}
+.status-badge.warning{background:rgba(184,146,74,.15);color:var(--gold)}
+.status-badge.danger{background:var(--red2);color:var(--red)}
+
+/* Charts placeholder */
+.chart-container{background:var(--c1);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:28px}
+.chart-placeholder{height:200px;display:flex;align-items:center;justify-content:center;color:var(--tan3);font-size:13px}
+
+/* Module Panels */
+.module-panel{display:none}
+.module-panel.active{display:block}
+
+/* Inventory Grid */
+.inventory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.inv-item{background:var(--c1);border:1px solid var(--line);border-radius:12px;padding:16px}
+.inv-item-header{display:flex;justify-content:space-between;align-items:start;margin-bottom:12px}
+.inv-item-name{font-family:var(--serif);font-size:16px;color:var(--tan)}
+.inv-item-sku{font-size:11px;color:var(--tan3)}
+.inv-item-body{display:flex;justify-content:space-between;align-items:end}
+.inv-item-qty{font-size:24px;font-weight:700;color:var(--tan)}
+.inv-item-label{font-size:11px;color:var(--tan3)}
+.inv-item-low{color:var(--red)}
+
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;min-height:400px;color:var(--tan3)}
+.spinner{width:40px;height:40px;border:3px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(max-width:1024px){
+  .sidebar{width:200px}
+  .main-content{margin-left:200px}
+}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main-content{margin-left:0}
+}
+</style>
+</head>
+<body>
+
+<div class="erp-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      Ceramic
+      <span class="brand-badge">ERP</span>
+    </div>
+    <div class="sidebar-subtitle">Enterprise Management</div>
+    
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Overview</div>
+        <div class="nav-item active" data-module="dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </div>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-label">Operations</div>
+        <div class="nav-item" data-module="inventory">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+          Inventory
+        </div>
+        <div class="nav-item" data-module="procurement">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          Procurement
+        </div>
+        <div class="nav-item" data-module="accounting">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          Accounting
+        </div>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-label">Human Resources</div>
+        <div class="nav-item" data-module="hr">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Staff & Payroll
+        </div>
+      </div>
+      
+      <div class="nav-section">
+        <div class="nav-label">Analytics</div>
+        <div class="nav-item" data-module="reports">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Reports
+        </div>
+      </div>
+      
+      <div class="nav-section" style="margin-top:auto;padding-top:16px;border-top:1px solid var(--line)">
+        <div class="nav-item" onclick="window.location.href='admin.html'">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Back to Admin
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Dashboard Module -->
+    <div id="dashboard" class="module-panel active">
+      <div class="section-header">
+        <h1 class="section-title">Dashboard Overview</h1>
+        <button class="btn btn-outline" onclick="loadDashboard()">↻ Refresh</button>
+      </div>
+      
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Today's Revenue</div>
+          <div class="kpi-value" id="kpi-today-revenue">฿0</div>
+          <div class="kpi-delta up" id="kpi-today-orders">0 orders</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">This Month</div>
+          <div class="kpi-value" id="kpi-month-revenue">฿0</div>
+          <div class="kpi-delta" id="kpi-month-profit">Profit: ฿0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Total Customers</div>
+          <div class="kpi-value" id="kpi-customers">0</div>
+          <div class="kpi-delta">Active members</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Low Stock Alerts</div>
+          <div class="kpi-value" id="kpi-low-stock">0</div>
+          <div class="kpi-delta down">Items need attention</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Pending Orders</div>
+          <div class="kpi-value" id="kpi-pending">0</div>
+          <div class="kpi-delta">Awaiting fulfillment</div>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="section-header">
+          <h3 class="section-title" style="font-size:16px">Sales Trend (30 Days)</h3>
+        </div>
+        <div class="chart-placeholder" id="sales-chart">
+          Loading chart...
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="section-header">
+          <h3 class="section-title" style="font-size:16px">Recent Orders</h3>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recent-orders-body">
+            <tr><td colspan="5" style="text-align:center;color:var(--tan3)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Inventory Module -->
+    <div id="inventory" class="module-panel">
+      <div class="section-header">
+        <h1 class="section-title">Inventory Management</h1>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="loadInventory()">↻ Refresh</button>
+          <button class="btn btn-primary" onclick="showAdjustStockModal()">+ Adjust Stock</button>
+        </div>
+      </div>
+      
+      <div class="inventory-grid" id="inventory-grid">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- Procurement Module -->
+    <div id="procurement" class="module-panel">
+      <div class="section-header">
+        <h1 class="section-title">Procurement</h1>
+        <button class="btn btn-primary" onclick="showCreatePOModal()">+ Create PO</button>
+      </div>
+      
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>PO Number</th>
+            <th>Supplier</th>
+            <th>Amount</th>
+            <th>Expected Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="po-table-body">
+          <tr><td colspan="6" style="text-align:center;color:var(--tan3)">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Accounting Module -->
+    <div id="accounting" class="module-panel">
+      <div class="section-header">
+        <h1 class="section-title">Accounting & Finance</h1>
+        <button class="btn btn-outline" onclick="loadAccounting()">↻ Refresh</button>
+      </div>
+      
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Monthly Revenue</div>
+          <div class="kpi-value" id="acc-revenue">฿0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">COGS</div>
+          <div class="kpi-value" id="acc-cogs">฿0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Gross Profit</div>
+          <div class="kpi-value" id="acc-gross">฿0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Net Profit</div>
+          <div class="kpi-value" id="acc-net">฿0</div>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <h3 style="font-size:16px;margin-bottom:16px;font-family:var(--serif)">Cash Flow</h3>
+        <div class="chart-placeholder" id="cashflow-chart">Select date range to view cash flow</div>
+      </div>
+    </div>
+
+    <!-- HR Module -->
+    <div id="hr" class="module-panel">
+      <div class="section-header">
+        <h1 class="section-title">Staff & Payroll</h1>
+        <button class="btn btn-primary" onclick="showPayrollModal()">Run Payroll</button>
+      </div>
+      
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Role</th>
+            <th>Branch</th>
+            <th>Status</th>
+            <th>Attendance (This Month)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="staff-table-body">
+          <tr><td colspan="6" style="text-align:center;color:var(--tan3)">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Reports Module -->
+    <div id="reports" class="module-panel">
+      <div class="section-header">
+        <h1 class="section-title">Business Reports</h1>
+      </div>
+      
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Top Products</div>
+          <div id="top-products-list" style="margin-top:12px"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Customer Analytics</div>
+          <div id="customer-analytics" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="env-config.js"></script>
+<script src="api.js"></script>
+<script src="api-erp.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// ERP DASHBOARD CONTROLLER
+// ═══════════════════════════════════════════════════════════════
+
+// Navigation
+document.querySelectorAll('.nav-item[data-module]').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    
+    document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(item.dataset.module).classList.add('active');
+    
+    // Load module data
+    loadModule(item.dataset.module);
+  });
+});
+
+async function loadModule(module) {
+  switch(module) {
+    case 'dashboard': await loadDashboard(); break;
+    case 'inventory': await loadInventory(); break;
+    case 'procurement': await loadProcurement(); break;
+    case 'accounting': await loadAccounting(); break;
+    case 'hr': await loadHR(); break;
+    case 'reports': await loadReports(); break;
+  }
+}
+
+// Dashboard
+async function loadDashboard() {
+  try {
+    const kpis = await window.API.Analytics.getDashboardKPIs();
+    const data = kpis.data;
+    
+    document.getElementById('kpi-today-revenue').textContent = `฿${data.todayRevenue.toLocaleString()}`;
+    document.getElementById('kpi-today-orders').textContent = `${data.todayOrders} orders`;
+    document.getElementById('kpi-month-revenue').textContent = `฿${data.monthRevenue.toLocaleString()}`;
+    document.getElementById('kpi-month-profit').textContent = `Profit: ฿${data.monthProfit.toLocaleString()}`;
+    document.getElementById('kpi-customers').textContent = data.totalCustomers.toLocaleString();
+    document.getElementById('kpi-low-stock').textContent = data.lowStockItems;
+    document.getElementById('kpi-pending').textContent = data.pendingOrders;
+    
+    // Load sales trend
+    const trend = await window.API.Analytics.getSalesTrend(30);
+    renderSalesChart(trend.data);
+    
+    // Load recent orders
+    const orders = await window.API.getAdminOrders();
+    renderRecentOrders(orders.data.slice(0, 10));
+    
+  } catch (err) {
+    console.error('Dashboard load error:', err);
+  }
+}
+
+function renderSalesChart(data) {
+  const container = document.getElementById('sales-chart');
+  if (!data || data.length === 0) {
+    container.innerHTML = 'No sales data available';
+    return;
+  }
+  
+  const maxRevenue = Math.max(...data.map(d => d.revenue));
+  const bars = data.map(d => {
+    const height = maxRevenue > 0 ? (d.revenue / maxRevenue) * 150 : 0;
+    const date = new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:8px;height:${height}px;background:var(--gold);border-radius:4px 4px 0 0"></div>
+      <span style="font-size:9px;color:var(--tan3);transform:rotate(-45deg)">${date}</span>
+    </div>`;
+  }).join('');
+  
+  container.innerHTML = `<div style="display:flex;align-items:flex-end;gap:4px;height:180px;padding:20px;overflow-x:auto">${bars}</div>`;
+}
+
+function renderRecentOrders(orders) {
+  const tbody = document.getElementById('recent-orders-body');
+  if (!orders || orders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--tan3)">No orders</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = orders.map(o => {
+    const statusClass = o.status === 'COMPLETED' ? 'success' : o.status === 'PENDING' ? 'warning' : 'danger';
+    return `<tr>
+      <td>${o.id}</td>
+      <td>${new Date(o.created_at).toLocaleDateString()}</td>
+      <td>${o.user_id || 'Guest'}</td>
+      <td>฿${(o.total_amount || 0).toLocaleString()}</td>
+      <td><span class="status-badge ${statusClass}">${o.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// Inventory
+async function loadInventory() {
+  try {
+    const stock = await window.API.Inventory.getStockLevels();
+    const grid = document.getElementById('inventory-grid');
+    
+    if (!stock.data || stock.data.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--tan3);padding:40px">No inventory items</div>';
+      return;
+    }
+    
+    grid.innerHTML = stock.data.map(item => {
+      const isLow = item.quantity <= 10;
+      return `<div class="inv-item">
+        <div class="inv-item-header">
+          <div>
+            <div class="inv-item-name">${item.products?.name || item.item_id}</div>
+            <div class="inv-item-sku">SKU: ${item.sku || item.item_id}</div>
+          </div>
+        </div>
+        <div class="inv-item-body">
+          <div>
+            <div class="inv-item-qty ${isLow ? 'inv-item-low' : ''}">${item.quantity}</div>
+            <div class="inv-item-label">in stock</div>
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="adjustStock('${item.item_id}')">Adjust</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    console.error('Inventory load error:', err);
+  }
+}
+
+// Procurement
+async function loadProcurement() {
+  try {
+    const pos = await window.API.Procurement.getPendingPOs();
+    const tbody = document.getElementById('po-table-body');
+    
+    if (!pos.data || pos.data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--tan3)">No pending purchase orders</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = pos.data.map(po => `
+      <tr>
+        <td>${po.id}</td>
+        <td>${po.suppliers?.name || 'Unknown'}</td>
+        <td>฿${(po.total_amount || 0).toLocaleString()}</td>
+        <td>${new Date(po.expected_delivery_date).toLocaleDateString()}</td>
+        <td><span class="status-badge warning">${po.status}</span></td>
+        <td><button class="btn btn-sm btn-primary" onclick="receivePO('${po.id}')">Receive</button></td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error('Procurement load error:', err);
+  }
+}
+
+// Accounting
+async function loadAccounting() {
+  try {
+    const now = new Date();
+    const pl = await window.API.Accounting.getMonthlyPL(now.getFullYear(), now.getMonth() + 1);
+    const data = pl.data;
+    
+    document.getElementById('acc-revenue').textContent = `฿${data.revenue.toLocaleString()}`;
+    document.getElementById('acc-cogs').textContent = `฿${data.cogs.toLocaleString()}`;
+    document.getElementById('acc-gross').textContent = `฿${data.grossProfit.toLocaleString()}`;
+    document.getElementById('acc-net').textContent = `฿${data.netProfit.toLocaleString()}`;
+  } catch (err) {
+    console.error('Accounting load error:', err);
+  }
+}
+
+// HR
+async function loadHR() {
+  try {
+    const staff = await window.API.getStaff();
+    const tbody = document.getElementById('staff-table-body');
+    
+    if (!staff.data || staff.data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--tan3)">No staff records</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = staff.data.map(s => {
+      const statusClass = s.is_active ? 'success' : 'danger';
+      return `<tr>
+        <td><strong>${s.name}</strong><br><small style="color:var(--tan3)">${s.username}</small></td>
+        <td>${s.role}</td>
+        <td>${s.branch_name || 'Unassigned'}</td>
+        <td><span class="status-badge ${statusClass}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
+        <td>-- days present</td>
+        <td><button class="btn btn-sm btn-outline">View Details</button></td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    console.error('HR load error:', err);
+  }
+}
+
+// Reports
+async function loadReports() {
+  try {
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const topProducts = await window.API.Analytics.getTopProducts(5, startDate, now);
+    const customerAnalytics = await window.API.Analytics.getCustomerAnalytics();
+    
+    const topList = document.getElementById('top-products-list');
+    if (topProducts.data && topProducts.data.length > 0) {
+      topList.innerHTML = topProducts.data.map((p, i) => `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)">
+          <span>#${i+1} ${p.product_name}</span>
+          <span style="color:var(--gold)">฿${p.revenue.toLocaleString()}</span>
+        </div>
+      `).join('');
+    }
+    
+    const custDiv = document.getElementById('customer-analytics');
+    if (customerAnalytics.data) {
+      custDiv.innerHTML = Object.entries(customerAnalytics.data.byTier || {}).map(([tier, count]) => `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)">
+          <span>${tier}</span>
+          <span>${count} customers</span>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    console.error('Reports load error:', err);
+  }
+}
+
+// Placeholder functions for modals
+function showAdjustStockModal() { alert('Adjust Stock modal - implement as needed'); }
+function showCreatePOModal() { alert('Create PO modal - implement as needed'); }
+function showPayrollModal() { alert('Payroll modal - implement as needed'); }
+function adjustStock(itemId) { alert(`Adjust stock for ${itemId}`); }
+function receivePO(poId) { 
+  if(confirm('Mark this PO as received?')) {
+    window.API.Procurement.receivePurchaseOrder(poId).then(() => {
+      alert('PO received successfully');
+      loadProcurement();
+    });
+  }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  loadDashboard();
+});
+</script>
+</body>
+</html>
