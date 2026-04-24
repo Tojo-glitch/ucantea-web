@@ -81,16 +81,37 @@ const sb = {
   },
 
 async signUp(email, password) {
+    // ดึง Header มาตรฐานมาใช้ตรงๆ
+    const currentHeaders = sb.getHeaders(); 
+    
     const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
       method: 'POST', 
-      headers: sb.getHeaders(), 
-      body: JSON.stringify({ email, password }),
+      headers: currentHeaders, 
+      body: JSON.stringify({ email: email, password: password }),
+    });
+    
+    const data = await res.json();
+    
+    // สำคัญ: ต้องดัก Error เพื่อให้ return กลับไปบอก doRegister() ว่าเกิดอะไรขึ้น
+    if (!res.ok) {
+      console.error("Supabase SignUp Failed:", data);
+      return { error: data }; 
+    }
+    return data;
+  },
+
+  async signIn(email, password) {
+    const currentHeaders = sb.getHeaders();
+    
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST', 
+      headers: currentHeaders,
+      body: JSON.stringify({ email: email, password: password }),
     });
     
     const data = await res.json();
     if (!res.ok) {
-      // 💡 ให้ return ค่า error แบบมีโครงสร้างกลับไปเลย
-      return { error: data }; 
+      return { error: data };
     }
     return data;
   },
