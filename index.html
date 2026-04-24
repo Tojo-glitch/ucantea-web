@@ -2459,36 +2459,59 @@ function doRate(n){
   toast('Thanks for your '+'★'.repeat(n)+' review!','success');
 }
 
-/* ── SKELETON ───────────────────────────────────────── */
-function showMenuSkeleton(){
-  var el=ge('menuSkel');if(!el)return;
-  var row='<div class="sk-row"><div class="sk sk-anim sk-thumb"></div><div class="sk-body"><div class="sk sk-anim sk-h"></div><div class="sk sk-anim sk-d"></div><div class="sk sk-anim sk-t"></div></div><div class="sk sk-anim sk-price"></div></div>';
-  el.innerHTML=row+row+row+row+row;
+/* ── SKELETON LOADING ───────────────────────────────── */
+function showMenuSkeleton() {
+  const el = ge('menuSecs');
+  if (!el) return;
+  
+  // โครงสร้างกล่อง Skeleton 1 ชิ้น
+  const skelRow = `
+    <div class="mrow" style="pointer-events:none;">
+      <div class="sk-anim" style="width:70px; height:70px; border-radius:10px; flex-shrink:0;"></div>
+      <div class="mbody" style="display:flex; flex-direction:column; gap:8px;">
+        <div class="sk-anim" style="height:14px; width:60%; border-radius:4px;"></div>
+        <div class="sk-anim" style="height:10px; width:80%; border-radius:4px;"></div>
+        <div class="sk-anim" style="height:10px; width:40%; border-radius:4px;"></div>
+      </div>
+      <div class="mright">
+        <div class="sk-anim" style="width:40px; height:16px; border-radius:4px;"></div>
+        <div class="sk-anim" style="width:32px; height:32px; border-radius:8px;"></div>
+      </div>
+    </div>
+  `;
+  
+  // โชว์หลอกๆ สัก 5 อัน
+  el.innerHTML = skelRow + skelRow + skelRow + skelRow + skelRow;
 }
-function hideMenuSkeleton(){var el=ge('menuSkel');if(el)el.innerHTML='';}
 
-/* ── LOAD MENU from API ────────────────────────────────── */
-function loadMenu(){
-  var errEl=ge('menuErr');if(errEl)errEl.classList.remove('on');
-  if(window.API&&API.getMenu){
-    showMenuSkeleton();
-    API.getMenu().then(function(res){
-      hideMenuSkeleton();
-      if(res&&res.products&&res.products.length){
-        MENUS=res.products;
-        if(res.customization&&res.customization.addons)TOPS=res.customization.addons;
-        buildCats();renderMenu(MENUS);buildHome();
-        buildSpFeat();buildTopGrid();
+/* ── LOAD MENU ──────────────────────────────────────── */
+function loadMenu() {
+  var errEl = ge('menuErr');
+  if (errEl) errEl.classList.remove('on');
+  
+  // เรียก Skeleton ขึ้นมาโชว์ก่อนเลย!
+  showMenuSkeleton(); 
+
+  if (window.API && API.getMenu) {
+    API.getMenu().then(function(res) {
+      if (res && res.products && res.products.length) {
+        MENUS = res.products;
+        if (res.customization && res.customization.addons) TOPS = res.customization.addons;
+        
+        // วาดเมนูของจริงทับ Skeleton
+        buildCats();
+        renderMenu(MENUS); 
+        buildHome();
       } else {
-        renderMenu(MENUS); // use fallback
+        renderMenu(MENUS); // Fallback
       }
-    }).catch(function(){
-      hideMenuSkeleton();
-      if(errEl)errEl.classList.add('on');
-      renderMenu(MENUS); // use fallback
+    }).catch(function(err) {
+      console.error("Menu load error:", err);
+      if (errEl) errEl.classList.add('on');
+      renderMenu(MENUS); // Fallback
     });
   } else {
-    try{renderMenu(MENUS)}catch(e){if(errEl)errEl.classList.add('on')}
+    try { renderMenu(MENUS); } catch(e) { if(errEl) errEl.classList.add('on'); }
   }
 }
 
