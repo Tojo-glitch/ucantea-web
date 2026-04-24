@@ -80,13 +80,19 @@ const sb = {
     return res.json();
   },
 
-  async signUp(email, password) {
+async signUp(email, password) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
       method: 'POST', 
-      headers: { ...sb.getHeaders(), 'apikey': SUPABASE_ANON }, // 👈 เรียกฟังก์ชันแบบมีวงเล็บ
+      headers: sb.getHeaders(), 
       body: JSON.stringify({ email, password }),
     });
-    return res.json();
+    
+    const data = await res.json();
+    if (!res.ok) {
+      // 💡 ให้ return ค่า error แบบมีโครงสร้างกลับไปเลย
+      return { error: data }; 
+    }
+    return data;
   },
 
   async signOut(token) {
@@ -322,9 +328,10 @@ async register({ phone, email, name, hashedPassword }) {
         const authData = await sb.signUp(pseudoEmail, hashedPassword);
         
         // เช็คว่าพังตอนสร้างบัญชีไหม
-        if (authData.error) {
-          // แจ้ง Error ชัดๆ ให้ลูกค้ารู้ (เช่น อีเมลซ้ำ, รหัสสั้นไป)
-          return { success: false, message: authData.error.message || authData.error.msg || 'Registration failed' };
+       if (authData.error) {
+          // 💡 ดึงข้อความ error ของจริงออกมาโชว์ (เช่น "User already registered")
+          const msg = authData.error.msg || authData.error.message || 'Registration failed';
+          return { success: false, message: msg };
         }
 
         // ดึง ID ของ User ที่เพิ่งสมัคร
