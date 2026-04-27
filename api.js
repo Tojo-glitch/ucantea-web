@@ -326,7 +326,7 @@ window.API = {
   /* ── CUSTOMER AUTH ─────────────────────────────────────────── */
   async login({ phone, hashedPassword }) {
     if (BACKEND_MODE === 'supabase') {
-      const pseudoEmail = `${phone}@ceramic.internal`;
+      const pseudoEmail = `${phone}@ceramic.com`;
       const data = await sb.signIn(pseudoEmail, hashedPassword);
       if (data.error) return { success: false, message: 'Incorrect credentials' };
       const members = await sb.query('members', { eq: { auth_id: data.user.id }, select: '*' });
