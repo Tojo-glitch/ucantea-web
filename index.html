@@ -1476,6 +1476,7 @@ function toast(msg,type){
 async function sha256(str){var b=new TextEncoder().encode(str);var h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
 
 /* ── THEME ──────────────────────────────────────────── */
+/* ── THEME ──────────────────────────────────────────── */
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   S.theme=t;
@@ -1484,11 +1485,13 @@ function applyTheme(t){
   var icon=ge('themeIcon');
   if(icon){
     icon.innerHTML=isDark
-      ?'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.8"/>'
-      :'<circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
+      ?'<path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+      :'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.8"/>';
   }
   var sl=ge('themeSettingLbl');
   if(sl)sl.textContent=isDark?'Switch to Light Mode':'Switch to Dark Mode';
+  var meta=ge('themeColorMeta');
+  if(meta) meta.content = t==='dark' ? '#0c0b09' : '#f5f2ec';
 }
 function toggleTheme(){applyTheme(S.theme==='dark'?'light':'dark')}
 
@@ -3363,13 +3366,6 @@ window.addEventListener('online',function(){updOnline();toast('Back online','suc
 window.addEventListener('offline',function(){updOnline();toast('You\'re offline — showing cached menu','warn');});
 updOnline(); // check on load
 
-/* ── 6. THEME-COLOR META sync with dark/light toggle ── */
-var _origApplyTheme=applyTheme;
-applyTheme=function(t){
-  _origApplyTheme(t);
-  var meta=ge('themeColorMeta');
-  if(meta)meta.content=t==='dark'?'#0c0b09':'#f5f2ec';
-};
 
 /* ══════════════════════════════════════════════════════
    PHASE E — CONSOLIDATION
@@ -3493,18 +3489,6 @@ renderProfile=withErrorBoundary(function(){
   renderRefBlock();
   checkBirthday(S.user);
 },'profileMember','renderProfile');
-
-/* ── 10. NULLIFY _orig* VARIABLES ────────────────────── */
-// Free memory + prevent accidental use of stale references
-var _origChain=['_origOpenCS','_origOpenCS_D','_origOpenCS_C',
-  '_origCloseCS_C','_origOpenCart','_origOpenCart_D','_origOpenCart_C',
-  '_origCloseCart_C','_origOpenBr','_origOpenBr_C','_origCloseBr','_origCloseBr_C',
-  '_origOpenAuth_C','_origCloseAuth_C','_origAddToCart',
-  '_origRenderProfile','_origRenderProfileB','_origSaveEditField',
-  '_origRenderTrack','_origNav','_origNav_D','_origNav_C','_origNav_C',
-  '_origConfirmBr','_origRenderMenu','_origOnOrderStatus',
-  '_origPlaceOrder_C','_origInitSrch','_origApplyTheme'];
-_origChain.forEach(function(k){try{window[k]=null;}catch(e){}});
 
 init();
 // Phase 5 boot
