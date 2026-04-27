@@ -243,6 +243,26 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
 .madd{width:32px;height:32px;background:var(--tan);border-radius:8px;display:flex;align-items:center;justify-content:center;min-width:var(--touch);min-height:var(--touch);transition:transform .1s}
 .madd:active{transform:scale(.88)}
 
+/* ─── UTILITY CLASSES ─── */
+.u-row{display:flex;align-items:center}
+.u-col{display:flex;flex-direction:column}
+.u-sb{display:flex;align-items:center;justify-content:space-between}
+.u-center{display:flex;align-items:center;justify-content:center}
+.u-gap4{gap:4px}.u-gap8{gap:8px}.u-gap12{gap:12px}
+.u-p14{padding:0 14px}.u-p16{padding:0 16px}
+.u-mt8{margin-top:8px}.u-mt12{margin-top:12px}
+.u-mb8{margin-bottom:8px}.u-mb12{margin-bottom:12px}
+.u-f10{font-size:10px}.u-f11{font-size:11px}.u-f12{font-size:12px}.u-f13{font-size:13px}
+.u-fw6{font-weight:600}.u-fw7{font-weight:700}
+.u-tan3{color:var(--tan3)}.u-tan2{color:var(--tan2)}.u-gl{color:var(--gl)}
+.u-serif{font-family:var(--serif)}
+.u-caps{text-transform:uppercase;letter-spacing:1.5px}
+.u-hidden{display:none!important}
+.u-shrink0{flex-shrink:0}
+.u-full{width:100%}
+.sec-lbl{font-size:10px;font-weight:700;color:var(--tan3);letter-spacing:1.5px;text-transform:uppercase;padding:14px 14px 8px}
+.u-divider{height:1px;background:var(--line);margin:0}
+
 /* ─── MENU VIEW TABS (All / Saved) ─── */
 .menu-tabs{display:flex;gap:0;margin:0 16px 12px;background:var(--c2);border:1px solid var(--ln2);border-radius:10px;padding:3px;flex-shrink:0}
 .menu-tab{flex:1;height:32px;border-radius:8px;font-size:12px;font-weight:600;color:var(--tan3);cursor:pointer;transition:all .15s;border:none;background:none;font-family:var(--sans)}
@@ -787,11 +807,7 @@ body, #app { max-width: 430px; margin: 0 auto; }
     <!-- Dynamic CMS banner (populated by loadBanners) -->
     <div id="dynBannerWrap"></div>
     <!-- Fallback static promo (hidden when CMS loads) -->
-    <div class="pstrip" onclick="savePromoToWallet('NEW10', 'ลด 10% สำหรับการสั่งซื้อครั้งแรก')">
-    <div class="ps-tag">Welcome offer</div>
-    <div class="ps-txt">10% off first order — tap to save</div>
-    <div class="ps-code">NEW10</div>
-    </div>
+    <div class="pstrip" id="staticPromo" onclick="useCode('NEW10')"><div class="ps-tag">Welcome offer</div><div class="ps-txt">10% off first order — code NEW10</div><div class="ps-code">NEW10</div></div>
     <div class="sch"><div class="sct">Bestsellers</div><button class="scm" onclick="nav('pg-order','nt-order')">Full menu</button></div>
     <div class="feat-wrap"><div class="feat" id="featScroll"></div></div>
     <div class="sch" style="margin-top:20px"><div class="sct">Menu</div><button class="scm" onclick="nav('pg-order','nt-order')">See all</button></div>
@@ -973,13 +989,6 @@ body, #app { max-width: 430px; margin: 0 auto; }
           <div style="font-size:13px;font-weight:700;color:var(--gl);margin-top:4px" id="bdayCode">BDAY-FREE</div>
         </div>
         <button class="bday-btn" onclick="useCode(ge('bdayCode').textContent)">Claim</button>
-      </div>
-      <!-- 🟢 เพิ่มกระเป๋าเก็บโค้ดส่วนลด -->
-      <div style="padding:0 14px">
-        <div style="font-size:10px;font-weight:700;color:var(--tan3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;padding-top:14px">My Rewards & Promos</div>
-        <div id="promoWalletList" style="display:flex; flex-direction:column; gap:8px;">
-          <!-- รายการโค้ดจะถูกใส่ตรงนี้ผ่าน JS -->
-        </div>
       </div>
       <!-- Tier table -->
       <div class="tier-wrap">
@@ -1175,17 +1184,9 @@ body, #app { max-width: 430px; margin: 0 auto; }
       <span id="cartBrName">Main Branch — Siam</span>
     </div>
     <!-- Delivery form (shown when delivery mode) -->
-    <!-- Delivery form (พร้อมปุ่มดึง GPS) -->
-    <div id="cartDelWrap" style="display:none;padding:0 16px 8px;flex-direction:column;gap:6px">
-      <div style="font-size:12px;color:var(--tan3);display:flex;justify-content:space-between;align-items:center;">
-        <span>Delivery Details</span>
-        <button onclick="getLocation()" style="color:var(--gl);font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px;cursor:pointer;border:none;background:none;font-family:var(--sans);">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
-          Use my location
-        </button>
-      </div>
-      <textarea class="inp" id="cartDelAddr" placeholder="ที่อยู่จัดส่ง (เช่น ชื่อหมู่บ้าน, เลขห้อง)" rows="2" style="height:auto;padding-top:12px;resize:none;" oninput="calculateDeliveryFee()"></textarea>
-      <input class="inp" id="cartDelPhone" placeholder="เบอร์โทรติดต่อผู้รับ" type="tel" style="margin-bottom:0">
+    <div id="cartDelWrap" style="display:none;padding:0 16px 8px;display:flex;flex-direction:column;gap:6px">
+      <input class="inp" id="cartDelAddr" placeholder="Delivery address" style="margin-bottom:0">
+      <input class="inp" id="cartDelPhone" placeholder="Phone number" type="tel" style="margin-bottom:0">
     </div>
     <!-- Pre-order form (shown when preorder mode) -->
     <div id="cartPreWrap" style="display:none;padding:0 16px 8px">
@@ -1193,9 +1194,6 @@ body, #app { max-width: 430px; margin: 0 auto; }
     </div>
     <div style="padding:0 16px" id="cartItems"></div>
     <div class="promo-row"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.1"/><path d="M10 4L4 10M4.5 5a.5.5 0 110-1 .5.5 0 010 1zM9.5 10a.5.5 0 110-1 .5.5 0 010 1z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><input class="promo-inp" id="promoInp" placeholder="Promo code" onkeydown="if(event.key==='Enter')applyPromo()"><button class="promo-apply" onclick="applyPromo()">Apply</button></div>
-    <div id="cartSavedPromos" style="padding: 0 20px; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; margin-bottom:8px;">
-       <!-- ปุ่มโค้ดจะเด้งมาตรงนี้ -->
-    </div>
     <div class="promo-ok" id="promoOk" style="display:none"></div>
     <!-- Points redemption (shown when logged in + has pts) -->
     <div class="pts-redeem" id="ptsRedeemRow" style="display:none">
@@ -1458,8 +1456,6 @@ var S={
   user:null,
   theme:localStorage.getItem('ctb_theme')||'dark',
   editFieldKey:null,editFieldType:'text',
-  deliveryFee: 0, 
-  latlng: null 
 };
 
 /* ── HELPERS ────────────────────────────────────────── */
@@ -1477,9 +1473,7 @@ function toast(msg,type){
   clearTimeout(toastT2);
   toastT2=setTimeout(function(){e.classList.remove('on')},2600);
 }
-function showLoad(t){var e=ge('ldTxt');if(e)e.textContent=t||'Loading...';var l=ge('loader');if(l)l.classList.add('on')}
-function hideLoad(){var l=ge('loader');if(l)l.classList.remove('on')}
-async function sha256(str){var b=new TextEncoder().encode(str);var h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+function sha256(str){var b=new TextEncoder().encode(str);var h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
 
 /* ── THEME ──────────────────────────────────────────── */
 function applyTheme(t){
@@ -1520,7 +1514,7 @@ function buildSpFeat(){
 
 /* ── NAV ────────────────────────────────────────────── */
 var _brt='pickup',_brid='BR001',_brnm='Main Branch — Siam';
-var pollT=null,cancelT=null,srchT=null;
+var cancelT=null,srchT=null;
 
 function nav(pgId,tabId){
   document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('active')});
@@ -1776,7 +1770,7 @@ function loadCart() {
   if (saved) { S.cart = JSON.parse(saved); updCartBar(); }
 }
 function calcSub(){return S.cart.reduce((s,i) => s + i.price * i.qty, 0)}
-function calcTotal(){ return Math.round((calcSub() + S.deliveryFee - S.disc) * 100) / 100;}
+function calcTotal(){return Math.round((calcSub() + (S.orderType === 'delivery' ? 20 : 0) - S.disc) * 100) / 100}
 function updCartBar(){
   var n = S.cart.reduce((s,i) => s + i.qty, 0), t = calcSub();
   var cb = ge('cbar'); if(cb) cb.classList.toggle('on', n > 0);
@@ -1852,107 +1846,99 @@ async function applyPromo(){
 
 /* ── PLACE ORDER (Validation + Force Login) ────────────────────────────────────── */
 async function placeOrder() {
-  // 1. ตรวจสอบตะกร้า
-  if (!S.cart.length) { toast('Your cart is empty', 'warn'); return; }
-
-  // 2. บังคับ Login ก่อนจ่ายเงิน (ตาม PRD)
-  if (!S.user) {
-    toast('กรุณาเข้าสู่ระบบก่อนชำระเงิน','warn');
-    S._pendingCheckout = true;
-    closeCart();
-    openAuth('login');
-    return;
-  }
-
-  // 3. ตรวจสอบข้อมูลที่อยู่ / เวลา
-  var addr = '', phone = '', time = '';
-  if(S.orderType === 'delivery') {
-      addr = ge('cartDelAddr') ? ge('cartDelAddr').value.trim() : '';
-      phone = ge('cartDelPhone') ? ge('cartDelPhone').value.trim() : '';
-      if(!addr || !phone) { toast('กรุณาระบุที่อยู่และเบอร์โทรให้ครบถ้วน', 'warn'); return; }
-} else if (S.orderType === 'preorder') {
-      time = ge('cartPreTime') ? ge('cartPreTime').value : '';
-      if(!time) { toast('กรุณาระบุเวลารับของ', 'warn'); return; }
-      
-      const selectedDate = new Date(time);
-      const now = new Date();
-      
-      if(selectedDate < now) { toast('ไม่สามารถเลือกเวลาในอดีตได้', 'warn'); return; }
-
-      // 🛑 ดักเวลาทำการ (Business Hours Validation)
-      const openTime = localStorage.getItem('ctb_open_time') || '09:00';
-      const closeTime = localStorage.getItem('ctb_close_time') || '21:00';
-      
-      // ดึงเวลาที่ลูกค้าเลือกออกมาเป็นรูปแบบ "HH:MM"
-      const selectedTimeStr = selectedDate.toTimeString().slice(0,5); 
-      
-      if(selectedTimeStr < openTime || selectedTimeStr > closeTime) {
-          toast(`กรุณาเลือกเวลาในช่วงเปิดร้าน (${openTime} - ${closeTime})`, 'warn'); 
-          return; 
-      }
-  }
-
-  // 4. ตรวจสอบสลิป (NO COD)
-  if (!S.slipFile) { toast('กรุณาแนบสลิปโอนเงิน','warn'); return; }
-  
   var btn = ge('placeBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Uploading Slip...'; }
-  
-  var total = calcTotal();
 
-  try {
-    // uploadSlip may be window-level or API method
-    var uploader = (window.API&&API.uploadSlip) ? API.uploadSlip.bind(API) : (window.uploadSlip||null);
-    if(!uploader) throw new Error('Upload not configured — check api.js');
-    let slipUrl = await uploader(S.slipFile);
-    if (!slipUrl) throw new Error('Slip upload failed — check Supabase Storage bucket');
+  /* ── Layer C: Thai validation (Phase C) ── */
+  if(!S.cart||!S.cart.length){toast(TH.cart_empty,'warn');return;}
+  if(S.orderType==='delivery'){
+    var da=ge('cartDelAddr'),dp=ge('cartDelPhone');
+    if(da&&!da.value.trim()){toast(TH.delivery_addr,'warn');return;}
+    if(dp&&!dp.value.trim()){toast(TH.delivery_phone,'warn');return;}
+  }
+  var slipPrevEl=ge('slipPrev');
+  if(!slipPrevEl||!slipPrevEl.src||slipPrevEl.src===location.href||slipPrevEl.src===window.location.href){
+    toast(TH.slip_required,'warn');return;
+  }
 
-    if (btn) btn.textContent = 'Processing Order...';
+  /* ── Layer 4: Guest checkout (Phase 4) ── */
+  var isGuest=false;
+  if(!S.user){
+    var gname=(ge('guestName')?ge('guestName').value.trim():'');
+    var gphone=(ge('guestPhone')?ge('guestPhone').value.trim():'');
+    if(!gname||!gphone){toast('กรุณากรอกชื่อและเบอร์โทรก่อนสั่ง','warn');return;}
+    S.user={id:'guest_'+Date.now(),name:gname,phone:gphone,isGuest:true};
+    isGuest=true;
+  }
 
-    const res = await API.createOrder({
-      items: S.cart,
-      total: total,
-      branch: S.branch,
-      type: S.orderType,
-      userId: S.user.id,
-      promoCode: S.disc > 0 ? (ge('promoInp')?.value || null) : null,
-      disc: S.disc,
-      slipUrl: slipUrl, 
-      status: 'PENDING',
-      delivery_address: addr,
-      delivery_phone: phone,
-      pickup_time: time
+  /* ── Layer 1: Original validation ── */
+  if(!S.slipFile){toast('กรุณาแนบสลิปโอนเงิน','warn');if(isGuest)S.user=null;return;}
+
+  // Delivery / preorder extra checks
+  var addr='',phone='',time='';
+  if(S.orderType==='delivery'){
+    addr=ge('cartDelAddr')?ge('cartDelAddr').value.trim():'';
+    phone=ge('cartDelPhone')?ge('cartDelPhone').value.trim():'';
+  } else if(S.orderType==='preorder'){
+    time=ge('cartPreTime')?ge('cartPreTime').value:'';
+    if(!time){toast('กรุณาระบุเวลารับของ','warn');if(isGuest)S.user=null;return;}
+    if(new Date(time)<new Date()){toast('ไม่สามารถเลือกเวลาในอดีตได้','warn');if(isGuest)S.user=null;return;}
+  }
+
+  if(btn){btn.disabled=true;btn.textContent='Uploading Slip...';}
+  var total=calcTotal();
+
+  try{
+    var uploader=(window.API&&API.uploadSlip)?API.uploadSlip.bind(API):(window.uploadSlip||null);
+    if(!uploader)throw new Error('Upload not configured — check api.js');
+    var slipUrl=await uploader(S.slipFile);
+    if(!slipUrl)throw new Error('Slip upload failed — check Supabase Storage bucket');
+
+    if(btn)btn.textContent='Processing Order...';
+
+    var res=await API.createOrder({
+      items:S.cart,total:total,branch:S.branch,type:S.orderType,
+      userId:S.user.id,
+      promoCode:S.disc>0?(ge('promoInp')?ge('promoInp').value:null):null,
+      disc:S.disc,slipUrl:slipUrl,status:'PENDING',
+      delivery_address:addr,delivery_phone:phone,pickup_time:time
     });
 
-    if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Pay'; }
+    if(btn){btn.disabled=false;btn.textContent='Confirm & Pay';}
     closeCart();
-    
-    var orderId = res.id || 'CTB-' + Date.now().toString(36).toUpperCase();
-    S.order = { id: orderId, status: 'pending', items: S.cart.slice(), total: total, branch: S.branch.name, queueNum: res.queue_number||null };
-    // Persist active order
-    try{localStorage.setItem('ctb_order',JSON.stringify(S.order))}catch(e){}
-    
-    // เคลียร์ตะกร้าและลบออกจาก LocalStorage
-    S.cart = []; S.disc = 0; S.slipFile = null; saveCart();
-    
-    ge('slipPrev').classList.remove('on');
-    ge('slipChg').classList.remove('on');
-    ge('slipLbl').textContent = 'Upload payment slip';
-    if(ge('cartDelAddr')) ge('cartDelAddr').value = '';
-    if(ge('cartDelPhone')) ge('cartDelPhone').value = '';
-    if(ge('cartPreTime')) ge('cartPreTime').value = '';
-    
+
+    var orderId=res.id||'CTB-'+Date.now().toString(36).toUpperCase();
+    S.order={id:orderId,status:'pending',items:S.cart.slice(),total:total,branch:S.branch.name,queueNum:res.queue_number||null};
+    try{localStorage.setItem('ctb_order',JSON.stringify(S.order));}catch(e){}
+
+    S.cart=[];S.disc=0;S.slipFile=null;saveCart();
+    var slipPrev=ge('slipPrev'),slipChg=ge('slipChg'),slipLbl=ge('slipLbl');
+    if(slipPrev)slipPrev.classList.remove('on');
+    if(slipChg)slipChg.classList.remove('on');
+    if(slipLbl)slipLbl.textContent='Upload payment slip';
+    if(ge('cartDelAddr'))ge('cartDelAddr').value='';
+    if(ge('cartDelPhone'))ge('cartDelPhone').value='';
+    if(ge('cartPreTime'))ge('cartPreTime').value='';
     updCartBar();
     startPoll();
-    
-    // พาไปหน้า Track Order อัตโนมัติ แทนการโชว์ใบเสร็จหลอก
-    toast('Order Placed Successfully!', 'success');
-    nav('pg-track', 'nt-track');
+    toast('Order Placed Successfully!','success');
+    nav('pg-track','nt-track');
 
-  } catch (err) {
-    if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Pay'; }
-    toast('Order failed. Please try again.', 'error');
+    /* ── Layer 4 post-success: deduct redeemed points ── */
+    if(_ptsRedeemed&&!isGuest){
+      var used=S.disc*10;
+      PTS=Math.max(0,PTS-used);
+      if(S.user){S.user.points=PTS;try{localStorage.setItem('ctb_user',JSON.stringify(S.user));}catch(e){}}
+      _ptsRedeemed=false;
+      renderLoyalty();
+    }
+
+  }catch(err){
+    if(btn){btn.disabled=false;btn.textContent='Confirm & Pay';}
+    toast(TH.order_failed,'error');
     if(window.isDev)console.error(err);
+  }finally{
+    /* ── Layer 4 cleanup: clear guest temp user ── */
+    if(isGuest)S.user=null;
   }
 }
 
@@ -2062,9 +2048,7 @@ function reorder(receipt){
    NEW: AUTH SYSTEM (Phone + Email)
 ══════════════════════════════════════════════════════ */
 var _authTab='login';
-function closeAuth() {
-  ge('authOv').classList.remove('on');
-}
+
 function openAuth(tab){
   ge('authOv').classList.add('on');
   switchAuthTab(tab||'login');
@@ -2498,59 +2482,36 @@ function doRate(n){
   toast('Thanks for your '+'★'.repeat(n)+' review!','success');
 }
 
-/* ── SKELETON LOADING ───────────────────────────────── */
-function showMenuSkeleton() {
-  const el = ge('menuSecs');
-  if (!el) return;
-  
-  // โครงสร้างกล่อง Skeleton 1 ชิ้น
-  const skelRow = `
-    <div class="mrow" style="pointer-events:none;">
-      <div class="sk-anim" style="width:70px; height:70px; border-radius:10px; flex-shrink:0;"></div>
-      <div class="mbody" style="display:flex; flex-direction:column; gap:8px;">
-        <div class="sk-anim" style="height:14px; width:60%; border-radius:4px;"></div>
-        <div class="sk-anim" style="height:10px; width:80%; border-radius:4px;"></div>
-        <div class="sk-anim" style="height:10px; width:40%; border-radius:4px;"></div>
-      </div>
-      <div class="mright">
-        <div class="sk-anim" style="width:40px; height:16px; border-radius:4px;"></div>
-        <div class="sk-anim" style="width:32px; height:32px; border-radius:8px;"></div>
-      </div>
-    </div>
-  `;
-  
-  // โชว์หลอกๆ สัก 5 อัน
-  el.innerHTML = skelRow + skelRow + skelRow + skelRow + skelRow;
+/* ── SKELETON ───────────────────────────────────────── */
+function showMenuSkeleton(){
+  var el=ge('menuSkel');if(!el)return;
+  var row='<div class="sk-row"><div class="sk sk-anim sk-thumb"></div><div class="sk-body"><div class="sk sk-anim sk-h"></div><div class="sk sk-anim sk-d"></div><div class="sk sk-anim sk-t"></div></div><div class="sk sk-anim sk-price"></div></div>';
+  el.innerHTML=row+row+row+row+row;
 }
+function hideMenuSkeleton(){var el=ge('menuSkel');if(el)el.innerHTML='';}
 
-/* ── LOAD MENU ──────────────────────────────────────── */
-function loadMenu() {
-  var errEl = ge('menuErr');
-  if (errEl) errEl.classList.remove('on');
-  
-  // เรียก Skeleton ขึ้นมาโชว์ก่อนเลย!
-  showMenuSkeleton(); 
-
-  if (window.API && API.getMenu) {
-    API.getMenu().then(function(res) {
-      if (res && res.products && res.products.length) {
-        MENUS = res.products;
-        if (res.customization && res.customization.addons) TOPS = res.customization.addons;
-        
-        // วาดเมนูของจริงทับ Skeleton
-        buildCats();
-        renderMenu(MENUS); 
-        buildHome();
+/* ── LOAD MENU from API ────────────────────────────────── */
+function loadMenu(){
+  var errEl=ge('menuErr');if(errEl)errEl.classList.remove('on');
+  if(window.API&&API.getMenu){
+    showMenuSkeleton();
+    API.getMenu().then(function(res){
+      hideMenuSkeleton();
+      if(res&&res.products&&res.products.length){
+        MENUS=res.products;
+        if(res.customization&&res.customization.addons)TOPS=res.customization.addons;
+        buildCats();renderMenu(MENUS);buildHome();
+        buildSpFeat();buildTopGrid();
       } else {
-        renderMenu(MENUS); // Fallback
+        renderMenu(MENUS); // use fallback
       }
-    }).catch(function(err) {
-      console.error("Menu load error:", err);
-      if (errEl) errEl.classList.add('on');
-      renderMenu(MENUS); // Fallback
+    }).catch(function(){
+      hideMenuSkeleton();
+      if(errEl)errEl.classList.add('on');
+      renderMenu(MENUS); // use fallback
     });
   } else {
-    try { renderMenu(MENUS); } catch(e) { if(errEl) errEl.classList.add('on'); }
+    try{renderMenu(MENUS)}catch(e){if(errEl)errEl.classList.add('on')}
   }
 }
 
@@ -2574,176 +2535,49 @@ function updQR(){
 
 /* ── DELIVERY FEE in summary ─────────────────────────── */
 function updSummary(){
-  safeSet('sumSub', '฿' + calcSub());
-  
-  // อัปเดตบรรทัดค่าส่ง
-  var delFeeRow = ge('sumDelRow');
-  if(delFeeRow) {
-    delFeeRow.style.display = (S.orderType === 'delivery') ? 'flex' : 'none';
-    delFeeRow.querySelector('.rv').textContent = '฿' + S.deliveryFee; // แสดงค่าส่งแบบ Dynamic
-  }
-  
-  var dr = ge('sumDiscRow'); 
-  if(dr) dr.style.display = S.disc > 0 ? 'flex' : 'none';
-  if(S.disc > 0) safeSet('sumDisc', '−฿' + S.disc);
-  
-  safeSet('sumTotal', '฿' + calcTotal());
+  safeSet('sumSub','฿'+calcSub());
+  var delFeeRow=ge('sumDelRow');
+  if(delFeeRow)delFeeRow.style.display=S.orderType==='delivery'?'flex':'none';
+  safeSet('sumDel','฿20');
+  var dr=ge('sumDiscRow');if(dr)dr.style.display=S.disc>0?'flex':'none';
+  if(S.disc>0)safeSet('sumDisc','−฿'+S.disc);
+  safeSet('sumTotal','฿'+calcTotal());
+  updQR(); // refresh QR whenever totals change
 }
 
-/* ── ฟังก์ชันคำนวณค่าส่ง และ ดึง GPS ── */
-function calculateDeliveryFee() {
-  if (S.orderType !== 'delivery') {
-    S.deliveryFee = 0;
-  } else {
-    // จำลองลอจิก: ถ้าใช้ GPS ลดค่าส่งเหลือ 35฿ ถ้าพิมพ์เอง 50฿ (อนาคตต่อ API Google Maps ตรงนี้)
-    var addr = ge('cartDelAddr').value.trim();
-    if (addr === '') { S.deliveryFee = 0; }
-    else { S.deliveryFee = S.latlng ? 35 : 50; }
+/* ── FIX INIT ─────────────────────────────────────────── */
+function init(){
+  // Restore session FIRST so renderLoyalty etc have user data
+  var savedUser=null;
+  try{savedUser=JSON.parse(localStorage.getItem('ctb_user')||'null')}catch(e){}
+  if(savedUser){S.user=savedUser;PTS=savedUser.points||0;}
+
+  // Restore history
+  var savedHist=null;
+  try{savedHist=JSON.parse(localStorage.getItem('ctb_history')||'null')}catch(e){}
+  if(savedHist&&savedHist.length)S.orderHistory=savedHist;
+
+  // Restore cart
+  loadCart();
+
+  checkStoreStatus();
+  setInterval(checkStoreStatus,60000);
+  if(!isStoreOpen){S.orderType='preorder';}
+  applyTheme(S.theme);
+  updClk();setInterval(updClk,10000);
+  if(isRet()){ge('splash').style.display='none'}
+  else{buildSpFeat();setTimeout(closeSplash,8000)}
+  loadBr();loadMenu();initSrch();
+  renderLoyalty();buildTopGrid();syncOT(S.orderType);startUrgency();renderHistory();
+  if(S.user)renderProfile();
+
+  // If order is active, start tracking
+  var savedOrder=null;
+  try{savedOrder=JSON.parse(localStorage.getItem('ctb_order')||'null')}catch(e){}
+  if(savedOrder&&savedOrder.status!=='completed'&&savedOrder.status!=='cancelled'){
+    S.order=savedOrder;
+    ge('trkDot').classList.add('on');
   }
-  updSummary();
-}
-
-function getLocation() {
-  if (!navigator.geolocation) {
-    toast('เบราว์เซอร์ของคุณไม่รองรับ GPS', 'error'); return;
-  }
-  toast('กำลังค้นหาพิกัดของคุณ...', 'info');
-  navigator.geolocation.getCurrentPosition(
-    function(pos) {
-      S.latlng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      // ใส่พิกัดลงในช่องกรอกที่อยู่ พร้อมคำแนะนำ
-      ge('cartDelAddr').value = `[Pinned: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}]\n`;
-      toast('ดึงพิกัดสำเร็จ! กรุณาระบุรายละเอียดเพิ่มเติม (เช่น เลขห้อง)', 'success');
-      calculateDeliveryFee(); // คำนวณค่าส่งใหม่ทันที
-    },
-    function() { toast('ไม่สามารถดึงพิกัดได้ (โปรดเปิดสิทธิ์ GPS)', 'error'); }
-  );
-}
-var _origSyncOT = syncOT;
-syncOT = function(type) {
-  _origSyncOT(type);       // สั่งให้ทำงานเดิมของมันก่อน (เช่น สลับแท็บ ซ่อนโชว์กล่อง)
-  calculateDeliveryFee();  // พอสลับเสร็จ ให้คำนวณค่าส่งใหม่ทันที
-};
-/* ── PROMO WALLET (ระบบเก็บโค้ดส่วนลด) ───────────────────────── */
-function getSavedPromos() {
-  try { return JSON.parse(localStorage.getItem('ctb_saved_promos') || '[]'); } 
-  catch(e) { return []; }
-}
-
-function savePromoToWallet(code, desc) {
-  if(!S.user) { 
-    toast('กรุณาเข้าสู่ระบบเพื่อเก็บโค้ดส่วนลด', 'warn'); 
-    openAuth('login');
-    return; 
-  }
-  let promos = getSavedPromos();
-  if(promos.find(p => p.code === code)) {
-    toast('คุณได้เก็บโค้ดนี้ไปแล้ว', 'info'); return;
-  }
-  promos.push({ code: code, desc: desc });
-  localStorage.setItem('ctb_saved_promos', JSON.stringify(promos));
-  
-  toast('เก็บโค้ดสำเร็จ! ดูได้ที่หน้า Me', 'success');
-  renderPromoWallet(); 
-}
-
-function renderPromoWallet() {
-  const walletEl = ge('promoWalletList');
-  if(!walletEl) return;
-  const promos = getSavedPromos();
-  if(promos.length === 0) {
-    walletEl.innerHTML = '<div style="font-size:12px; color:var(--tan3); text-align:center; padding:16px; background:var(--c2); border-radius:10px; border:1px dashed var(--ln2);">ยังไม่มีโค้ดส่วนลด กดเก็บจากหน้าหลักได้เลย!</div>';
-  } else {
-    walletEl.innerHTML = promos.map(p => `
-      <div style="background:var(--c2); border:1px solid var(--ln2); border-radius:10px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="font-size:14px; font-weight:700; color:var(--gl); letter-spacing:1px;">${p.code}</div>
-          <div style="font-size:11px; color:var(--tan3); margin-top:2px;">${p.desc}</div>
-        </div>
-        <button onclick="useCode('${p.code}')" style="background:var(--tan); color:var(--c0); padding:8px 16px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer; border:none; transition:transform 0.1s;">ใช้โค้ด</button>
-      </div>
-    `).join('');
-  }
-}
-
-function renderCartPromos() {
-  const cartPromosEl = ge('cartSavedPromos');
-  if(!cartPromosEl) return;
-  const promos = getSavedPromos();
-  if(promos.length === 0 || !S.user) { 
-    cartPromosEl.style.display = 'none'; return; 
-  }
-  cartPromosEl.style.display = 'flex';
-  cartPromosEl.innerHTML = promos.map(p => `
-    <button onclick="useCode('${p.code}')" style="background:rgba(212,170,106,.15); border:1px solid rgba(212,170,106,.3); color:var(--gl); padding:6px 12px; border-radius:16px; font-size:11px; font-weight:600; white-space:nowrap; flex-shrink:0; cursor:pointer;">
-      🎫 ${p.code}
-    </button>
-  `).join('');
-}
-
-var _origRenderProfileWallet = renderProfile;
-renderProfile = function() {
-  _origRenderProfileWallet();
-  renderPromoWallet();
-};
-
-var _origOpenCartWallet = openCart;
-openCart = function() {
-  _origOpenCartWallet();
-  renderCartPromos();
-};
-/* ── INIT (Optimized Boot Sequence) ─────────────────────────────────── */
-function init() {
-  // 1. นำข้อมูลเก่ากลับมา (Session, History, Cart, Order)
-  try {
-    var savedUser = JSON.parse(localStorage.getItem('ctb_user') || 'null');
-    if (savedUser) { S.user = savedUser; PTS = savedUser.points || 0; }
-
-    var savedHist = JSON.parse(localStorage.getItem('ctb_history') || 'null');
-    if (savedHist && savedHist.length) S.orderHistory = savedHist;
-
-    var savedOrder = JSON.parse(localStorage.getItem('ctb_order') || 'null');
-    // ดึงออเดอร์ล่าสุดกลับมาติดตามต่อ ถ้ายกเลิก/เสร็จแล้ว ให้เคลียร์ทิ้ง
-    if (savedOrder && savedOrder.status !== 'completed' && savedOrder.status !== 'cancelled') {
-      S.order = savedOrder;
-      ge('trkDot').classList.add('on');
-    }
-
-    loadCart(); // ดึงตะกร้า
-  } catch (e) {
-    console.warn("Restore state error:", e);
-  }
-
-  // 2. จัดการตั้งค่าร้านและเวลา
-  checkStoreStatus(); // เช็คเปิด-ปิดร้าน
-  setInterval(checkStoreStatus, 60000); // เช็คทุก 1 นาที
-  if (!isStoreOpen) { S.orderType = 'preorder'; } // ถ้าร้านปิด บังคับพรีออเดอร์
-  
-  applyTheme(S.theme); // โหลดธีมสี
-
-  // 3. เริ่มโหลดข้อมูลหน้าร้าน
-  loadMenu(); // โหลดเมนูจาก Supabase (เรียกแค่ครั้งเดียว!)
-  loadBr();   // โหลดสาขา
-  initSrch(); // โหลดระบบค้นหา
-  buildTopGrid(); // โหลดหน้า Customize Toppings
-  
-  // 4. อัปเดต UI หน้าจอต่างๆ
-  syncOT(S.orderType); // อัปเดตปุ่ม Order Type (Delivery/Pickup)
-  renderLoyalty();     // โชว์แต้ม Profile
-  renderHistory();     // โชว์ประวัติ
-  if (S.user) renderProfile(); // อัปเดตข้อมูลบัญชี
-  
-  // 5. ลูกเล่นอื่นๆ (Splash Screen & Urgency Timer)
-  if (isRet()) { 
-    ge('splash').style.display = 'none'; 
-  } else { 
-    buildSpFeat(); 
-    setTimeout(closeSplash, 8000); 
-  }
-  
-  updClk(); 
-  setInterval(updClk, 10000); // นาฬิกามุมซ้ายบน
-  startUrgency(); // แถบจับเวลาลดราคา
 }
 
 /* ══════════════════════════════════════════════════════
@@ -2916,29 +2750,6 @@ openCS=function(id){
 };
 
 /* ── PATCH placeOrder: allow guest + deduct pts on success ── */
-var _origPlaceOrder=placeOrder;
-placeOrder=async function(){
-  // Guest: collect name + phone if not logged in
-  if(!S.user){
-    var gname=(ge('guestName')?ge('guestName').value.trim():'');
-    var gphone=(ge('guestPhone')?ge('guestPhone').value.trim():'');
-    if(!gname||!gphone){toast('กรุณากรอกชื่อและเบอร์โทรก่อนสั่ง','warn');return;}
-    // Create a temp guest user object so placeOrder can proceed
-    S.user={id:'guest_'+Date.now(),name:gname,phone:gphone,isGuest:true};
-  }
-  await _origPlaceOrder();
-  // On success: deduct redeemed points
-  if(_ptsRedeemed&&!S.user.isGuest){
-    var used=S.disc*10;
-    PTS=Math.max(0,PTS-used);
-    if(S.user){S.user.points=PTS;try{localStorage.setItem('ctb_user',JSON.stringify(S.user))}catch(e){}}
-    _ptsRedeemed=false;
-    renderLoyalty();
-  }
-  // Clear guest temp user
-  if(S.user&&S.user.isGuest)S.user=null;
-};
-
 /* ── PATCH renderProfile to show referral block ── */
 var _origRenderProfile=renderProfile;
 renderProfile=function(){
@@ -3161,6 +2972,8 @@ window.addEventListener('unhandledrejection',function(e){
 });
 
 
+   ══════════════════════════════════════════════════════ */
+
 /* ── 1. FOCUS TRAP for bottom sheets ────────────────── */
 var FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
@@ -3199,8 +3012,10 @@ var _origCloseBr_C=closeBr;
 closeBr=function(){_origCloseBr_C();releaseSheet('brOv');};
 var _origOpenAuth_C=openAuth;
 openAuth=function(m){_origOpenAuth_C(m);setTimeout(function(){trapSheet('authOv');},50);};
+// closeAuth didn't exist before — alias closeAuthSheet first, then wrap
+var closeAuth=closeAuthSheet;
 var _origCloseAuth_C=closeAuth;
-closeAuth=function(){_origCloseAuth_C();releaseSheet('authOv');};
+closeAuth=function(){ge('authOv').classList.remove('on');releaseSheet('authOv');};
 
 document.addEventListener('keydown',function(e){
   if(e.key!=='Escape')return;
@@ -3221,21 +3036,6 @@ var TH={
   order_failed:'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
   birthday_format:'รูปแบบวันเกิดต้องเป็น DD/MM (เช่น 25/12)',
   cancel_failed:'ไม่สามารถยกเลิกออเดอร์ได้ กรุณาลองใหม่'
-};
-
-var _origPlaceOrder_C=placeOrder;
-placeOrder=async function(){
-  if(!S.cart||!S.cart.length){toast(TH.cart_empty,'warn');return;}
-  if(S.orderType==='delivery'){
-    var da=ge('cartDelAddr'),dp=ge('cartDelPhone');
-    if(da&&!da.value.trim()){toast(TH.delivery_addr,'warn');return;}
-    if(dp&&!dp.value.trim()){toast(TH.delivery_phone,'warn');return;}
-  }
-  var slipPrev=ge('slipPrev');
-  if(!slipPrev||!slipPrev.src||slipPrev.src===location.href||slipPrev.src===window.location.href){
-    toast(TH.slip_required,'warn');return;
-  }
-  await _origPlaceOrder_C();
 };
 
 /* ── 3. OS THEME LIVE LISTENER ───────────────────────── */
@@ -3574,47 +3374,147 @@ applyTheme=function(t){
   if(meta)meta.content=t==='dark'?'#0c0b09':'#f5f2ec';
 };
 
+/* ══════════════════════════════════════════════════════
+   PHASE E — CONSOLIDATION
+   Flatten _orig* wrapper chains · apiCall helper · cleanup
+   ══════════════════════════════════════════════════════ */
+
+/* ── 1. apiCall HELPER ───────────────────────────────── */
+// Replaces repeated: if(!window.API||!API.method)return;
+function apiCall(method){
+  if(!window.API||typeof API[method]!=='function')return Promise.resolve(null);
+  var args=Array.prototype.slice.call(arguments,1);
+  try{return API[method].apply(API,args).catch(function(e){
+    if(window.isDev)console.error('[apiCall] '+method+':',e);
+    return null;
+  });}catch(e){return Promise.resolve(null);}
+}
+
+/* ── 2. CONSOLIDATED nav ─────────────────────────────── */
+// Replaces: original → Phase5 → PhaseD → PhaseC (3 wrappers)
+nav=function(pgId,tabId){
+  document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('.ntab').forEach(function(t){
+    t.classList.remove('active');
+    t.setAttribute('aria-selected',t.id===tabId?'true':'false');
+  });
+  var pg=ge(pgId);if(pg)pg.classList.add('active');
+  var tb=ge(tabId);if(tb)tb.classList.add('active');
+  if(pgId==='pg-track'&&S.order)renderTrack();
+  if(pgId==='pg-history')renderHistory();
+  if(pgId==='pg-profile')renderProfile();
+  // Push prompt (Phase 5)
+  if(pgId==='pg-track'&&S.order&&!_pushAllowed&&'Notification'in window&&Notification.permission==='default'){
+    setTimeout(function(){var p=ge('pushPrompt');if(p)p.classList.add('on');},600);
+  }
+  // Analytics (Phase D)
+  trackEvent('page_view',{page:pgId});
+};
+
+/* ── 3. CONSOLIDATED openCS ──────────────────────────── */
+// Replaces: original → Phase4 → PhaseD → PhaseC (3 wrappers)
+openCS=function(id){
+  checkStoreStatus();
+  var m=MENUS.find(function(x){return x.id===id});if(!m)return;
+  S.cur=m;S.cust={sz:'M',szX:15,sw:'regular',ic:'regular ice',tops:[],qty:1};
+  safeSet('csName',m.name);safeSet('csDesc',m.desc||'');safeSet('csPrice','฿'+m.price);
+  safeSet('qtyVal','1');var ni=ge('itemNote');if(ni)ni.value='';
+  document.querySelectorAll('.szbtn').forEach(function(b){b.classList.toggle('on',b.dataset.sz==='M')});
+  document.querySelectorAll('.pill').forEach(function(b){b.classList.toggle('on',b.dataset.val==='regular'||b.dataset.val==='regular ice')});
+  buildTopGrid();updAdd();
+  ge('csOv').classList.add('on');
+  // Phase 4: recent + fav + gallery
+  trackRecent(id);syncFavBtn();
+  buildGallery(m.images||(m.img?[m.img]:[]));
+  // Phase D: analytics
+  trackEvent('product_view',{id:m.id,name:m.name,price:m.price,cat:m.cat});
+  // Phase C: focus trap
+  setTimeout(function(){trapSheet('csOv');},50);
+};
+
+/* ── 4. CONSOLIDATED closeCS ─────────────────────────── */
+closeCS=function(){ge('csOv').classList.remove('on');releaseSheet('csOv');};
+
+/* ── 5. CONSOLIDATED openCart ────────────────────────── */
+// Replaces: original → Phase4 → PhaseD → PhaseC (3 wrappers)
+openCart=function(){
+  checkStoreStatus();
+  renderCartItems();updSummary();ge('cartOv').classList.add('on');
+  openCartPts();                                                         // Phase 4
+  trackEvent('checkout_start',{items:S.cart.length,subtotal:calcSub()}); // Phase D
+  setTimeout(function(){trapSheet('cartOv');},50);                       // Phase C
+};
+
+/* ── 6. CONSOLIDATED closeCart ───────────────────────── */
+closeCart=function(){ge('cartOv').classList.remove('on');releaseSheet('cartOv');};
+
+/* ── 7. CONSOLIDATED openBr / closeBr ───────────────── */
+openBr=function(){ge('brOv').classList.add('on');setTimeout(function(){trapSheet('brOv');},50);};
+closeBr=function(){ge('brOv').classList.remove('on');releaseSheet('brOv');};
+
+/* ── 8. CONSOLIDATED addToCart ───────────────────────── */
+// Replaces: original → PhaseD (1 wrapper)
+addToCart=function(){
+  var m=S.cur;if(!m)return;
+  var ts=S.cust.tops.reduce(function(s,t){return s+t.price},0);
+  var u=parseInt(m.price)+S.cust.szX+ts;
+  var opts=[S.cust.sz,S.cust.sw,S.cust.ic].concat(S.cust.tops.map(function(t){return'+'+t.name})).join(' · ');
+  var ni=ge('itemNote');
+  S.cart.push({uid:Date.now(),id:m.id,name:m.name,price:u,qty:S.cust.qty,opts:opts,note:ni?ni.value:'',tops:S.cust.tops.slice()});
+  closeCS();updCartBar();toast(m.name+' added to cart');
+  trackEvent('add_to_cart',{id:m.id,name:m.name,size:S.cust.sz,qty:S.cust.qty,price:u,tops:S.cust.tops.map(function(t){return t.name})});
+};
+
+/* ── 9. CONSOLIDATED renderProfile ──────────────────── */
+// Replaces: Phase4(renderRefBlock) → PhaseB(birthday) → withErrorBoundary
+// Keep withErrorBoundary as outer layer
+renderProfile=withErrorBoundary(function(){
+  if(!S.user){
+    var pm=ge('profileMember'),pg=ge('profileGuest');
+    if(pm)pm.style.display='none';
+    if(pg)pg.style.display='flex';
+    return;
+  }
+  var pm=ge('profileMember'),pg=ge('profileGuest');
+  if(pm)pm.style.display='flex';
+  if(pg)pg.style.display='none';
+  var name=S.user.name||'Member';
+  safeSet('profName',name);safeSet('profName2',name);
+  safeSet('ed-name',S.user.name||'—');
+  safeSet('ed-email',S.user.email||'—');
+  // Phone: format as xxx xxx xxxx if 10 digits
+  var ph=S.user.phone||'';
+  safeSet('ed-phone',ph?ph.replace(/(\d{3})(\d{3})(\d{4})/,'$1 $2 $3'):('—'));
+  safeSet('ed-birthday',S.user.birthday||'—');
+  // Stats row
+  safeSet('sOrds',S.orderHistory.length);
+  safeSet('sSaved','฿'+S.orderHistory.reduce(function(s,o){return s+(o.disc||0);},0));
+  // Load points from user data before rendering loyalty
+  PTS=S.user.points||PTS||0;
+  renderLoyalty();
+  renderHistory();
+  renderRefBlock();
+  checkBirthday(S.user);
+},'profileMember','renderProfile');
+
+/* ── 10. NULLIFY _orig* VARIABLES ────────────────────── */
+// Free memory + prevent accidental use of stale references
+var _origChain=['_origOpenCS','_origOpenCS_D','_origOpenCS_C',
+  '_origCloseCS_C','_origOpenCart','_origOpenCart_D','_origOpenCart_C',
+  '_origCloseCart_C','_origOpenBr','_origOpenBr_C','_origCloseBr','_origCloseBr_C',
+  '_origOpenAuth_C','_origCloseAuth_C','_origAddToCart',
+  '_origRenderProfile','_origRenderProfileB','_origSaveEditField',
+  '_origRenderTrack','_origNav','_origNav_D','_origNav_C','_origNav_C',
+  '_origConfirmBr','_origRenderMenu','_origOnOrderStatus',
+  '_origPlaceOrder_C','_origInitSrch','_origApplyTheme'];
+_origChain.forEach(function(k){try{window[k]=null;}catch(e){}});
+
 init();
 // Phase 5 boot
 loadBanners();
 // Restore realtime if order was active before refresh
 if(S.order&&S.order.status!=='completed'&&S.order.status!=='cancelled'){
   startRealtime();
-}
-
-/* ── SKELETON ───────────────────────────────────────── */
-function showMenuSkeleton(){
-  var el=ge('menuSkel');if(!el)return;
-  var row='<div style="padding:16px; border-bottom:1px solid var(--line); color:var(--tan3);">Loading menu...</div>';
-  el.innerHTML=row+row+row;
-}
-function hideMenuSkeleton(){var el=ge('menuSkel');if(el)el.innerHTML='';}
-
-/* ── LOAD MENU from API ────────────────────────────────── */
-function loadMenu(){
-  var errEl=ge('menuErr');if(errEl)errEl.classList.remove('on');
-  if(window.API&&API.getMenu){
-    showMenuSkeleton();
-    API.getMenu().then(function(res){
-      hideMenuSkeleton();
-      if(res&&res.products&&res.products.length){
-        MENUS=res.products;
-        if(res.customization&&res.customization.addons)TOPS=res.customization.addons;
-        buildCats();
-        renderMenu(MENUS); // ฟังก์ชัน renderMenu ต้องมีอยู่ในไฟล์
-        buildHome();
-      } else {
-        renderMenu(MENUS); // use fallback
-      }
-    }).catch(function(err){
-      hideMenuSkeleton();
-      if(errEl)errEl.classList.add('on');
-      console.error("Menu load error:", err);
-      renderMenu(MENUS); // use fallback
-    });
-  } else {
-    try{renderMenu(MENUS)}catch(e){if(errEl)errEl.classList.add('on')}
-  }
 }
 /* ══════════════════════════════════════════════════════
    ⚡️ REAL-TIME STORE STATUS LISTENER (ฟังเสียงจาก Admin)
