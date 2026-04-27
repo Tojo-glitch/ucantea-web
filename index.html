@@ -1473,7 +1473,7 @@ function toast(msg,type){
   clearTimeout(toastT2);
   toastT2=setTimeout(function(){e.classList.remove('on')},2600);
 }
-function sha256(str){var b=new TextEncoder().encode(str);var h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+async function sha256(str){var b=new TextEncoder().encode(str);var h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
 
 /* ── THEME ──────────────────────────────────────────── */
 function applyTheme(t){
@@ -2971,7 +2971,9 @@ window.addEventListener('unhandledrejection',function(e){
   if(window.isDev)console.error('[UnhandledRejection]',msg);
 });
 
-/* ══════════════════════════════════════════════════════ */
+
+   ══════════════════════════════════════════════════════ */
+
 /* ── 1. FOCUS TRAP for bottom sheets ────────────────── */
 var FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
@@ -3010,10 +3012,8 @@ var _origCloseBr_C=closeBr;
 closeBr=function(){_origCloseBr_C();releaseSheet('brOv');};
 var _origOpenAuth_C=openAuth;
 openAuth=function(m){_origOpenAuth_C(m);setTimeout(function(){trapSheet('authOv');},50);};
-function closeAuth(){
-  ge('authOv').classList.remove('on');
-  releaseSheet('authOv');
-}
+// closeAuth didn't exist before — alias closeAuthSheet first, then wrap
+var closeAuth=closeAuthSheet;
 var _origCloseAuth_C=closeAuth;
 closeAuth=function(){ge('authOv').classList.remove('on');releaseSheet('authOv');};
 
