@@ -348,22 +348,34 @@ async register({ phone, email, name, hashedPassword }) {
         // 1. สร้างบัญชีใน Auth
         const authData = await sb.signUp(pseudoEmail, hashedPassword);
         
+        // 🚨 เพิ่ม Log ดูว่า Supabase ส่งอะไรกลับมา! (สำคัญมาก)
+        console.log("Supabase Auth Response:", authData); 
+        
         // เช็คว่าพังตอนสร้างบัญชีไหม
-       if (authData.error) {
-          // 💡 ดึงข้อความ error ของจริงออกมาโชว์ (เช่น "User already registered")
+        if (authData.error) {
           const msg = authData.error.msg || authData.error.message || 'Registration failed';
           return { success: false, message: msg };
         }
 
-        // ดึง ID ของ User ที่เพิ่งสมัคร
-        const authId = authData.user ? authData.user.id : (authData.id || null);
-        const token = authData.session ? authData.session.access_token : (authData.access_token || 'no_token');
+        // 2. ดึง ID แบบป้องกันข้อผิดพลาด 100% (Bulletproof Extraction)
+        let authId = null;
+        let token = 'no_token';
 
+        // หา ID
+        if (authData.user && authData.user.id) { authId = authData.user.id; } 
+        else if (authData.id) { authId = authData.id; }
+        else if (authData.data && authData.data.user) { authId = authData.data.user.id; } // เผื่อ SDK เปลี่ยนโครงสร้าง
+
+        // หา Token
+        if (authData.access_token) { token = authData.access_token; } 
+        else if (authData.session && authData.session.access_token) { token = authData.session.access_token; }
+
+        // ถ้ายังหา ID ไม่เจออีก ให้พ่น Error บอกเลยว่าเพราะอะไร
         if (!authId) {
-          throw new Error("Supabase Auth ไม่ส่ง User ID กลับมา");
+          throw new Error("Supabase Auth ไม่ส่ง User ID กลับมา! (กรุณาไปปิด 'Confirm email' ในหน้า Authentication > Providers > Email ของ Supabase ก่อนครับ)");
         }
 
-        // 2. บันทึกข้อมูลลงตาราง members
+        // 3. บันทึกข้อมูลลงตาราง members
         const memberPayload = { 
           auth_id: authId, 
           phone: phone, 
@@ -375,9 +387,9 @@ async register({ phone, email, name, hashedPassword }) {
         
         await sb.insert('members', memberPayload);
 
-        // 3. สร้าง Object ผู้ใช้สำหรับบันทึกลง LocalStorage
+        // 4. สร้าง Object ผู้ใช้สำหรับบันทึกลง LocalStorage
         const user = { 
-          id: authId, // ใช้ authId เป็นตัวอ้างอิงไปก่อน
+          id: authId, 
           authId: authId, 
           name: name, 
           phone: phone, 
@@ -398,7 +410,7 @@ async register({ phone, email, name, hashedPassword }) {
       }
     }
     
-    // สำหรับโหมด Mock (เทสในคอม)
+    // สำหรับโหมด Mock
     return { success: true };
   },
 
