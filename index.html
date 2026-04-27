@@ -3010,8 +3010,10 @@ var _origCloseBr_C=closeBr;
 closeBr=function(){_origCloseBr_C();releaseSheet('brOv');};
 var _origOpenAuth_C=openAuth;
 openAuth=function(m){_origOpenAuth_C(m);setTimeout(function(){trapSheet('authOv');},50);};
-// closeAuth didn't exist before — alias closeAuthSheet first, then wrap
-var closeAuth=closeAuthSheet;
+function closeAuth(){
+  ge('authOv').classList.remove('on');
+  releaseSheet('authOv');
+}
 var _origCloseAuth_C=closeAuth;
 closeAuth=function(){ge('authOv').classList.remove('on');releaseSheet('authOv');};
 
