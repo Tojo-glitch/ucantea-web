@@ -1,9 +1,7 @@
 /**
-CERAMIC — API ADAPTER (api.js) [FINAL FIXED]
+CERAMIC — API ADAPTER (api.js) [FIXED]
 ══════════════════════════════════════════════
-✅ Fixed all syntax errors from minification
-✅ Unified pseudo-email: @ceramic.internal
-✅ Added email || null protection for Supabase
+All syntax errors fixed
 */
 const BACKEND_MODE  = 'supabase';
 const SUPABASE_URL  = window.ENV?.URL || '';
@@ -26,9 +24,11 @@ async function _fetch(url, opts = {}) {
   try {
     return await fetch(url, { ...opts, signal: ctrl.signal });
   } catch (e) {
-    if (e.name === 'AbortError') throw new Error('Request timed out — กรุณาตรวจสอบการเชื่อมต่อ');
+    if (e.name === 'AbortError') throw new Error('Request timed out');
     throw e;
-  } finally { clearTimeout(timer); }
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function _sha256(str) {
@@ -167,7 +167,7 @@ window.API = {
   async register({ phone, email, name, hashedPassword }) {
     if (BACKEND_MODE === 'supabase') {
       try {
-        const cleanPhone = phone.replace(/\D/g, ''); // ✅ ล้างเบอร์ให้เหลือแค่ตัวเลข
+        const cleanPhone = phone.replace(/\D/g, '');
         const pseudoEmail = `${cleanPhone}@ceramic.internal`;
         
         const authData = await sb.signUp(pseudoEmail, hashedPassword);
@@ -183,9 +183,8 @@ window.API = {
         const authId = authData?.user?.id || authData?.id || authData?.data?.user?.id;
         const token  = authData?.access_token || authData?.session?.access_token || 'no_token';
 
-        if (!authId) throw new Error('Supabase ไม่ส่ง User ID — กรุณาปิด "Confirm email" ใน Auth → Providers → Email');
+        if (!authId) throw new Error('Supabase ไม่ส่ง User ID');
 
-        // ✅ ป้องกันส่งค่าว่าง "" ไปให้ Supabase
         await sb.insert('members', { 
           auth_id: authId, 
           phone: cleanPhone, 
@@ -310,7 +309,7 @@ window.API = {
     return { success: true, data: [] };
   },
 
-  /* ── MENU ─────────────────────────────────────── */
+  /* ── MENU ────────────────────────────────────── */
   async getMenu() {
     if (BACKEND_MODE === 'supabase') {
       const [products, categories, addons] = await Promise.all([
