@@ -145,7 +145,7 @@ window.API = {
     if (BACKEND_MODE === 'supabase') {
       try {
         const cleanPhone = phone.replace(/\D/g, '');
-        const data = await sb.signIn(`${cleanPhone}@ceramic.internal`, hashedPassword);
+        const data = await sb.signIn(`${phone}@ceramic.internal`, password);
         if (data.error) return { success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
         const members = await sb.query('members', { eq: { auth_id: data.user.id }, select: '*' });
         const member = members[0];
@@ -170,7 +170,7 @@ window.API = {
         const cleanPhone = phone.replace(/\D/g, '');
         const pseudoEmail = `${cleanPhone}@ceramic.internal`;
         
-        const authData = await sb.signUp(pseudoEmail, hashedPassword);
+        const authData = await sb.signUp(`${phone}@ceramic.internal`, password);
         _log('Auth response:', authData);
         
         if (authData.error) {
