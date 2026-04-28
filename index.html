@@ -2159,58 +2159,48 @@ async function doLogin() {
     });
 }
 
+// ลบฟังก์ชัน doRegister อันเก่าทิ้งทั้งหมด แล้ววางอันนี้ลงไปแทนครับ
 async function doRegister() {
   var phone = (ge('regPhone').value || '').trim();
   var email = (ge('regEmail').value || '').trim().toLowerCase();
-  var name = (ge('regName').value || '').trim();
-  var pass = ge('regPass').value || '';
-  var msg = ge('regMsg'), btn = ge('regBtn');
+  var name  = (ge('regName').value || '').trim();
+  var pass  = ge('regPass').value || '';
+  var msg   = ge('regMsg'), btn = ge('regBtn');
+  
   msg.textContent = ''; msg.className = 'auth-msg';
 
-  // ตรวจสอบข้อมูล
   if (!/^[0-9]{9,10}$/.test(phone)) {
-    msg.textContent = 'Enter a valid phone number (9–10 digits)';
+    msg.textContent = 'กรุณากรอกเบอร์โทรให้ถูกต้อง';
     msg.className = 'auth-msg err';
     return;
   }
   if (!email || !email.includes('@')) {
-    msg.textContent = 'Enter a valid email address';
+    msg.textContent = 'กรุณากรอกอีเมลให้ถูกต้อง';
     msg.className = 'auth-msg err';
     return;
   }
   if (!name || name.length < 2) {
-    msg.textContent = 'Enter your display name';
+    msg.textContent = 'กรุณากรอกชื่อ';
     msg.className = 'auth-msg err';
     return;
   }
   if (pass.length < 6) {
-    msg.textContent = 'Password must be at least 6 characters';
+    msg.textContent = 'รหัสผ่านต้องอย่างน้อย 6 ตัวอักษร';
     msg.className = 'auth-msg err';
     return;
   }
 
-  // ปิดการกดปุ่มชั่วคราว
   btn.disabled = true;
-  msg.textContent = 'กำลังสมัครสมาชิก...';
-  msg.className = 'auth-msg';
+  btn.textContent = '⏳ กำลังสมัคร...';
 
   try {
-    // แฮชรหัสผ่านก่อนส่ง (เหมือนที่ระบบ login ทำ)
-    const hashed = await API.hash(pass + 'CTB_SALT_2025');
-
-    // เรียก API สมัครสมาชิก
-    const res = await API.register({
-      phone: phone,
-      email: email,
-      name: name,
-      hashedPassword: hashed
-    });
+    const hashedPwd = await API.hash(pass + 'CTB_SALT_2025');
+    const res = await API.register({ phone, email, name, hashedPassword: hashedPwd });
 
     if (res.success) {
       msg.textContent = 'สมัครสมาชิกสำเร็จ! กำลังเข้าสู่ระบบ...';
       msg.className = 'auth-msg ok';
-      // เข้าสู่ระบบต่ออัตโนมัติหรือเปลี่ยนหน้า
-      // .......
+      window.location.reload();
     } else {
       msg.textContent = res.message || 'สมัครไม่สำเร็จ';
       msg.className = 'auth-msg err';
@@ -2220,11 +2210,9 @@ async function doRegister() {
     msg.className = 'auth-msg err';
   } finally {
     btn.disabled = false;
+    btn.textContent = 'Create Account';
   }
 }
-
-  btn.disabled = true;
-  btn.textContent = 'Creating account...';
 
   // ส่งรหัสผ่านดิบ — Supabase Auth จะแฮชให้
   API.register({ phone, email, name, password: pass })
