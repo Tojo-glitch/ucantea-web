@@ -3562,5 +3562,105 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
 });
 </script>
 
+<script>
+(function() {
+  // ฟังก์ชันค้นหาและผูกเหตุการณ์ให้ฟอร์ม
+  function hookAuthForms() {
+    const allForms = document.querySelectorAll('form');
+    
+    allForms.forEach(form => {
+      if (form.dataset.authHooked) return; // ป้องกันผูกซ้ำ
+      
+      const inputs = Array.from(form.querySelectorAll('input'));
+      const placeholders = inputs.map(i => i.placeholder?.toLowerCase() || '');
+      
+      const hasPhone = placeholders.some(p => p.includes('phone number') || p.includes('เบอร์โทร'));
+      const hasPwd   = placeholders.some(p => p.includes('password'));
+      const hasEmail = placeholders.some(p => p.includes('email address'));
+      const hasName  = placeholders.some(p => p.includes('call you') || p.includes('what should'));
+      const btn      = form.querySelector('button');
+      const btnText  = btn ? btn.textContent.toLowerCase() : '';
+
+      // 🔹 ฟอร์มสมัครสมาชิก (Register)
+      if (hasPhone && hasEmail && hasName && hasPwd && btnText.includes('create')) {
+        form.dataset.authHooked = 'register';
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault(); e.stopImmediatePropagation();
+          
+          const phone = inputs.find(i => i.placeholder.toLowerCase().includes('phone number')).value.replace(/\D/g, '');
+          const email = inputs.find(i => i.placeholder.toLowerCase().includes('email address')).value.trim() || null;
+          const name  = inputs.find(i => i.placeholder.toLowerCase().includes('call you')).value.trim();
+          const pwd   = inputs.find(i => i.placeholder.toLowerCase().includes('password')).value;
+
+          if (phone.length < 9) return alert('กรุณากรอกเบอร์โทรให้ถูกต้อง (อย่างน้อย 9 หลัก)');
+          if (pwd.length < 6)   return alert('รหัสผ่านต้องอย่างน้อย 6 ตัวอักษร');
+          if (!name)            return alert('กรุณากรอกชื่อ');
+
+          btn.disabled = true; btn.textContent = '⏳ กำลังสมัคร...';
+          try {
+            // แฮชรหัสผ่านให้ตรงกับระบบของคุณ
+            const hashedBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd + 'CTB_SALT_2025'));
+            const hashedPwd = Array.from(new Uint8Array(hashedBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+            
+            const res = await window.API.register({ phone, email, name, hashedPassword: hashedPwd });
+            if (res.success) {
+              alert('🎉 สมัครสำเร็จ! ได้รับ 50 แต้มต้อนรับ');
+              window.location.reload();
+            } else {
+              alert(res.message || 'สมัครไม่สำเร็จ');
+            }
+          } catch (err) {
+            alert('เกิดข้อผิดพลาด: ' + err.message);
+          } finally {
+            btn.disabled = false; btn.textContent = 'Create Account';
+          }
+        });
+      }
+
+      // 🔹 ฟอร์มเข้าสู่ระบบ (Login)
+      if (hasPhone && hasPwd && !hasEmail && !hasName && btnText.includes('sign in')) {
+        form.dataset.authHooked = 'login';
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault(); e.stopImmediatePropagation();
+          
+          const phone = inputs.find(i => i.placeholder.toLowerCase().includes('phone number')).value.replace(/\D/g, '');
+          const pwd   = inputs.find(i => i.placeholder.toLowerCase().includes('password')).value;
+
+          if (phone.length < 9) return alert('กรุณากรอกเบอร์โทร');
+          
+          btn.disabled = true; btn.textContent = '⏳ กำลังเข้าระบบ...';
+          try {
+            const hashedBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd + 'CTB_SALT_2025'));
+            const hashedPwd = Array.from(new Uint8Array(hashedBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+            
+            const res = await window.API.login({ phone, hashedPassword: hashedPwd });
+            if (res.success) {
+              alert('👋 ยินดีต้อนรับ, ' + res.user.name);
+              window.location.reload();
+            } else {
+              alert(res.message || 'เข้าสู่ระบบไม่สำเร็จ');
+            }
+          } catch (err) {
+            alert('เกิดข้อผิดพลาด: ' + err.message);
+          } finally {
+            btn.disabled = false; btn.textContent = 'Sign In';
+          }
+        });
+      }
+    });
+  }
+
+  // รันทันทีถ้า DOM โหลดแล้ว หรือรอ event DOMContentLoaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hookAuthForms);
+  } else {
+    hookAuthForms();
+  }
+  
+  // 🔄 Fallback สำหรับ SPA ที่อาจสร้างฟอร์มช้า: เช็คซ้ำทุก 2 วินาที
+  setInterval(hookAuthForms, 2000);
+})();
+</script>
+
 </body>
 </html>
