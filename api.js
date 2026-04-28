@@ -165,20 +165,31 @@
       return await res.json();
     },
 
-    async insert(table, data) {
-      const res = await request(
-        `${SUPABASE_URL}/rest/v1/${table}`,
-        {
-          method: 'POST',
-          headers: headers(),
-          body: JSON.stringify(data)
-        }
-      );
-
-      if (!res.ok) throw new Error(await res.text());
-
-      return await res.json();
-    },
+   // ใน api (9).js ส่วนของ sb.insert
+async insert(table, data) {
+  console.log('Sending data to:', table, data); // เช็กว่าข้อมูลที่จะส่งหน้าตาเป็นยังไง
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Supabase Error:', errorText); // ดูว่า Supabase ด่าเราว่าอะไร
+      throw new Error(errorText);
+    }
+    return true;
+  } catch (e) {
+    console.error('Fetch Error:', e);
+    throw e;
+  }
+}
 
     async update(table, data, eq = {}) {
       let url = `${SUPABASE_URL}/rest/v1/${table}?`;
