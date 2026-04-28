@@ -240,9 +240,16 @@
           body: JSON.stringify({ email, password })
         }
       );
-
-      return await res.json();
-    },
+    
+      const data = await res.json();
+      
+      if (!res.ok) {
+        // throw เพื่อให้ register จับได้
+        throw new Error(data?.msg || data?.error_description || 'Signup failed');
+      }
+      
+      return data;
+    }
 
     async signOut(token) {
       await request(`${SUPABASE_URL}/auth/v1/logout`, {
@@ -267,7 +274,7 @@
 
     async login({ phone, hashedPassword }) {
       try {
-        const email = `${phone}@ceramic.internal`;
+        const email = `${phone}@ceramic.app`;
 
         const data = await sb.signIn(email, hashedPassword);
 
@@ -306,37 +313,39 @@
     },
 
     async register({ phone, email, name, hashedPassword }) {
-      try {
-        const pseudo = `${phone}@ceramic.internal`;
+  try {
+    const pseudo = `${phone}@ceramic.app`;
+    const auth = await sb.signUp(pseudo, hashedPassword);
 
-        const auth = await sb.signUp(
-          pseudo,
-          hashedPassword
-        );
-
-        const authId =
-          auth?.user?.id ||
-          auth?.id ||
-          auth?.data?.user?.id;
-
-        if (!authId) {
-          return fail('สมัครสมาชิกไม่สำเร็จ');
-        }
-
-        await sb.insert('members', {
-          auth_id: authId,
-          phone,
-          email,
-          name,
-          points: 50,
-          tier: 'Bronze'
-        });
-
-        return success();
-      } catch (e) {
-        return fail(e.message);
+    // ตรวจสอบว่ามี error จาก Supabase หรือไม่
+    if (auth.error) {
+      // ถ้าซ้ำ
+      if (auth.error.code === 'user_already_exists' ||
+          auth.error.message?.includes('already registered')) {
+        return fail('เบอร์นี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ');
       }
-    },
+      return fail(auth.error.message || 'สมัครสมาชิกไม่สำเร็จ');
+    }
+
+    const authId = auth?.user?.id || auth?.id || auth?.data?.user?.id;
+    if (!authId) {
+      return fail('สมัครสมาชิกไม่สำเร็จ');
+    }
+
+    await sb.insert('members', {
+      auth_id: authId,
+      phone,
+      email,
+      name,
+      points: 50,
+      tier: 'Bronze'
+    });
+
+    return success();
+  } catch (e) {
+    return fail(e.message);
+  }
+}
 
     async logout() {
       try {
