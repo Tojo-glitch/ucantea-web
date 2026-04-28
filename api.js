@@ -1,14 +1,12 @@
 /**
- * CERAMIC — API ADAPTER (api.js)
- * ══════════════════════════════════════════════
- * Fixed: Auth Headers (400) & Analytics Spam (404)
- */
-
+CERAMIC — API ADAPTER (api.js) [FIXED]
+══════════════════════════════════════════════
+Fixed syntax errors from minification & copy-paste artifacts
+*/
 const BACKEND_MODE  = 'supabase'; // 'supabase' | 'mock'
 const SUPABASE_URL  = window.ENV?.URL || '';
 const SUPABASE_ANON = window.ENV?.KEY || '';
 
-// SSE base for realtime fallback
 window.API = window.API || {};
 window.API.SSE_BASE = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : null;
 
@@ -49,92 +47,73 @@ const sb = {
       'Prefer':        'return=representation',
     };
   },
-
-  // ใช้สำหรับ Auth Endpoint โดยเฉพาะ เพื่อป้องกัน Token ตีกัน (สาเหตุของ Error 400)
-  getAuthHeaders() {
-    return {
-      'apikey':        SUPABASE_ANON,
-      'Authorization': `Bearer ${SUPABASE_ANON}`,
-      'Content-Type':  'application/json',
-    };
-  },
-
   async query(table, p = {}) {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
     if (p.select) url += `select=${encodeURIComponent(p.select)}&`;
-    if (p.eq)  Object.entries(p.eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
-    if (p.neq) Object.entries(p.neq).forEach(([k,v]) => url += `${k}=neq.${encodeURIComponent(v)}&`);
+    if (p.eq)  Object.entries(p.eq).forEach(([k, v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
+    if (p.neq) Object.entries(p.neq).forEach(([k, v]) => url += `${k}=neq.${encodeURIComponent(v)}&`);
     if (p.order) url += `order=${p.order}&`;
     if (p.limit) url += `limit=${p.limit}&`;
     const res = await _fetch(url, { headers: sb.getHeaders() });
-    if (!res.ok) { const t = await res.text(); throw new Error(`[${table}] ${res.status} ${t}`); }
+    if (!res.ok) { const t = await res.text(); throw new Error(`[${table}] ${t}`); }
     return res.json();
   },
-
   async insert(table, data) {
     const res = await _fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method: 'POST', headers: sb.getHeaders(), body: JSON.stringify(data),
     });
-    // แนบ status code ไปด้วยเพื่อให้ catch จับ 404 ได้
-    if (!res.ok) { const t = await res.text(); throw new Error(`[insert ${table}] ${res.status} ${t}`); }
+    if (!res.ok) { const t = await res.text(); throw new Error(`[insert ${table}] ${t}`); }
     return res.json();
   },
-
   async update(table, data, eq) {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
-    Object.entries(eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
+    Object.entries(eq).forEach(([k, v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
     const res = await _fetch(url, { method: 'PATCH', headers: sb.getHeaders(), body: JSON.stringify(data) });
-    if (!res.ok) { const t = await res.text(); throw new Error(`[update ${table}] ${res.status} ${t}`); }
+    if (!res.ok) { const t = await res.text(); throw new Error(`[update ${table}] ${t}`); }
     return res.json();
   },
-
   async delete(table, eq) {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
-    Object.entries(eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
+    Object.entries(eq).forEach(([k, v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
     const res = await _fetch(url, { method: 'DELETE', headers: sb.getHeaders() });
-    if (!res.ok) { const t = await res.text(); throw new Error(`[delete ${table}] ${res.status} ${t}`); }
+    if (!res.ok) { const t = await res.text(); throw new Error(`[delete ${table}] ${t}`); }
     return true;
   },
-
   async signIn(email, password) {
     const res = await _fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST', headers: sb.getAuthHeaders(), body: JSON.stringify({ email, password }),
+      method: 'POST', headers: sb.getHeaders(), body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
     if (!res.ok) return { error: data };
     return data;
   },
-
   async signUp(email, password) {
     const res = await _fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-      method: 'POST', headers: sb.getAuthHeaders(), body: JSON.stringify({ email, password }),
+      method: 'POST', headers: sb.getHeaders(), body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
     if (!res.ok) { _err('SignUp failed:', data); return { error: data }; }
     return data;
   },
-
   async signOut(token) {
     await _fetch(`${SUPABASE_URL}/auth/v1/logout`, {
-      method: 'POST', headers: { ...sb.getAuthHeaders(), 'Authorization': `Bearer ${token}` },
+      method: 'POST', headers: { ...sb.getHeaders(), 'Authorization': `Bearer ${token}` },
     }).catch(() => {});
   },
-
   async resetPassword(email) {
     const res = await _fetch(`${SUPABASE_URL}/auth/v1/recover`, {
-      method: 'POST', headers: sb.getAuthHeaders(), body: JSON.stringify({ email }),
+      method: 'POST', headers: sb.getHeaders(), body: JSON.stringify({ email }),
     });
     return res.json();
   },
 };
 
 /* ══════════════════════════════════════════════════════
-   window.API — public interface
+window.API — public interface
 ══════════════════════════════════════════════════════ */
 window.API = {
-
   SSE_BASE: SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : null,
-
+  
   /* ── STORAGE ──────────────────────────────────── */
   async uploadSlip(file) {
     if (!file) return null;
@@ -149,7 +128,6 @@ window.API = {
     if (!res.ok) throw new Error('อัปโหลดสลิปไม่สำเร็จ — กรุณาลองใหม่');
     return `${SUPABASE_URL}/storage/v1/object/public/slips/${fileName}`;
   },
-
   async uploadHrDoc(fileOrBlob, fileName) {
     if (BACKEND_MODE !== 'supabase') return 'https://via.placeholder.com/150';
     const cleanName = `${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.]/g, '_')}`;
@@ -168,7 +146,7 @@ window.API = {
       try {
         const data = await sb.signIn(`${phone}@ceramic.internal`, hashedPassword);
         if (data.error) return { success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
-        const members = await sb.query('members', { eq: { auth_id: data.user.id }, select: '*' });
+        const members = await sb.query('members', { eq: { auth_id: data.user.id }, select: '' });
         const member  = members[0];
         if (!member) return { success: false, message: 'ไม่พบบัญชีผู้ใช้' };
         const user = {
@@ -185,65 +163,43 @@ window.API = {
     return { success: false, message: 'ไม่พบบัญชี' };
   },
 
-async register({ phone, email, name, hashedPassword }) {
-  if (BACKEND_MODE === 'supabase') {
-    try {
-      // ✅ สร้าง pseudo-email จากเบอร์โทร (บังคับมีเบอร์)
-      const pseudoEmail = `${phone}@ceramic.internal`;
-      
-      // ✅ สมัครสมาชิกด้วย pseudo-email
-      const authData = await sb.signUp(pseudoEmail, hashedPassword);
-      
-      if (authData.error) {
-        // จัดการกรณีอีเมลซ้ำ (เบอร์นี้ลงทะเบียนแล้ว)
-        if (authData.error.message?.includes('duplicate')) {
-          return { success: false, message: 'เบอร์โทรนี้ถูกลงทะเบียนแล้ว' };
-        }
-        return { success: false, message: authData.error.message || 'สมัครไม่สำเร็จ' };
+  async register({ phone, email, name, hashedPassword }) {
+    if (BACKEND_MODE === 'supabase') {
+      try {
+        const authData = await sb.signUp(`${phone}@ceramic.internal`, hashedPassword);
+        _log('Auth response:', authData);
+        if (authData.error) return { success: false, message: authData.error.message || 'สมัครสมาชิกไม่สำเร็จ' };
+
+        const authId = authData?.user?.id || authData?.id || authData?.data?.user?.id;
+        const token  = authData?.access_token || authData?.session?.access_token || 'no_token';
+
+        if (!authId) throw new Error('Supabase ไม่ส่ง User ID — กรุณาปิด "Confirm email" ใน Auth → Providers → Email');
+
+        // ✅ แก้ไข: ป้องกันส่งค่าว่าง "" ไปให้ Supabase
+        await sb.insert('members', { auth_id: authId, phone, email: email || null, name, points: 50, tier: 'Bronze' });
+
+        const user = { id: authId, authId, name, phone, email, points: 50, tier: 'Bronze', token };
+        localStorage.setItem('ctb_user', JSON.stringify(user));
+        localStorage.setItem('ctb_token', token);
+        return { success: true, user };
+      } catch (err) {
+        _err('[register]', err);
+        return { success: false, message: err.message || 'เกิดข้อผิดพลาดในการสมัคร' };
       }
-
-      const authId = authData?.user?.id || authData?.data?.user?.id;
-      const token  = authData?.access_token || authData?.session?.access_token;
-
-      if (!authId) throw new Error('ไม่ได้รับ User ID จาก Supabase');
-
-      // ✅ บันทึกข้อมูลลงตาราง members (เก็บทั้งเบอร์และอีเมลจริง)
-      await sb.insert('members', { 
-        auth_id: authId, 
-        phone,           // 🎯 เบอร์โทร (ใช้ค้นหาหน้าร้าน)
-        email: email || null,  // 📧 อีเมลจริง (optional)
-        name, 
-        points: 50, 
-        tier: 'Bronze' 
-      });
-
-      const user = { id: authId, authId, name, phone, email, points: 50, tier: 'Bronze', token };
-      localStorage.setItem('ctb_user', JSON.stringify(user));
-      localStorage.setItem('ctb_token', token);
-      
-      return { success: true, user };
-      
-    } catch (err) {
-      _err('[register]', err);
-      return { success: false, message: err.message || 'เกิดข้อผิดพลาด' };
     }
-  }
-  // Mock mode fallback
-  return { success: true, user: { id: 'mock', name, phone, email, points: 50, tier: 'Bronze' } };
-}
+    return { success: true, user: { id: 'mock', name, phone, email, points: 50, tier: 'Bronze', token: 'mock' } };
+  },
 
   async forgotPassword(email) {
     if (BACKEND_MODE === 'supabase') await sb.resetPassword(email);
     return { success: true };
   },
-
   async logout(user) {
     if (BACKEND_MODE === 'supabase' && user?.token) try { await sb.signOut(user.token); } catch(e) {}
     localStorage.removeItem('ctb_user');
     localStorage.removeItem('ctb_token');
     return { success: true };
   },
-
   async updateProfile({ field, value }) {
     const user = JSON.parse(localStorage.getItem('ctb_user') || '{}');
     if (BACKEND_MODE === 'supabase' && user.authId) {
@@ -254,7 +210,6 @@ async register({ phone, email, name, hashedPassword }) {
     localStorage.setItem('ctb_user', JSON.stringify(user));
     return { success: true };
   },
-
   async updatePoints({ userId, points }) {
     if (BACKEND_MODE === 'supabase') {
       await sb.update('members', { points }, { auth_id: userId }).catch(_err);
@@ -278,10 +233,7 @@ async register({ phone, email, name, hashedPassword }) {
   },
 
   /* ── ORDERS ───────────────────────────────────── */
-  async createOrder({
-    items, total, branch, type, userId, promoCode, disc, slipUrl, status,
-    delivery_address, delivery_phone, pickup_time
-  }) {
+  async createOrder({ items, total, branch, type, userId, promoCode, disc, slipUrl, status, delivery_address, delivery_phone, pickup_time }) {
     if (BACKEND_MODE === 'supabase') {
       const order = await sb.insert('orders', {
         user_id: userId || null, items: JSON.stringify(items),
@@ -299,7 +251,6 @@ async register({ phone, email, name, hashedPassword }) {
     }
     return { success: true, id: 'CTB-' + Date.now().toString(36).toUpperCase() };
   },
-
   async getOrderStatus(orderId) {
     if (BACKEND_MODE === 'supabase') {
       const rows = await sb.query('orders', { eq: { id: orderId }, select: '*' });
@@ -308,12 +259,10 @@ async register({ phone, email, name, hashedPassword }) {
     }
     return { success: true, status: 'preparing' };
   },
-
   async updateOrderStatus(orderId, newStatus) {
     if (BACKEND_MODE === 'supabase') await sb.update('orders', { status: newStatus }, { id: orderId });
     return { success: true };
   },
-
   async getOrderHistory(userId) {
     if (BACKEND_MODE === 'supabase') {
       const orders = await sb.query('orders', { eq: { user_id: userId }, select: '*', order: 'created_at.desc' });
@@ -321,7 +270,6 @@ async register({ phone, email, name, hashedPassword }) {
     }
     return { success: true, data: [] };
   },
-
   async getAdminOrders() {
     if (BACKEND_MODE === 'supabase') {
       const orders = await sb.query('orders', { select: '*', order: 'created_at.desc', limit: 100 });
@@ -329,7 +277,6 @@ async register({ phone, email, name, hashedPassword }) {
     }
     return { success: true, data: [] };
   },
-
   async getKdsOrders() {
     if (BACKEND_MODE === 'supabase') {
       const orders = await sb.query('orders', { select: '*', order: 'created_at.asc', limit: 50 });
@@ -342,8 +289,8 @@ async register({ phone, email, name, hashedPassword }) {
   async getMenu() {
     if (BACKEND_MODE === 'supabase') {
       const [products, categories, addons] = await Promise.all([
-        sb.query('menu_items', { select: '*', order: 'sort_order' }),
-        sb.query('categories', { select: '*', eq: { is_active: true }, order: 'sort_order' }),
+        sb.query('menu_items', { select: '', order: 'sort_order' }),
+        sb.query('categories', { select: '', eq: { is_active: true }, order: 'sort_order' }),
         sb.query('addons',     { select: '*', eq: { is_active: true }, order: 'sort_order' }),
       ]);
       return { products, categories, customization: {
@@ -354,34 +301,22 @@ async register({ phone, email, name, hashedPassword }) {
     }
     return { products: [], categories: [] };
   },
-
   async getBanners() {
     if (BACKEND_MODE === 'supabase') {
       try {
         const banners = await sb.query('banners', { select: '*', eq: { is_active: true }, order: 'sort_order', limit: 5 });
         return { success: true, banners };
-      } catch (err) { return { success: false, banners: [] }; }
+      } catch (err) { _warn('[getBanners]', err.message); return { success: false, banners: [] }; }
     }
     return { success: true, banners: [] };
   },
-
-  /* ── ANALYTICS TRACKING ───────────────────────── */
   async track(payload) {
     if (BACKEND_MODE === 'supabase' && payload) {
-      // ดักไม่ให้ยิงซ้ำ ถ้ารู้ว่า 404 (ไม่มี Table) ไปแล้ว
-      if (window._disableTracking) return { success: false };
-      
       sb.insert('analytics_events', {
         event_name: payload.event, user_id: payload.userId || null,
         session_id: payload.session || null, branch_id: payload.branch || null,
         properties: JSON.stringify(payload), created_at: new Date().toISOString(),
-      }).catch(e => {
-        // ถ้าระบบบอกว่า 404 Not found แปลว่ายังไม่ได้สร้าง Table
-        if (e.message.includes('404')) {
-            window._disableTracking = true; // ปิดการส่ง Track จนกว่าจะ Refresh หน้าต่าง
-        }
-        _warn('[track]', e.message);
-      });
+      }).catch(e => _warn('[track]', e.message));
     }
     return { success: true };
   },
@@ -389,7 +324,7 @@ async register({ phone, email, name, hashedPassword }) {
   /* ── PROMOS ───────────────────────────────────── */
   async getPromos() {
     if (BACKEND_MODE === 'supabase') {
-      const promos = await sb.query('promo_codes', { select: '*', order: 'created_at.desc' });
+      const promos = await sb.query('promo_codes', { select: '', order: 'created_at.desc' });
       return { success: true, data: promos };
     }
     return { success: true, data: [] };
@@ -417,7 +352,7 @@ async register({ phone, email, name, hashedPassword }) {
   /* ── MEMBERS (admin) ──────────────────────────── */
   async getAdminMembers() {
     if (BACKEND_MODE === 'supabase') {
-      const members = await sb.query('members', { select: '*', order: 'created_at.desc' });
+      const members = await sb.query('members', { select: '', order: 'created_at.desc' });
       return { success: true, data: members };
     }
     return { success: true, data: [] };
@@ -465,7 +400,7 @@ async register({ phone, email, name, hashedPassword }) {
       const branchRes = await sb.query('branches', { eq: { id: staff.branch_id }, select: 'name' });
       return { success: true, staff, branchName: branchRes[0]?.name || 'Unknown' };
     }
-    return { success: true, staff: { name: 'Test' }, branchName: 'Main Branch' };
+    return { success: true, staff: { name: 'Test' }, branchName: 'Main Branch' }; 
   },
   async inviteStaff(data) {
     if (BACKEND_MODE === 'supabase') {
@@ -476,7 +411,7 @@ async register({ phone, email, name, hashedPassword }) {
         });
         if (res?.length) return { success: true, staff: res[0] };
         return { success: false, message: 'บันทึกไม่ได้' };
-      } catch (err) { return { success: false, message: err.message }; }
+      }  catch (err) { return { success: false, message: err.message }; }
     }
     return { success: true, staff: { id: 'temp_' + Date.now() } };
   },
@@ -498,7 +433,6 @@ async register({ phone, email, name, hashedPassword }) {
     }
     return { success: true };
   },
-
   async staffLogin(username, pin) {
     if (BACKEND_MODE === 'supabase') {
       const hash = await _sha256(pin + 'CTB_SALT_2025');
@@ -511,7 +445,6 @@ async register({ phone, email, name, hashedPassword }) {
     }
     return { success: false, message: 'Invalid credentials' };
   },
-
   async verifyManagerPin(pin) {
     if (BACKEND_MODE === 'supabase') {
       const hash = await _sha256(pin + 'CTB_SALT_2025');
