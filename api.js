@@ -185,31 +185,52 @@ window.API = {
     return { success: false, message: 'ไม่พบบัญชี' };
   },
 
-  async register({ phone, email, name, hashedPassword }) {
-    if (BACKEND_MODE === 'supabase') {
-      try {
-        const authData = await sb.signUp(`${phone}@ceramic.internal`, hashedPassword);
-        _log('Auth response:', authData);
-        if (authData.error) return { success: false, message: authData.error.message || 'สมัครสมาชิกไม่สำเร็จ' };
-
-        const authId = authData?.user?.id || authData?.id || authData?.data?.user?.id;
-        const token  = authData?.access_token || authData?.session?.access_token || 'no_token';
-
-        if (!authId) throw new Error('Supabase ไม่ส่ง User ID — กรุณาปิด "Confirm email" ใน Auth → Providers → Email');
-
-        await sb.insert('members', { auth_id: authId, phone, email, name, points: 50, tier: 'Bronze' });
-
-        const user = { id: authId, authId, name, phone, email, points: 50, tier: 'Bronze', token };
-        localStorage.setItem('ctb_user', JSON.stringify(user));
-        localStorage.setItem('ctb_token', token);
-        return { success: true, user };
-      } catch (err) {
-        _err('[register]', err);
-        return { success: false, message: err.message || 'เกิดข้อผิดพลาดในการสมัคร' };
+async register({ phone, email, name, hashedPassword }) {
+  if (BACKEND_MODE === 'supabase') {
+    try {
+      // ✅ สร้าง pseudo-email จากเบอร์โทร (บังคับมีเบอร์)
+      const pseudoEmail = `${phone}@ceramic.internal`;
+      
+      // ✅ สมัครสมาชิกด้วย pseudo-email
+      const authData = await sb.signUp(pseudoEmail, hashedPassword);
+      
+      if (authData.error) {
+        // จัดการกรณีอีเมลซ้ำ (เบอร์นี้ลงทะเบียนแล้ว)
+        if (authData.error.message?.includes('duplicate')) {
+          return { success: false, message: 'เบอร์โทรนี้ถูกลงทะเบียนแล้ว' };
+        }
+        return { success: false, message: authData.error.message || 'สมัครไม่สำเร็จ' };
       }
+
+      const authId = authData?.user?.id || authData?.data?.user?.id;
+      const token  = authData?.access_token || authData?.session?.access_token;
+
+      if (!authId) throw new Error('ไม่ได้รับ User ID จาก Supabase');
+
+      // ✅ บันทึกข้อมูลลงตาราง members (เก็บทั้งเบอร์และอีเมลจริง)
+      await sb.insert('members', { 
+        auth_id: authId, 
+        phone,           // 🎯 เบอร์โทร (ใช้ค้นหาหน้าร้าน)
+        email: email || null,  // 📧 อีเมลจริง (optional)
+        name, 
+        points: 50, 
+        tier: 'Bronze' 
+      });
+
+      const user = { id: authId, authId, name, phone, email, points: 50, tier: 'Bronze', token };
+      localStorage.setItem('ctb_user', JSON.stringify(user));
+      localStorage.setItem('ctb_token', token);
+      
+      return { success: true, user };
+      
+    } catch (err) {
+      _err('[register]', err);
+      return { success: false, message: err.message || 'เกิดข้อผิดพลาด' };
     }
-    return { success: true, user: { id: 'mock', name, phone, email, points: 50, tier: 'Bronze', token: 'mock' } };
-  },
+  }
+  // Mock mode fallback
+  return { success: true, user: { id: 'mock', name, phone, email, points: 50, tier: 'Bronze' } };
+}
 
   async forgotPassword(email) {
     if (BACKEND_MODE === 'supabase') await sb.resetPassword(email);
