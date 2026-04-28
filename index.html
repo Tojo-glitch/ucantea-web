@@ -1473,7 +1473,14 @@ function toast(msg,type){
   clearTimeout(toastT2);
   toastT2=setTimeout(function(){e.classList.remove('on')},2600);
 }
-function sha256(str){var b=new TextEncoder().encode(str);var h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+// ของเดิม: function sha256(str){ ... }
+async function sha256(str) { // เพิ่ม async ตรงนี้
+  var b = new TextEncoder().encode(str);
+  var h = await crypto.subtle.digest('SHA-256', b);
+  return Array.from(new Uint8Array(h)).map(function(x){
+    return x.toString(16).padStart(2,'0')
+  }).join('');
+}
 
 /* ── THEME ──────────────────────────────────────────── */
 function applyTheme(t){
