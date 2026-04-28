@@ -3403,30 +3403,33 @@ window.addEventListener('online',function(){updOnline();toast('Back online','suc
 window.addEventListener('offline',function(){updOnline();toast('You\'re offline — showing cached menu','warn');});
 updOnline(); // check on load
 
-/* ── 6. THEME-COLOR META sync with dark/light toggle ── */
-var _origApplyTheme=applyTheme;
-applyTheme=function(t){_origApplyTheme(t);
-  var meta=ge('themeColorMeta');
-  if(meta)meta.content=t==='dark'?'#0c0b09':'#f5f2ec';
-};
+/* ── แก้ไข: รวมทุกอย่างไว้ในฟังก์ชันเดียว ── */
 function applyTheme(t) {
+  // 1. ตั้งค่า Attribute และ Save ลง LocalStorage
   document.documentElement.setAttribute('data-theme', t);
-  S.theme = t;
+  if (window.S) window.S.theme = t; // เช็กป้องกัน S เป็น undefined
   localStorage.setItem('ctb_theme', t);
   
-  // --- ส่วนที่เพิ่มเข้าไปเพื่อแก้ปัญหา ---
+  // 2. ซิงค์สี Meta Tag (Theme Color)
   var meta = document.getElementById('themeColorMeta');
   if (meta) {
     meta.setAttribute('content', t === 'dark' ? '#0c0b09' : '#f5f2ec');
   }
-  // ----------------------------------
 
-  var isDark = t === 'dark';
+  // 3. เปลี่ยน Icon
+  var isDark = (t === 'dark');
   var icon = ge('themeIcon');
   if (icon) {
-    icon.innerHTML = isDark ? '...' : '...'; // โค้ด SVG เดิมของคุณ
+    icon.innerHTML = isDark
+      ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.8"/>'
+      : '<circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
   }
+  
+  // 4. อัปเดตข้อความ Label (ถ้ามี)
+  var sl = ge('themeSettingLbl');
+  if (sl) sl.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
 }
+
 /* ══════════════════════════════════════════════════════
    PHASE E — CONSOLIDATION
    Flatten _orig* wrapper chains · apiCall helper · cleanup
