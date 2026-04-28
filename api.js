@@ -143,57 +143,37 @@
   /* ======================================================
      SUPABASE CORE
   ====================================================== */
-  const sb = {
+const sb = {
     async query(table, p = {}) {
       let url = `${SUPABASE_URL}/rest/v1/${table}?`;
-
       if (p.select) url += `select=${encodeURIComponent(p.select)}&`;
-
       if (p.eq) {
         Object.entries(p.eq).forEach(([k, v]) => {
           url += `${k}=eq.${encodeURIComponent(v)}&`;
         });
       }
-
       if (p.order) url += `order=${p.order}&`;
       if (p.limit) url += `limit=${p.limit}&`;
 
-      const res = await request(url, { headers: headers() });
-
+      const res = await request(url, { method: 'GET', headers: headers() });
       if (!res.ok) throw new Error(await res.text());
-
       return await res.json();
     },
 
-   // ใน api (9).js ส่วนของ sb.insert
-async insert(table, data) {
-  console.log('Sending data to:', table, data); // เช็กว่าข้อมูลที่จะส่งหน้าตาเป็นยังไง
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('Supabase Error:', errorText); // ดูว่า Supabase ด่าเราว่าอะไร
-      throw new Error(errorText);
-    }
-    return true;
-  } catch (e) {
-    console.error('Fetch Error:', e);
-    throw e;
-  }
-}
+    async insert(table, data) {
+      log('Inserting to:', table, data);
+      // ใช้ request และ headers() เพื่อให้ได้ Token ที่ถูกต้องเสมอ
+      const res = await request(`${SUPABASE_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: headers({ 'Prefer': 'return=minimal' }),
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return true;
+    },
 
     async update(table, data, eq = {}) {
       let url = `${SUPABASE_URL}/rest/v1/${table}?`;
-
       Object.entries(eq).forEach(([k, v]) => {
         url += `${k}=eq.${encodeURIComponent(v)}&`;
       });
@@ -205,13 +185,14 @@ async insert(table, data) {
       });
 
       if (!res.ok) throw new Error(await res.text());
-
-      return await res.json();
-    }
+      
+      // ป้องกัน Error จากการ parse JSON ว่าง
+      const text = await res.text();
+      return text ? JSON.parse(text) : true;
+    },
 
     async delete(table, eq = {}) {
       let url = `${SUPABASE_URL}/rest/v1/${table}?`;
-
       Object.entries(eq).forEach(([k, v]) => {
         url += `${k}=eq.${encodeURIComponent(v)}&`;
       });
@@ -222,7 +203,6 @@ async insert(table, data) {
       });
 
       if (!res.ok) throw new Error(await res.text());
-
       return true;
     },
 
