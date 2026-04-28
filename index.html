@@ -356,38 +356,6 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
 @keyframes skshimmer{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
 .sk{background:var(--c2);border-radius:6px;display:inline-block}
 .sk-anim{background-size:200px 100%;animation:skshimmer 1.4s infinite linear}
-.sk-anim{
-  background-position: -200px 0;   /* ← จุดสำคัญ */
-}
-
-/* ปรับให้ shimmer นุ่มนวลขึ้น (optional) */
-.sk-anim{
-  animation-duration: 1.8s;
-  animation-timing-function: ease-in-out;
-}
-
-/* สำหรับ slot ที่ยังไม่มีรูป ให้แสดง shimmer แทนพื้นหลังทึบ */
-.slot:not(.loaded) {
-  background-image: linear-gradient(
-    90deg,
-    var(--c2) 0px,
-    var(--c3) 80px,
-    var(--c2) 160px
-  );
-  background-size: 200px 100%;
-  animation: skshimmer 1.8s infinite ease-in-out;
-  background-position: -200px 0;
-}
-
-/* ถ้าเป็นธีม light ให้ใช้ gradient อีกชุด */
-[data-theme="light"] .slot:not(.loaded) {
-  background-image: linear-gradient(
-    90deg,
-    var(--c2) 0px,
-    #f5f0e8 80px,
-    var(--c2) 160px
-  );
-}
 [data-theme="dark"] .sk-anim{background-image:linear-gradient(90deg,var(--c2) 0px,var(--c3) 80px,var(--c2) 160px)}
 [data-theme="light"] .sk-anim{background-image:linear-gradient(90deg,var(--c2) 0px,#f5f0e8 80px,var(--c2) 160px)}
 .sk-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
@@ -1505,9 +1473,8 @@ function toast(msg,type){
   clearTimeout(toastT2);
   toastT2=setTimeout(function(){e.classList.remove('on')},2600);
 }
-async function sha256(str){var b=new TextEncoder().encode(str);var h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+function sha256(str){var b=new TextEncoder().encode(str);var h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
 
-/* ── THEME ──────────────────────────────────────────── */
 /* ── THEME ──────────────────────────────────────────── */
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme',t);
@@ -1517,13 +1484,11 @@ function applyTheme(t){
   var icon=ge('themeIcon');
   if(icon){
     icon.innerHTML=isDark
-      ?'<path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
-      :'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.8"/>';
+      ?'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.8"/>'
+      :'<circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
   }
   var sl=ge('themeSettingLbl');
   if(sl)sl.textContent=isDark?'Switch to Light Mode':'Switch to Dark Mode';
-  var meta=ge('themeColorMeta');
-  if(meta) meta.content = t==='dark' ? '#0c0b09' : '#f5f2ec';
 }
 function toggleTheme(){applyTheme(S.theme==='dark'?'light':'dark')}
 
@@ -1881,99 +1846,92 @@ async function applyPromo(){
 
 /* ── PLACE ORDER (Validation + Force Login) ────────────────────────────────────── */
 async function placeOrder() {
+  // 1. ตรวจสอบตะกร้า
+  if (!S.cart.length) { toast('Your cart is empty', 'warn'); return; }
+
+  // 2. บังคับ Login ก่อนจ่ายเงิน (ตาม PRD)
+  if (!S.user) {
+    toast('กรุณาเข้าสู่ระบบก่อนชำระเงิน','warn');
+    S._pendingCheckout = true;
+    closeCart();
+    openAuth('login');
+    return;
+  }
+
+  // 3. ตรวจสอบข้อมูลที่อยู่ / เวลา
+  var addr = '', phone = '', time = '';
+  if(S.orderType === 'delivery') {
+      addr = ge('cartDelAddr') ? ge('cartDelAddr').value.trim() : '';
+      phone = ge('cartDelPhone') ? ge('cartDelPhone').value.trim() : '';
+      if(!addr || !phone) { toast('กรุณาระบุที่อยู่และเบอร์โทรให้ครบถ้วน', 'warn'); return; }
+  } else if (S.orderType === 'preorder') {
+      time = ge('cartPreTime') ? ge('cartPreTime').value : '';
+      if(!time) { toast('กรุณาระบุเวลารับของ', 'warn'); return; }
+      // ดักเวลาในอดีต
+      if(new Date(time) < new Date()) { toast('ไม่สามารถเลือกเวลาในอดีตได้', 'warn'); return; }
+  }
+
+  // 4. ตรวจสอบสลิป (NO COD)
+  if (!S.slipFile) { toast('กรุณาแนบสลิปโอนเงิน','warn'); return; }
+  
   var btn = ge('placeBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading Slip...'; }
+  
+  var total = calcTotal();
 
-  /* ── Layer C: Thai validation (Phase C) ── */
-  if(!S.cart||!S.cart.length){toast(TH.cart_empty,'warn');return;}
-  if(S.orderType==='delivery'){
-    var da=ge('cartDelAddr'),dp=ge('cartDelPhone');
-    if(da&&!da.value.trim()){toast(TH.delivery_addr,'warn');return;}
-    if(dp&&!dp.value.trim()){toast(TH.delivery_phone,'warn');return;}
-  }
-  var slipPrevEl=ge('slipPrev');
-  if(!slipPrevEl||!slipPrevEl.src||slipPrevEl.src===location.href||slipPrevEl.src===window.location.href){
-    toast(TH.slip_required,'warn');return;
-  }
+  try {
+    // uploadSlip may be window-level or API method
+    var uploader = (window.API&&API.uploadSlip) ? API.uploadSlip.bind(API) : (window.uploadSlip||null);
+    if(!uploader) throw new Error('Upload not configured — check api.js');
+    let slipUrl = await uploader(S.slipFile);
+    if (!slipUrl) throw new Error('Slip upload failed — check Supabase Storage bucket');
 
-  /* ── Layer 4: Guest checkout (Phase 4) ── */
-  var isGuest=false;
-  if(!S.user){
-    var gname=(ge('guestName')?ge('guestName').value.trim():'');
-    var gphone=(ge('guestPhone')?ge('guestPhone').value.trim():'');
-    if(!gname||!gphone){toast('กรุณากรอกชื่อและเบอร์โทรก่อนสั่ง','warn');return;}
-    S.user={id:'guest_'+Date.now(),name:gname,phone:gphone,isGuest:true};
-    isGuest=true;
-  }
+    if (btn) btn.textContent = 'Processing Order...';
 
-  /* ── Layer 1: Original validation ── */
-  if(!S.slipFile){toast('กรุณาแนบสลิปโอนเงิน','warn');if(isGuest)S.user=null;return;}
-
-  // Delivery / preorder extra checks
-  var addr='',phone='',time='';
-  if(S.orderType==='delivery'){
-    addr=ge('cartDelAddr')?ge('cartDelAddr').value.trim():'';
-    phone=ge('cartDelPhone')?ge('cartDelPhone').value.trim():'';
-  } else if(S.orderType==='preorder'){
-    time=ge('cartPreTime')?ge('cartPreTime').value:'';
-    if(!time){toast('กรุณาระบุเวลารับของ','warn');if(isGuest)S.user=null;return;}
-    if(new Date(time)<new Date()){toast('ไม่สามารถเลือกเวลาในอดีตได้','warn');if(isGuest)S.user=null;return;}
-  }
-
-  if(btn){btn.disabled=true;btn.textContent='Uploading Slip...';}
-  var total=calcTotal();
-
-  try{
-    var uploader=(window.API&&API.uploadSlip)?API.uploadSlip.bind(API):(window.uploadSlip||null);
-    if(!uploader)throw new Error('Upload not configured — check api.js');
-    var slipUrl=await uploader(S.slipFile);
-    if(!slipUrl)throw new Error('Slip upload failed — check Supabase Storage bucket');
-
-    if(btn)btn.textContent='Processing Order...';
-
-    var res=await API.createOrder({
-      items:S.cart,total:total,branch:S.branch,type:S.orderType,
-      userId:S.user.id,
-      promoCode:S.disc>0?(ge('promoInp')?ge('promoInp').value:null):null,
-      disc:S.disc,slipUrl:slipUrl,status:'PENDING',
-      delivery_address:addr,delivery_phone:phone,pickup_time:time
+    const res = await API.createOrder({
+      items: S.cart,
+      total: total,
+      branch: S.branch,
+      type: S.orderType,
+      userId: S.user.id,
+      promoCode: S.disc > 0 ? (ge('promoInp')?.value || null) : null,
+      disc: S.disc,
+      slipUrl: slipUrl, 
+      status: 'PENDING',
+      delivery_address: addr,
+      delivery_phone: phone,
+      pickup_time: time
     });
 
-    if(btn){btn.disabled=false;btn.textContent='Confirm & Pay';}
+    if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Pay'; }
     closeCart();
-
-    var orderId=res.id||'CTB-'+Date.now().toString(36).toUpperCase();
-    S.order={id:orderId,status:'pending',items:S.cart.slice(),total:total,branch:S.branch.name,queueNum:res.queue_number||null};
-    try{localStorage.setItem('ctb_order',JSON.stringify(S.order));}catch(e){}
-
-    S.cart=[];S.disc=0;S.slipFile=null;saveCart();
-    var slipPrev=ge('slipPrev'),slipChg=ge('slipChg'),slipLbl=ge('slipLbl');
-    if(slipPrev)slipPrev.classList.remove('on');
-    if(slipChg)slipChg.classList.remove('on');
-    if(slipLbl)slipLbl.textContent='Upload payment slip';
-    if(ge('cartDelAddr'))ge('cartDelAddr').value='';
-    if(ge('cartDelPhone'))ge('cartDelPhone').value='';
-    if(ge('cartPreTime'))ge('cartPreTime').value='';
+    
+    var orderId = res.id || 'CTB-' + Date.now().toString(36).toUpperCase();
+    S.order = { id: orderId, status: 'pending', items: S.cart.slice(), total: total, branch: S.branch.name, queueNum: res.queue_number||null };
+    // Persist active order
+    try{localStorage.setItem('ctb_order',JSON.stringify(S.order))}catch(e){}
+    
+    // เคลียร์ตะกร้าและลบออกจาก LocalStorage
+    S.cart = []; S.disc = 0; S.slipFile = null; saveCart();
+    
+    ge('slipPrev').classList.remove('on');
+    ge('slipChg').classList.remove('on');
+    ge('slipLbl').textContent = 'Upload payment slip';
+    if(ge('cartDelAddr')) ge('cartDelAddr').value = '';
+    if(ge('cartDelPhone')) ge('cartDelPhone').value = '';
+    if(ge('cartPreTime')) ge('cartPreTime').value = '';
+    
     updCartBar();
     startPoll();
-    toast('Order Placed Successfully!','success');
-    nav('pg-track','nt-track');
+    
+    // พาไปหน้า Track Order อัตโนมัติ แทนการโชว์ใบเสร็จหลอก
+    toast('Order Placed Successfully!', 'success');
+    nav('pg-track', 'nt-track');
 
-    /* ── Layer 4 post-success: deduct redeemed points ── */
-    if(_ptsRedeemed&&!isGuest){
-      var used=S.disc*10;
-      PTS=Math.max(0,PTS-used);
-      if(S.user){S.user.points=PTS;try{localStorage.setItem('ctb_user',JSON.stringify(S.user));}catch(e){}}
-      _ptsRedeemed=false;
-      renderLoyalty();
-    }
-
-  }catch(err){
-    if(btn){btn.disabled=false;btn.textContent='Confirm & Pay';}
-    toast(TH.order_failed,'error');
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Pay'; }
+    toast('Order failed. Please try again.', 'error');
     if(window.isDev)console.error(err);
-  }finally{
-    /* ── Layer 4 cleanup: clear guest temp user ── */
-    if(isGuest)S.user=null;
   }
 }
 
@@ -2109,138 +2067,50 @@ function switchAuthTab(tab){
   document.querySelectorAll('.atab').forEach(function(t,i){t.classList.toggle('on',(isLogin&&i===0)||(!isLogin&&i===1))});
 }
 
-async function doLogin() {
-  var phone = (ge('loginPhone').value || '').trim();
-  var pass = ge('loginPass').value || '';
-  var msg = ge('loginMsg'), btn = ge('loginBtn');
-  msg.textContent = ''; msg.className = 'auth-msg';
-
-  // ตรวจสอบความถูกต้องของข้อมูลก่อนส่ง API
-  if (!/^[0-9]{9,10}$/.test(phone)) {
-    msg.textContent = 'Enter a valid phone number';
-    msg.className = 'auth-msg err';
-    return;
-  }
-  if (!pass) {
-    msg.textContent = 'Enter your password';
-    msg.className = 'auth-msg err';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Signing in...';
-
-  // ส่งรหัสผ่านดิบ (plain) — Supabase Auth จะจัดการแฮชเอง
-  API.login({ phone, password: pass })
-    .then(function(res) {
-      btn.disabled = false;
-      btn.textContent = 'Sign In';
-      if (!res.success) {
-        msg.textContent = res.message || 'Incorrect phone or password';
-        msg.className = 'auth-msg err';
-        return;
-      }
-      S.user = res.user;
-      PTS = S.user.points || 0;
-      try { localStorage.setItem('ctb_user', JSON.stringify(res.user)); } catch(e) {}
-      closeAuthSheet();
-      renderProfile();
-      toast('Welcome back, ' + S.user.name + '!', 'success');
-      if (S._pendingCheckout) {
-        S._pendingCheckout = false;
-        setTimeout(openCart, 350);
-      }
-    })
-    .catch(function() {
-      btn.disabled = false;
-      btn.textContent = 'Sign In';
-      msg.textContent = 'Connection error';
-      msg.className = 'auth-msg err';
-    });
+async function doLogin(){
+  var phone=(ge('loginPhone').value||'').trim();
+  var pass=ge('loginPass').value||'';
+  var msg=ge('loginMsg'),btn=ge('loginBtn');
+  msg.textContent='';msg.className='auth-msg';
+  if(!/^[0-9]{9,10}$/.test(phone)){msg.textContent='Enter a valid phone number';msg.className='auth-msg err';return}
+  if(!pass){msg.textContent='Enter your password';msg.className='auth-msg err';return}
+  btn.disabled=true;btn.textContent='Signing in...';
+  var hashed=await sha256(pass+'CTB_SALT_2025');
+  API.login({phone,hashedPassword:hashed}).then(function(res){
+    btn.disabled=false;btn.textContent='Sign In';
+    if(!res.success){msg.textContent=res.message||'Incorrect phone or password';msg.className='auth-msg err';return}
+    S.user=res.user;PTS=S.user.points||0;
+    // Persist session
+    try{localStorage.setItem('ctb_user',JSON.stringify(res.user))}catch(e){}
+    closeAuthSheet();
+    renderProfile();
+    toast('Welcome back, '+S.user.name+'!','success');
+    // Re-open cart if user was trying to checkout
+    if(S._pendingCheckout){S._pendingCheckout=false;setTimeout(openCart,350);}
+  }).catch(function(){btn.disabled=false;btn.textContent='Sign In';msg.textContent='Connection error';msg.className='auth-msg err'});
 }
 
-// ลบฟังก์ชัน doRegister อันเก่าทิ้งทั้งหมด แล้ววางอันนี้ลงไปแทนครับ
-async function doRegister() {
-  var phone = (ge('regPhone').value || '').trim();
-  var email = (ge('regEmail').value || '').trim().toLowerCase();
-  var name  = (ge('regName').value || '').trim();
-  var pass  = ge('regPass').value || '';
-  var msg   = ge('regMsg'), btn = ge('regBtn');
-  
-  msg.textContent = ''; msg.className = 'auth-msg';
-
-  if (!/^[0-9]{9,10}$/.test(phone)) {
-    msg.textContent = 'กรุณากรอกเบอร์โทรให้ถูกต้อง';
-    msg.className = 'auth-msg err';
-    return;
-  }
-  if (!email || !email.includes('@')) {
-    msg.textContent = 'กรุณากรอกอีเมลให้ถูกต้อง';
-    msg.className = 'auth-msg err';
-    return;
-  }
-  if (!name || name.length < 2) {
-    msg.textContent = 'กรุณากรอกชื่อ';
-    msg.className = 'auth-msg err';
-    return;
-  }
-  if (pass.length < 6) {
-    msg.textContent = 'รหัสผ่านต้องอย่างน้อย 6 ตัวอักษร';
-    msg.className = 'auth-msg err';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = '⏳ กำลังสมัคร...';
-
-  try {
-    const hashedPwd = await API.hash(pass + 'CTB_SALT_2025');
-    const res = await API.register({ phone, email, name, hashedPassword: hashedPwd });
-
-    if (res.success) {
-      msg.textContent = 'สมัครสมาชิกสำเร็จ! กำลังเข้าสู่ระบบ...';
-      msg.className = 'auth-msg ok';
-      window.location.reload();
-    } else {
-      msg.textContent = res.message || 'สมัครไม่สำเร็จ';
-      msg.className = 'auth-msg err';
-    }
-  } catch (e) {
-    msg.textContent = 'เกิดข้อผิดพลาด: ' + e.message;
-    msg.className = 'auth-msg err';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Create Account';
-  }
-}
-
-  // ส่งรหัสผ่านดิบ — Supabase Auth จะแฮชให้
-  API.register({ phone, email, name, password: pass })
-    .then(function(res) {
-      btn.disabled = false;
-      btn.textContent = 'Create Account';
-      if (!res.success) {
-        msg.textContent = res.message || 'Registration failed';
-        msg.className = 'auth-msg err';
-        return;
-      }
-      S.user = res.user;
-      PTS = 50;
-      try { localStorage.setItem('ctb_user', JSON.stringify(res.user)); } catch(e) {}
-      closeAuthSheet();
-      renderProfile();
-      toast('Welcome to Ceramic, ' + res.user.name + '!', 'success');
-      if (S._pendingCheckout) {
-        S._pendingCheckout = false;
-        setTimeout(openCart, 350);
-      }
-    })
-    .catch(function() {
-      btn.disabled = false;
-      btn.textContent = 'Create Account';
-      msg.textContent = 'Connection error';
-      msg.className = 'auth-msg err';
-    });
+async function doRegister(){
+  var phone=(ge('regPhone').value||'').trim();
+  var email=(ge('regEmail').value||'').trim().toLowerCase();
+  var name=(ge('regName').value||'').trim();
+  var pass=ge('regPass').value||'';
+  var msg=ge('regMsg'),btn=ge('regBtn');
+  msg.textContent='';msg.className='auth-msg';
+  if(!/^[0-9]{9,10}$/.test(phone)){msg.textContent='Enter a valid phone number (9–10 digits)';msg.className='auth-msg err';return}
+  if(!email||!email.includes('@')){msg.textContent='Enter a valid email address';msg.className='auth-msg err';return}
+  if(!name||name.length<2){msg.textContent='Enter your display name';msg.className='auth-msg err';return}
+  if(pass.length<6){msg.textContent='Password must be at least 6 characters';msg.className='auth-msg err';return}
+  btn.disabled=true;btn.textContent='Creating account...';
+  var hashed=await sha256(pass+'CTB_SALT_2025');
+  API.register({phone,email,name,hashedPassword:hashed}).then(function(res){
+    btn.disabled=false;btn.textContent='Create Account';
+    if(!res.success){msg.textContent=res.message||'Registration failed';msg.className='auth-msg err';return}
+    S.user=res.user;PTS=50;
+    try{localStorage.setItem('ctb_user',JSON.stringify(res.user))}catch(e){}
+    closeAuthSheet();renderProfile();toast('Welcome to Ceramic, '+res.user.name+'!','success');
+    if(S._pendingCheckout){S._pendingCheckout=false;setTimeout(openCart,350);}
+  }).catch(function(){btn.disabled=false;btn.textContent='Create Account';msg.textContent='Connection error';msg.className='auth-msg err'});
 }
 
 function doForgot(){
@@ -2873,6 +2743,29 @@ openCS=function(id){
 };
 
 /* ── PATCH placeOrder: allow guest + deduct pts on success ── */
+var _origPlaceOrder=placeOrder;
+placeOrder=async function(){
+  // Guest: collect name + phone if not logged in
+  if(!S.user){
+    var gname=(ge('guestName')?ge('guestName').value.trim():'');
+    var gphone=(ge('guestPhone')?ge('guestPhone').value.trim():'');
+    if(!gname||!gphone){toast('กรุณากรอกชื่อและเบอร์โทรก่อนสั่ง','warn');return;}
+    // Create a temp guest user object so placeOrder can proceed
+    S.user={id:'guest_'+Date.now(),name:gname,phone:gphone,isGuest:true};
+  }
+  await _origPlaceOrder();
+  // On success: deduct redeemed points
+  if(_ptsRedeemed&&!S.user.isGuest){
+    var used=S.disc*10;
+    PTS=Math.max(0,PTS-used);
+    if(S.user){S.user.points=PTS;try{localStorage.setItem('ctb_user',JSON.stringify(S.user))}catch(e){}}
+    _ptsRedeemed=false;
+    renderLoyalty();
+  }
+  // Clear guest temp user
+  if(S.user&&S.user.isGuest)S.user=null;
+};
+
 /* ── PATCH renderProfile to show referral block ── */
 var _origRenderProfile=renderProfile;
 renderProfile=function(){
@@ -3094,6 +2987,9 @@ window.addEventListener('unhandledrejection',function(e){
   if(window.isDev)console.error('[UnhandledRejection]',msg);
 });
 
+
+   ══════════════════════════════════════════════════════ */
+
 /* ── 1. FOCUS TRAP for bottom sheets ────────────────── */
 var FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
@@ -3156,6 +3052,21 @@ var TH={
   order_failed:'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
   birthday_format:'รูปแบบวันเกิดต้องเป็น DD/MM (เช่น 25/12)',
   cancel_failed:'ไม่สามารถยกเลิกออเดอร์ได้ กรุณาลองใหม่'
+};
+
+var _origPlaceOrder_C=placeOrder;
+placeOrder=async function(){
+  if(!S.cart||!S.cart.length){toast(TH.cart_empty,'warn');return;}
+  if(S.orderType==='delivery'){
+    var da=ge('cartDelAddr'),dp=ge('cartDelPhone');
+    if(da&&!da.value.trim()){toast(TH.delivery_addr,'warn');return;}
+    if(dp&&!dp.value.trim()){toast(TH.delivery_phone,'warn');return;}
+  }
+  var slipPrev=ge('slipPrev');
+  if(!slipPrev||!slipPrev.src||slipPrev.src===location.href||slipPrev.src===window.location.href){
+    toast(TH.slip_required,'warn');return;
+  }
+  await _origPlaceOrder_C();
 };
 
 /* ── 3. OS THEME LIVE LISTENER ───────────────────────── */
@@ -3418,64 +3329,30 @@ renderTrack=function(){
 })();
 
 /* ── 3. LAZY IMAGE OBSERVER ────────────────────────── */
-var _lazyObs = null;
-
-function observeLazy() {
-  var imgs = document.querySelectorAll('img[data-src]:not([data-src=""])');
-  if (!imgs.length) return;
-
-  if ('IntersectionObserver' in window) {
-    if (!_lazyObs) {
-      _lazyObs = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            var img = entry.target;
-
-            // กำหนด src เพื่อเริ่มโหลด
-            img.src = img.dataset.src;
-
-            // เมื่อโหลดสำเร็จ
-            img.onload = function() {
-              img.classList.add('loaded');
-              // หา .slot ที่เป็น parent (ถ้ามี) เพื่อหยุด shimmer
-              var slot = img.closest('.slot');
-              if (slot) slot.classList.add('loaded');
-            };
-
-            // เมื่อโหลดไม่สำเร็จ
-            img.onerror = function() {
-              img.style.display = 'none';
-              // หยุด shimmer (หรือจะให้แสดง placeholder ต่อไปก็ได้)
-              var slot = img.closest('.slot');
-              if (slot) slot.classList.add('loaded');
-            };
-
-            // เลิก observe รูปนี้
+var _lazyObs=null;
+function observeLazy(){
+  var imgs=document.querySelectorAll('img[data-src]:not([data-src=""])');
+  if(!imgs.length)return;
+  if('IntersectionObserver' in window){
+    if(!_lazyObs){
+      _lazyObs=new IntersectionObserver(function(entries){
+        entries.forEach(function(en){
+          if(en.isIntersecting){
+            var img=en.target;
+            img.src=img.dataset.src;
+            img.onload=function(){img.classList.add('loaded');};
+            img.onerror=function(){img.style.display='none';};
             _lazyObs.unobserve(img);
           }
         });
-      }, { rootMargin: '120px 0px', threshold: 0 });
+      },{rootMargin:'120px 0px',threshold:0});
     }
-
-    // เริ่ม observe ทุกรูปที่พบ
-    imgs.forEach(function(img) {
-      _lazyObs.observe(img);
-    });
-
+    imgs.forEach(function(img){_lazyObs.observe(img);});
   } else {
-    // Fallback สำหรับ browser ที่ไม่รองรับ IntersectionObserver
-    imgs.forEach(function(img) {
-      img.src = img.dataset.src;
-      img.onload = function() {
-        img.classList.add('loaded');
-        var slot = img.closest('.slot');
-        if (slot) slot.classList.add('loaded');
-      };
-      img.onerror = function() {
-        img.style.display = 'none';
-        var slot = img.closest('.slot');
-        if (slot) slot.classList.add('loaded');
-      };
+    // Fallback: load all immediately
+    imgs.forEach(function(img){
+      img.src=img.dataset.src;
+      img.onload=function(){img.classList.add('loaded');};
     });
   }
 }
@@ -3520,6 +3397,13 @@ window.addEventListener('online',function(){updOnline();toast('Back online','suc
 window.addEventListener('offline',function(){updOnline();toast('You\'re offline — showing cached menu','warn');});
 updOnline(); // check on load
 
+/* ── 6. THEME-COLOR META sync with dark/light toggle ── */
+var _origApplyTheme=applyTheme;
+applyTheme=function(t){
+  _origApplyTheme(t);
+  var meta=ge('themeColorMeta');
+  if(meta)meta.content=t==='dark'?'#0c0b09':'#f5f2ec';
+};
 
 /* ══════════════════════════════════════════════════════
    PHASE E — CONSOLIDATION
@@ -3644,6 +3528,18 @@ renderProfile=withErrorBoundary(function(){
   checkBirthday(S.user);
 },'profileMember','renderProfile');
 
+/* ── 10. NULLIFY _orig* VARIABLES ────────────────────── */
+// Free memory + prevent accidental use of stale references
+var _origChain=['_origOpenCS','_origOpenCS_D','_origOpenCS_C',
+  '_origCloseCS_C','_origOpenCart','_origOpenCart_D','_origOpenCart_C',
+  '_origCloseCart_C','_origOpenBr','_origOpenBr_C','_origCloseBr','_origCloseBr_C',
+  '_origOpenAuth_C','_origCloseAuth_C','_origAddToCart',
+  '_origRenderProfile','_origRenderProfileB','_origSaveEditField',
+  '_origRenderTrack','_origNav','_origNav_D','_origNav_C','_origNav_C',
+  '_origConfirmBr','_origRenderMenu','_origOnOrderStatus',
+  '_origPlaceOrder_C','_origInitSrch','_origApplyTheme'];
+_origChain.forEach(function(k){try{window[k]=null;}catch(e){}});
+
 init();
 // Phase 5 boot
 loadBanners();
@@ -3671,149 +3567,6 @@ window.addEventListener('storage', function(e) {
     }
   }
 });
-</script>
-
-<script>
-// แฮชรหัสผ่านด้วย SHA-256 (ใช้เว็บคริปโตมาตรฐาน)
-async function sha256(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// จัดการฟอร์มสมัครสมาชิก
-document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const phone = document.getElementById('regPhone').value.replace(/\D/g, '');
-  const email = document.getElementById('regEmail').value.trim() || null;
-  const name  = document.getElementById('regName').value.trim();
-  const pwd   = document.getElementById('regPassword').value;
-
-  if (phone.length < 9) return alert('กรุณากรอกเบอร์โทรให้ถูกต้อง');
-  if (pwd.length < 6) return alert('รหัสผ่านต้องอย่างน้อย 6 ตัวอักษร');
-
-  const hashedPwd = await sha256(pwd + 'CTB_SALT_2025'); // ใช้ salt เดียวกับ api.js
-  const res = await window.API.register({ phone, email, name, hashedPassword: hashedPwd });
-  
-  if (res.success) alert('🎉 สมัครสำเร็จ! ได้รับ 50 แต้มต้อนรับ');
-  else alert(res.message || 'สมัครไม่สำเร็จ');
-});
-
-// จัดการฟอร์มล็อกอิน
-document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const phone = document.getElementById('loginPhone').value.replace(/\D/g, '');
-  const pwd   = document.getElementById('loginPassword').value;
-
-  const hashedPwd = await sha256(pwd + 'CTB_SALT_2025');
-  const res = await window.API.login({ phone, hashedPassword: hashedPwd });
-  
-  if (res.success) {
-    alert('👋 ยินดีต้อนรับ, ' + res.user.name);
-    // location.href = '/profile.html'; // หรือโหลดหน้าหลักใหม่
-  } else {
-    alert(res.message || 'เข้าสู่ระบบไม่สำเร็จ');
-  }
-});
-</script>
-
-<script>
-(function() {
-  // ฟังก์ชันค้นหาและผูกเหตุการณ์ให้ฟอร์ม
-  function hookAuthForms() {
-    const allForms = document.querySelectorAll('form');
-    
-    allForms.forEach(form => {
-      if (form.dataset.authHooked) return; // ป้องกันผูกซ้ำ
-      
-      const inputs = Array.from(form.querySelectorAll('input'));
-      const placeholders = inputs.map(i => i.placeholder?.toLowerCase() || '');
-      
-      const hasPhone = placeholders.some(p => p.includes('phone number') || p.includes('เบอร์โทร'));
-      const hasPwd   = placeholders.some(p => p.includes('password'));
-      const hasEmail = placeholders.some(p => p.includes('email address'));
-      const hasName  = placeholders.some(p => p.includes('call you') || p.includes('what should'));
-      const btn      = form.querySelector('button');
-      const btnText  = btn ? btn.textContent.toLowerCase() : '';
-
-      // 🔹 ฟอร์มสมัครสมาชิก (Register)
-      if (hasPhone && hasEmail && hasName && hasPwd && btnText.includes('create')) {
-        form.dataset.authHooked = 'register';
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault(); e.stopImmediatePropagation();
-          
-          const phone = inputs.find(i => i.placeholder.toLowerCase().includes('phone number')).value.replace(/\D/g, '');
-          const email = inputs.find(i => i.placeholder.toLowerCase().includes('email address')).value.trim() || null;
-          const name  = inputs.find(i => i.placeholder.toLowerCase().includes('call you')).value.trim();
-          const pwd   = inputs.find(i => i.placeholder.toLowerCase().includes('password')).value;
-
-          if (phone.length < 9) return alert('กรุณากรอกเบอร์โทรให้ถูกต้อง (อย่างน้อย 9 หลัก)');
-          if (pwd.length < 6)   return alert('รหัสผ่านต้องอย่างน้อย 6 ตัวอักษร');
-          if (!name)            return alert('กรุณากรอกชื่อ');
-
-          btn.disabled = true; btn.textContent = '⏳ กำลังสมัคร...';
-          try {
-            // แฮชรหัสผ่านให้ตรงกับระบบของคุณ
-            const hashedBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd + 'CTB_SALT_2025'));
-            const hashedPwd = Array.from(new Uint8Array(hashedBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
-            
-            const res = await window.API.register({ phone, email, name, hashedPassword: hashedPwd });
-            if (res.success) {
-              alert('🎉 สมัครสำเร็จ! ได้รับ 50 แต้มต้อนรับ');
-              window.location.reload();
-            } else {
-              alert(res.message || 'สมัครไม่สำเร็จ');
-            }
-          } catch (err) {
-            alert('เกิดข้อผิดพลาด: ' + err.message);
-          } finally {
-            btn.disabled = false; btn.textContent = 'Create Account';
-          }
-        });
-      }
-
-      // 🔹 ฟอร์มเข้าสู่ระบบ (Login)
-      if (hasPhone && hasPwd && !hasEmail && !hasName && btnText.includes('sign in')) {
-        form.dataset.authHooked = 'login';
-        form.addEventListener('submit', async (e) => {
-          e.preventDefault(); e.stopImmediatePropagation();
-          
-          const phone = inputs.find(i => i.placeholder.toLowerCase().includes('phone number')).value.replace(/\D/g, '');
-          const pwd   = inputs.find(i => i.placeholder.toLowerCase().includes('password')).value;
-
-          if (phone.length < 9) return alert('กรุณากรอกเบอร์โทร');
-          
-          btn.disabled = true; btn.textContent = '⏳ กำลังเข้าระบบ...';
-          try {
-            const hashedBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd + 'CTB_SALT_2025'));
-            const hashedPwd = Array.from(new Uint8Array(hashedBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
-            
-            const res = await window.API.login({ phone, hashedPassword: hashedPwd });
-            if (res.success) {
-              alert('👋 ยินดีต้อนรับ, ' + res.user.name);
-              window.location.reload();
-            } else {
-              alert(res.message || 'เข้าสู่ระบบไม่สำเร็จ');
-            }
-          } catch (err) {
-            alert('เกิดข้อผิดพลาด: ' + err.message);
-          } finally {
-            btn.disabled = false; btn.textContent = 'Sign In';
-          }
-        });
-      }
-    });
-  }
-
-  // รันทันทีถ้า DOM โหลดแล้ว หรือรอ event DOMContentLoaded
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', hookAuthForms);
-  } else {
-    hookAuthForms();
-  }
-  
-  // 🔄 Fallback สำหรับ SPA ที่อาจสร้างฟอร์มช้า: เช็คซ้ำทุก 2 วินาที
-  setInterval(hookAuthForms, 2000);
-})();
 </script>
 
 </body>
