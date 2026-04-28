@@ -1,8 +1,10 @@
 /**
-CERAMIC — API ADAPTER (api.js) [FIXED]
-══════════════════════════════════════════════
-All syntax errors fixed
-*/
+ * CERAMIC — API ADAPTER (api.js)
+ * ══════════════════════════════════════════════
+ * Full version incl. Admin + Staff functions
+ * Fixed: plain password, createOrder params, etc.
+ */
+
 const BACKEND_MODE  = 'supabase';
 const SUPABASE_URL  = window.ENV?.URL || '';
 const SUPABASE_ANON = window.ENV?.KEY || '';
@@ -13,7 +15,6 @@ window.API.SSE_BASE = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : null;
 const _isDev = window.isDev || location.hostname === 'localhost' || location.search.includes('debug=1');
 const TIMEOUT = 12000;
 
-/* ── HELPERS ─────────────────────────────────────── */
 function _log(...a)  { if (_isDev) console.log(...a); }
 function _warn(...a) { if (_isDev) console.warn(...a); }
 function _err(...a)  { if (_isDev) console.error(...a); }
@@ -24,33 +25,28 @@ async function _fetch(url, opts = {}) {
   try {
     return await fetch(url, { ...opts, signal: ctrl.signal });
   } catch (e) {
-    if (e.name === 'AbortError') throw new Error('Request timed out');
+    if (e.name === 'AbortError') throw new Error('Request timed out — กรุณาตรวจสอบการเชื่อมต่อ');
     throw e;
   } finally {
     clearTimeout(timer);
   }
 }
 
-async function _sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-/* ── SUPABASE CLIENT ─────────────────────────────── */
 const sb = {
   getHeaders() {
     const tok = localStorage.getItem('ctb_admin_token') || localStorage.getItem('ctb_token') || SUPABASE_ANON;
     return {
-      'apikey': SUPABASE_ANON,
+      'apikey':        SUPABASE_ANON,
       'Authorization': `Bearer ${tok}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation',
+      'Content-Type':  'application/json',
+      'Prefer':        'return=representation',
     };
   },
+
   async query(table, p = {}) {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
     if (p.select) url += `select=${encodeURIComponent(p.select)}&`;
-    if (p.eq) Object.entries(p.eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
+    if (p.eq)  Object.entries(p.eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
     if (p.neq) Object.entries(p.neq).forEach(([k,v]) => url += `${k}=neq.${encodeURIComponent(v)}&`);
     if (p.order) url += `order=${p.order}&`;
     if (p.limit) url += `limit=${p.limit}&`;
@@ -58,6 +54,7 @@ const sb = {
     if (!res.ok) { const t = await res.text(); throw new Error(`[${table}] ${t}`); }
     return res.json();
   },
+
   async insert(table, data) {
     const res = await _fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method: 'POST', headers: sb.getHeaders(), body: JSON.stringify(data),
@@ -65,6 +62,7 @@ const sb = {
     if (!res.ok) { const t = await res.text(); throw new Error(`[insert ${table}] ${t}`); }
     return res.json();
   },
+
   async update(table, data, eq) {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
     Object.entries(eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
@@ -72,6 +70,7 @@ const sb = {
     if (!res.ok) { const t = await res.text(); throw new Error(`[update ${table}] ${t}`); }
     return res.json();
   },
+
   async delete(table, eq) {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
     Object.entries(eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
@@ -79,52 +78,63 @@ const sb = {
     if (!res.ok) { const t = await res.text(); throw new Error(`[delete ${table}] ${t}`); }
     return true;
   },
+
   async signIn(email, password) {
     const res = await _fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST', headers: sb.getHeaders(), body: JSON.stringify({ email, password }),
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
     });
     const data = await res.json();
     if (!res.ok) return { error: data };
     return data;
   },
+
   async signUp(email, password) {
     const res = await _fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-      method: 'POST', headers: sb.getHeaders(), body: JSON.stringify({ email, password }),
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
     });
     const data = await res.json();
-    if (!res.ok) { _err('SignUp failed:', data); return { error: data }; }
+    if (!res.ok) return { error: data };
     return data;
   },
+
   async signOut(token) {
     await _fetch(`${SUPABASE_URL}/auth/v1/logout`, {
-      method: 'POST', headers: { ...sb.getHeaders(), 'Authorization': `Bearer ${token}` },
+      method: 'POST', headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${token}` }
     }).catch(() => {});
   },
+
   async resetPassword(email) {
     const res = await _fetch(`${SUPABASE_URL}/auth/v1/recover`, {
-      method: 'POST', headers: sb.getHeaders(), body: JSON.stringify({ email }),
+      method: 'POST', headers: { 'apikey': SUPABASE_ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
     });
     return res.json();
   },
 };
 
 /* ══════════════════════════════════════════════════════
-window.API — public interface
+   window.API — PUBLIC INTERFACE (Full)
 ══════════════════════════════════════════════════════ */
 window.API = {
+
   SSE_BASE: SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : null,
 
+  /* ── STORAGE ──────────────────────────────────── */
   async uploadSlip(file) {
     if (!file) return null;
-    const ext = file.name.split('.').pop() || 'jpg';
+    const ext      = file.name.split('.').pop() || 'jpg';
     const fileName = `${Date.now()}_slip.${ext}`;
-    const tok = localStorage.getItem('ctb_token') || SUPABASE_ANON;
+    const tok      = localStorage.getItem('ctb_token') || SUPABASE_ANON;
     const res = await _fetch(`${SUPABASE_URL}/storage/v1/object/slips/${fileName}`, {
       method: 'POST',
       headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${tok}`, 'Content-Type': file.type || 'image/jpeg' },
       body: file,
     });
-    if (!res.ok) throw new Error('อัปโหลดสลิปไม่สำเร็จ');
+    if (!res.ok) throw new Error('อัปโหลดสลิปไม่สำเร็จ — กรุณาลองใหม่');
     return `${SUPABASE_URL}/storage/v1/object/public/slips/${fileName}`;
   },
 
@@ -141,20 +151,16 @@ window.API = {
   },
 
   /* ── AUTH — CUSTOMER ──────────────────────────── */
-async login({ phone, password }) {   // ← เปลี่ยนจาก hashedPassword เป็น password
+  async login({ phone, password }) {
     if (BACKEND_MODE === 'supabase') {
       try {
         const cleanPhone = phone.replace(/\D/g, '');
         const pseudoEmail = `${cleanPhone}@ceramic.internal`;
-        
-        const data = await sb.signIn(pseudoEmail, password);   // ส่ง plain password
-        
+        const data = await sb.signIn(pseudoEmail, password);
         if (data.error) return { success: false, message: 'เบอร์หรือรหัสผ่านไม่ถูกต้อง' };
-        
         const members = await sb.query('members', { eq: { auth_id: data.user.id }, select: '*' });
-        const member = members[0];
+        const member  = members[0];
         if (!member) return { success: false, message: 'ไม่พบบัญชีผู้ใช้' };
-        
         const user = {
           id: member.id, authId: data.user.id,
           name: member.name, phone: member.phone, email: member.email,
@@ -164,47 +170,27 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
         localStorage.setItem('ctb_user', JSON.stringify(user));
         localStorage.setItem('ctb_token', data.access_token);
         return { success: true, user };
-      } catch (err) {
-        _err('[login]', err);
-        return { success: false, message: err.message };
-      }
+      } catch (err) { _err('[login]', err); return { success: false, message: err.message }; }
     }
     return { success: false, message: 'ไม่พบบัญชี' };
-}
+  },
 
- async register({ phone, email, name, password }) {   // ← เปลี่ยนชื่อพารามิเตอร์
+  async register({ phone, email, name, password }) {
     if (BACKEND_MODE === 'supabase') {
       try {
         const cleanPhone = phone.replace(/\D/g, '');
         const pseudoEmail = `${cleanPhone}@ceramic.internal`;
-        
-        // ส่ง plain password ไปยัง Supabase
-        const authData = await sb.signUp(pseudoEmail, password);   // ✅ ใช้ password ที่รับมา
-        
+        const authData = await sb.signUp(pseudoEmail, password);
         _log('Auth response:', authData);
-        
         if (authData.error) {
-          // แก้ error message ที่อาจเกิดขึ้น
-          if (authData.error.message?.includes('duplicate') || authData.error.message?.includes('already registered')) {
+          if (authData.error.message?.includes('duplicate') || authData.error.message?.includes('already registered'))
             return { success: false, message: 'เบอร์โทรนี้ถูกลงทะเบียนแล้ว' };
-          }
           return { success: false, message: authData.error.message || 'สมัครสมาชิกไม่สำเร็จ' };
         }
-
         const authId = authData?.user?.id || authData?.id || authData?.data?.user?.id;
         const token  = authData?.access_token || authData?.session?.access_token || 'no_token';
-
-        if (!authId) throw new Error('Supabase ไม่ส่ง User ID');
-
-        await sb.insert('members', { 
-          auth_id: authId, 
-          phone: cleanPhone, 
-          email: email || null, 
-          name, 
-          points: 50, 
-          tier: 'Bronze' 
-        });
-
+        if (!authId) throw new Error('Supabase ไม่ส่ง User ID — กรุณาปิด "Confirm email" ใน Auth → Providers → Email');
+        await sb.insert('members', { auth_id: authId, phone: cleanPhone, email, name, points: 50, tier: 'Bronze' });
         const user = { id: authId, authId, name, phone: cleanPhone, email, points: 50, tier: 'Bronze', token };
         localStorage.setItem('ctb_user', JSON.stringify(user));
         localStorage.setItem('ctb_token', token);
@@ -214,9 +200,9 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
         return { success: false, message: err.message || 'เกิดข้อผิดพลาดในการสมัคร' };
       }
     }
-    // fallback mock
     return { success: true, user: { id: 'mock', name, phone, email, points: 50, tier: 'Bronze', token: 'mock' } };
-}
+  },
+
   async forgotPassword(email) {
     if (BACKEND_MODE === 'supabase') await sb.resetPassword(email);
     return { success: true };
@@ -263,7 +249,12 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
   },
 
   /* ── ORDERS ───────────────────────────────────── */
-  async createOrder({ items, total, branch, type, userId, promoCode, disc, slipUrl, status, delivery_address, delivery_phone, pickup_time }) {
+  async createOrder({
+    items, total, branch, type, userId, promoCode, disc, slipUrl, status,
+    delivery_address,
+    delivery_phone,
+    pickup_time,
+  }) {
     if (BACKEND_MODE === 'supabase') {
       const order = await sb.insert('orders', {
         user_id: userId || null, items: JSON.stringify(items),
@@ -272,8 +263,8 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
         promo_code: promoCode || null, discount: disc || 0,
         status: status || 'PENDING',
         delivery_address: delivery_address || null,
-        delivery_phone: delivery_phone || null,
-        pickup_time: pickup_time || null,
+        delivery_phone:   delivery_phone   || null,
+        pickup_time:      pickup_time      || null,
         slip_url: slipUrl || null, source: 'CLIENT',
       });
       if (!order?.[0]) throw new Error('Order insert returned empty');
@@ -320,13 +311,13 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
     return { success: true, data: [] };
   },
 
-  /* ── MENU ────────────────────────────────────── */
+  /* ── MENU ─────────────────────────────────────── */
   async getMenu() {
     if (BACKEND_MODE === 'supabase') {
       const [products, categories, addons] = await Promise.all([
         sb.query('menu_items', { select: '*', order: 'sort_order' }),
         sb.query('categories', { select: '*', eq: { is_active: true }, order: 'sort_order' }),
-        sb.query('addons', { select: '*', eq: { is_active: true }, order: 'sort_order' }),
+        sb.query('addons',     { select: '*', eq: { is_active: true }, order: 'sort_order' }),
       ]);
       return { products, categories, customization: {
         sweetness: ['0%','25%','50%','Regular','Extra'],
@@ -376,7 +367,6 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
     return { success: true, data: [{ id: 'BR001', name: 'Main Branch — Siam' }] };
   },
 
-  /* ── STORE STATUS ─────────────────────────────── */
   async getStoreStatus() {
     const s = localStorage.getItem('ctb_shop_open');
     return { isOpen: s === null ? true : s === 'true' };
@@ -394,22 +384,18 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
     }
     return { success: true, data: [] };
   },
-
   async getMemberByPhone(phone) {
     if (BACKEND_MODE === 'supabase') {
-      const cleanPhone = phone.replace(/\D/g, '');
-      const res = await sb.query('members', { eq: { phone: cleanPhone }, select: '*' });
+      const res = await sb.query('members', { eq: { phone }, select: '*' });
       if (res?.length) return { success: true, member: res[0] };
       return { success: false, message: 'ไม่พบสมาชิก' };
     }
     return { success: false };
   },
-
   async updateMemberPoints(memberId, newPoints) {
     if (BACKEND_MODE === 'supabase') await sb.update('members', { points: newPoints }, { id: memberId });
     return { success: true };
   },
-
   async updateMemberFull(memberId, data) {
     if (BACKEND_MODE === 'supabase') await sb.update('members', data, { id: memberId });
     return { success: true };
@@ -429,12 +415,10 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
     }
     return { success: true, data: [] };
   },
-
   async updateStaff(id, data) {
     if (BACKEND_MODE === 'supabase') await sb.update('staff', data, { id });
     return { success: true };
   },
-
   async getStaffOnboardingInfo(staffId) {
     if (BACKEND_MODE === 'supabase') {
       const staffRes = await sb.query('staff', { eq: { id: staffId }, select: '*' });
@@ -445,7 +429,6 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
     }
     return { success: true, staff: { name: 'Test' }, branchName: 'Main Branch' };
   },
-
   async inviteStaff(data) {
     if (BACKEND_MODE === 'supabase') {
       try {
@@ -459,12 +442,13 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
     }
     return { success: true, staff: { id: 'temp_' + Date.now() } };
   },
-
   async completeOnboarding(staffId, data) {
     if (BACKEND_MODE === 'supabase') {
       const [passHash, pinHash] = await Promise.all([
-        _sha256(data.password + 'CTB_SALT_2025'),
-        _sha256(data.pin + 'CTB_SALT_2025'),
+        crypto.subtle.digest('SHA-256', new TextEncoder().encode(data.password + 'CTB_SALT_2025'))
+          .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')),
+        crypto.subtle.digest('SHA-256', new TextEncoder().encode(data.pin + 'CTB_SALT_2025'))
+          .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')),
       ]);
       await sb.update('staff', {
         name: data.fullName, username: data.username, nickname: data.nickname,
@@ -481,7 +465,8 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
 
   async staffLogin(username, pin) {
     if (BACKEND_MODE === 'supabase') {
-      const hash = await _sha256(pin + 'CTB_SALT_2025');
+      const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin + 'CTB_SALT_2025'))
+        .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''));
       const res = await sb.query('staff', {
         eq: { username, pos_pin_hash: hash, is_active: true },
         select: 'id, username, name, role, branch_id',
@@ -494,7 +479,8 @@ async login({ phone, password }) {   // ← เปลี่ยนจาก hashe
 
   async verifyManagerPin(pin) {
     if (BACKEND_MODE === 'supabase') {
-      const hash = await _sha256(pin + 'CTB_SALT_2025');
+      const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin + 'CTB_SALT_2025'))
+        .then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''));
       const res = await sb.query('staff', { eq: { pos_pin_hash: hash, is_active: true }, select: 'id, name, role' });
       const u = res?.[0];
       if (u && ['MANAGER','ADMIN'].includes(u.role)) return { success: true, managerName: u.name };
