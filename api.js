@@ -207,7 +207,7 @@ async insert(table, data) {
       if (!res.ok) throw new Error(await res.text());
 
       return await res.json();
-    },
+    }
 
     async delete(table, eq = {}) {
       let url = `${SUPABASE_URL}/rest/v1/${table}?`;
