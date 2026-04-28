@@ -242,14 +242,13 @@
       );
     
       const data = await res.json();
-      
+    
       if (!res.ok) {
-        // throw เพื่อให้ register จับได้
         throw new Error(data?.msg || data?.error_description || 'Signup failed');
       }
-      
+    
       return data;
-    }
+    },
 
     async signOut(token) {
       await request(`${SUPABASE_URL}/auth/v1/logout`, {
