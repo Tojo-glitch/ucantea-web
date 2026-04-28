@@ -356,6 +356,38 @@ button{font-family:var(--sans);cursor:pointer;border:none;background:none}
 @keyframes skshimmer{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
 .sk{background:var(--c2);border-radius:6px;display:inline-block}
 .sk-anim{background-size:200px 100%;animation:skshimmer 1.4s infinite linear}
+.sk-anim{
+  background-position: -200px 0;   /* ← จุดสำคัญ */
+}
+
+/* ปรับให้ shimmer นุ่มนวลขึ้น (optional) */
+.sk-anim{
+  animation-duration: 1.8s;
+  animation-timing-function: ease-in-out;
+}
+
+/* สำหรับ slot ที่ยังไม่มีรูป ให้แสดง shimmer แทนพื้นหลังทึบ */
+.slot:not(.loaded) {
+  background-image: linear-gradient(
+    90deg,
+    var(--c2) 0px,
+    var(--c3) 80px,
+    var(--c2) 160px
+  );
+  background-size: 200px 100%;
+  animation: skshimmer 1.8s infinite ease-in-out;
+  background-position: -200px 0;
+}
+
+/* ถ้าเป็นธีม light ให้ใช้ gradient อีกชุด */
+[data-theme="light"] .slot:not(.loaded) {
+  background-image: linear-gradient(
+    90deg,
+    var(--c2) 0px,
+    #f5f0e8 80px,
+    var(--c2) 160px
+  );
+}
 [data-theme="dark"] .sk-anim{background-image:linear-gradient(90deg,var(--c2) 0px,var(--c3) 80px,var(--c2) 160px)}
 [data-theme="light"] .sk-anim{background-image:linear-gradient(90deg,var(--c2) 0px,#f5f0e8 80px,var(--c2) 160px)}
 .sk-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
@@ -3364,30 +3396,64 @@ renderTrack=function(){
 })();
 
 /* ── 3. LAZY IMAGE OBSERVER ────────────────────────── */
-var _lazyObs=null;
-function observeLazy(){
-  var imgs=document.querySelectorAll('img[data-src]:not([data-src=""])');
-  if(!imgs.length)return;
-  if('IntersectionObserver' in window){
-    if(!_lazyObs){
-      _lazyObs=new IntersectionObserver(function(entries){
-        entries.forEach(function(en){
-          if(en.isIntersecting){
-            var img=en.target;
-            img.src=img.dataset.src;
-            img.onload=function(){img.classList.add('loaded');};
-            img.onerror=function(){img.style.display='none';};
+var _lazyObs = null;
+
+function observeLazy() {
+  var imgs = document.querySelectorAll('img[data-src]:not([data-src=""])');
+  if (!imgs.length) return;
+
+  if ('IntersectionObserver' in window) {
+    if (!_lazyObs) {
+      _lazyObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            var img = entry.target;
+
+            // กำหนด src เพื่อเริ่มโหลด
+            img.src = img.dataset.src;
+
+            // เมื่อโหลดสำเร็จ
+            img.onload = function() {
+              img.classList.add('loaded');
+              // หา .slot ที่เป็น parent (ถ้ามี) เพื่อหยุด shimmer
+              var slot = img.closest('.slot');
+              if (slot) slot.classList.add('loaded');
+            };
+
+            // เมื่อโหลดไม่สำเร็จ
+            img.onerror = function() {
+              img.style.display = 'none';
+              // หยุด shimmer (หรือจะให้แสดง placeholder ต่อไปก็ได้)
+              var slot = img.closest('.slot');
+              if (slot) slot.classList.add('loaded');
+            };
+
+            // เลิก observe รูปนี้
             _lazyObs.unobserve(img);
           }
         });
-      },{rootMargin:'120px 0px',threshold:0});
+      }, { rootMargin: '120px 0px', threshold: 0 });
     }
-    imgs.forEach(function(img){_lazyObs.observe(img);});
+
+    // เริ่ม observe ทุกรูปที่พบ
+    imgs.forEach(function(img) {
+      _lazyObs.observe(img);
+    });
+
   } else {
-    // Fallback: load all immediately
-    imgs.forEach(function(img){
-      img.src=img.dataset.src;
-      img.onload=function(){img.classList.add('loaded');};
+    // Fallback สำหรับ browser ที่ไม่รองรับ IntersectionObserver
+    imgs.forEach(function(img) {
+      img.src = img.dataset.src;
+      img.onload = function() {
+        img.classList.add('loaded');
+        var slot = img.closest('.slot');
+        if (slot) slot.classList.add('loaded');
+      };
+      img.onerror = function() {
+        img.style.display = 'none';
+        var slot = img.closest('.slot');
+        if (slot) slot.classList.add('loaded');
+      };
     });
   }
 }
