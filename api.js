@@ -344,7 +344,7 @@
   } catch (e) {
     return fail(e.message);
   }
-}
+},
 
     async logout() {
       try {
