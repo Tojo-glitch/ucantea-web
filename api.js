@@ -141,15 +141,20 @@ window.API = {
   },
 
   /* ── AUTH — CUSTOMER ──────────────────────────── */
-  async login({ phone, hashedPassword }) {
+async login({ phone, password }) {   // ← เปลี่ยนจาก hashedPassword เป็น password
     if (BACKEND_MODE === 'supabase') {
       try {
         const cleanPhone = phone.replace(/\D/g, '');
-        const data = await sb.signIn(`${phone}@ceramic.internal`, password);
-        if (data.error) return { success: false, message: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' };
+        const pseudoEmail = `${cleanPhone}@ceramic.internal`;
+        
+        const data = await sb.signIn(pseudoEmail, password);   // ส่ง plain password
+        
+        if (data.error) return { success: false, message: 'เบอร์หรือรหัสผ่านไม่ถูกต้อง' };
+        
         const members = await sb.query('members', { eq: { auth_id: data.user.id }, select: '*' });
         const member = members[0];
         if (!member) return { success: false, message: 'ไม่พบบัญชีผู้ใช้' };
+        
         const user = {
           id: member.id, authId: data.user.id,
           name: member.name, phone: member.phone, email: member.email,
@@ -159,10 +164,13 @@ window.API = {
         localStorage.setItem('ctb_user', JSON.stringify(user));
         localStorage.setItem('ctb_token', data.access_token);
         return { success: true, user };
-      } catch (err) { _err('[login]', err); return { success: false, message: err.message }; }
+      } catch (err) {
+        _err('[login]', err);
+        return { success: false, message: err.message };
+      }
     }
     return { success: false, message: 'ไม่พบบัญชี' };
-  },
+}
 
  async register({ phone, email, name, password }) {   // ← เปลี่ยนชื่อพารามิเตอร์
     if (BACKEND_MODE === 'supabase') {
