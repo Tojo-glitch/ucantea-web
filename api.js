@@ -164,17 +164,20 @@ window.API = {
     return { success: false, message: 'ไม่พบบัญชี' };
   },
 
-  async register({ phone, email, name, hashedPassword }) {
+ async register({ phone, email, name, password }) {   // ← เปลี่ยนชื่อพารามิเตอร์
     if (BACKEND_MODE === 'supabase') {
       try {
         const cleanPhone = phone.replace(/\D/g, '');
         const pseudoEmail = `${cleanPhone}@ceramic.internal`;
         
-        const authData = await sb.signUp(`${phone}@ceramic.internal`, password);
+        // ส่ง plain password ไปยัง Supabase
+        const authData = await sb.signUp(pseudoEmail, password);   // ✅ ใช้ password ที่รับมา
+        
         _log('Auth response:', authData);
         
         if (authData.error) {
-          if (authData.error.message?.includes('duplicate')) {
+          // แก้ error message ที่อาจเกิดขึ้น
+          if (authData.error.message?.includes('duplicate') || authData.error.message?.includes('already registered')) {
             return { success: false, message: 'เบอร์โทรนี้ถูกลงทะเบียนแล้ว' };
           }
           return { success: false, message: authData.error.message || 'สมัครสมาชิกไม่สำเร็จ' };
@@ -203,9 +206,9 @@ window.API = {
         return { success: false, message: err.message || 'เกิดข้อผิดพลาดในการสมัคร' };
       }
     }
+    // fallback mock
     return { success: true, user: { id: 'mock', name, phone, email, points: 50, tier: 'Bronze', token: 'mock' } };
-  },
-
+}
   async forgotPassword(email) {
     if (BACKEND_MODE === 'supabase') await sb.resetPassword(email);
     return { success: true };
