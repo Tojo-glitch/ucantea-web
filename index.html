@@ -2077,50 +2077,116 @@ function switchAuthTab(tab){
   document.querySelectorAll('.atab').forEach(function(t,i){t.classList.toggle('on',(isLogin&&i===0)||(!isLogin&&i===1))});
 }
 
-async function doLogin(){
-  var phone=(ge('loginPhone').value||'').trim();
-  var pass=ge('loginPass').value||'';
-  var msg=ge('loginMsg'),btn=ge('loginBtn');
-  msg.textContent='';msg.className='auth-msg';
-  if(!/^[0-9]{9,10}$/.test(phone)){msg.textContent='Enter a valid phone number';msg.className='auth-msg err';return}
-  if(!pass){msg.textContent='Enter your password';msg.className='auth-msg err';return}
-  btn.disabled=true;btn.textContent='Signing in...';
-  var hashed=await sha256(pass+'CTB_SALT_2025');
-  API.login({phone,hashedPassword:hashed}).then(function(res){
-    btn.disabled=false;btn.textContent='Sign In';
-    if(!res.success){msg.textContent=res.message||'Incorrect phone or password';msg.className='auth-msg err';return}
-    S.user=res.user;PTS=S.user.points||0;
-    // Persist session
-    try{localStorage.setItem('ctb_user',JSON.stringify(res.user))}catch(e){}
-    closeAuthSheet();
-    renderProfile();
-    toast('Welcome back, '+S.user.name+'!','success');
-    // Re-open cart if user was trying to checkout
-    if(S._pendingCheckout){S._pendingCheckout=false;setTimeout(openCart,350);}
-  }).catch(function(){btn.disabled=false;btn.textContent='Sign In';msg.textContent='Connection error';msg.className='auth-msg err'});
+async function doLogin() {
+  var phone = (ge('loginPhone').value || '').trim();
+  var pass = ge('loginPass').value || '';
+  var msg = ge('loginMsg'), btn = ge('loginBtn');
+  msg.textContent = ''; msg.className = 'auth-msg';
+
+  // ตรวจสอบความถูกต้องของข้อมูลก่อนส่ง API
+  if (!/^[0-9]{9,10}$/.test(phone)) {
+    msg.textContent = 'Enter a valid phone number';
+    msg.className = 'auth-msg err';
+    return;
+  }
+  if (!pass) {
+    msg.textContent = 'Enter your password';
+    msg.className = 'auth-msg err';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+
+  // ส่งรหัสผ่านดิบ (plain) — Supabase Auth จะจัดการแฮชเอง
+  API.login({ phone, password: pass })
+    .then(function(res) {
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      if (!res.success) {
+        msg.textContent = res.message || 'Incorrect phone or password';
+        msg.className = 'auth-msg err';
+        return;
+      }
+      S.user = res.user;
+      PTS = S.user.points || 0;
+      try { localStorage.setItem('ctb_user', JSON.stringify(res.user)); } catch(e) {}
+      closeAuthSheet();
+      renderProfile();
+      toast('Welcome back, ' + S.user.name + '!', 'success');
+      if (S._pendingCheckout) {
+        S._pendingCheckout = false;
+        setTimeout(openCart, 350);
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      msg.textContent = 'Connection error';
+      msg.className = 'auth-msg err';
+    });
 }
 
-async function doRegister(){
-  var phone=(ge('regPhone').value||'').trim();
-  var email=(ge('regEmail').value||'').trim().toLowerCase();
-  var name=(ge('regName').value||'').trim();
-  var pass=ge('regPass').value||'';
-  var msg=ge('regMsg'),btn=ge('regBtn');
-  msg.textContent='';msg.className='auth-msg';
-  if(!/^[0-9]{9,10}$/.test(phone)){msg.textContent='Enter a valid phone number (9–10 digits)';msg.className='auth-msg err';return}
-  if(!email||!email.includes('@')){msg.textContent='Enter a valid email address';msg.className='auth-msg err';return}
-  if(!name||name.length<2){msg.textContent='Enter your display name';msg.className='auth-msg err';return}
-  if(pass.length<6){msg.textContent='Password must be at least 6 characters';msg.className='auth-msg err';return}
-  btn.disabled=true;btn.textContent='Creating account...';
-  var hashed=await sha256(pass+'CTB_SALT_2025');
-  API.register({phone,email,name,hashedPassword:hashed}).then(function(res){
-    btn.disabled=false;btn.textContent='Create Account';
-    if(!res.success){msg.textContent=res.message||'Registration failed';msg.className='auth-msg err';return}
-    S.user=res.user;PTS=50;
-    try{localStorage.setItem('ctb_user',JSON.stringify(res.user))}catch(e){}
-    closeAuthSheet();renderProfile();toast('Welcome to Ceramic, '+res.user.name+'!','success');
-    if(S._pendingCheckout){S._pendingCheckout=false;setTimeout(openCart,350);}
-  }).catch(function(){btn.disabled=false;btn.textContent='Create Account';msg.textContent='Connection error';msg.className='auth-msg err'});
+async function doRegister() {
+  var phone = (ge('regPhone').value || '').trim();
+  var email = (ge('regEmail').value || '').trim().toLowerCase();
+  var name = (ge('regName').value || '').trim();
+  var pass = ge('regPass').value || '';
+  var msg = ge('regMsg'), btn = ge('regBtn');
+  msg.textContent = ''; msg.className = 'auth-msg';
+
+  // ตรวจสอบข้อมูล
+  if (!/^[0-9]{9,10}$/.test(phone)) {
+    msg.textContent = 'Enter a valid phone number (9–10 digits)';
+    msg.className = 'auth-msg err';
+    return;
+  }
+  if (!email || !email.includes('@')) {
+    msg.textContent = 'Enter a valid email address';
+    msg.className = 'auth-msg err';
+    return;
+  }
+  if (!name || name.length < 2) {
+    msg.textContent = 'Enter your display name';
+    msg.className = 'auth-msg err';
+    return;
+  }
+  if (pass.length < 6) {
+    msg.textContent = 'Password must be at least 6 characters';
+    msg.className = 'auth-msg err';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+
+  // ส่งรหัสผ่านดิบ — Supabase Auth จะแฮชให้
+  API.register({ phone, email, name, password: pass })
+    .then(function(res) {
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+      if (!res.success) {
+        msg.textContent = res.message || 'Registration failed';
+        msg.className = 'auth-msg err';
+        return;
+      }
+      S.user = res.user;
+      PTS = 50;
+      try { localStorage.setItem('ctb_user', JSON.stringify(res.user)); } catch(e) {}
+      closeAuthSheet();
+      renderProfile();
+      toast('Welcome to Ceramic, ' + res.user.name + '!', 'success');
+      if (S._pendingCheckout) {
+        S._pendingCheckout = false;
+        setTimeout(openCart, 350);
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+      msg.textContent = 'Connection error';
+      msg.className = 'auth-msg err';
+    });
 }
 
 function doForgot(){
