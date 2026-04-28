@@ -3519,5 +3519,48 @@ window.addEventListener('storage', function(e) {
 });
 </script>
 
+<script>
+// แฮชรหัสผ่านด้วย SHA-256 (ใช้เว็บคริปโตมาตรฐาน)
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// จัดการฟอร์มสมัครสมาชิก
+document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const phone = document.getElementById('regPhone').value.replace(/\D/g, '');
+  const email = document.getElementById('regEmail').value.trim() || null;
+  const name  = document.getElementById('regName').value.trim();
+  const pwd   = document.getElementById('regPassword').value;
+
+  if (phone.length < 9) return alert('กรุณากรอกเบอร์โทรให้ถูกต้อง');
+  if (pwd.length < 6) return alert('รหัสผ่านต้องอย่างน้อย 6 ตัวอักษร');
+
+  const hashedPwd = await sha256(pwd + 'CTB_SALT_2025'); // ใช้ salt เดียวกับ api.js
+  const res = await window.API.register({ phone, email, name, hashedPassword: hashedPwd });
+  
+  if (res.success) alert('🎉 สมัครสำเร็จ! ได้รับ 50 แต้มต้อนรับ');
+  else alert(res.message || 'สมัครไม่สำเร็จ');
+});
+
+// จัดการฟอร์มล็อกอิน
+document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const phone = document.getElementById('loginPhone').value.replace(/\D/g, '');
+  const pwd   = document.getElementById('loginPassword').value;
+
+  const hashedPwd = await sha256(pwd + 'CTB_SALT_2025');
+  const res = await window.API.login({ phone, hashedPassword: hashedPwd });
+  
+  if (res.success) {
+    alert('👋 ยินดีต้อนรับ, ' + res.user.name);
+    // location.href = '/profile.html'; // หรือโหลดหน้าหลักใหม่
+  } else {
+    alert(res.message || 'เข้าสู่ระบบไม่สำเร็จ');
+  }
+});
+</script>
+
 </body>
 </html>
