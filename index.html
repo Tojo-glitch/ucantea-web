@@ -2189,6 +2189,40 @@ async function doRegister() {
     return;
   }
 
+  // ปิดการกดปุ่มชั่วคราว
+  btn.disabled = true;
+  msg.textContent = 'กำลังสมัครสมาชิก...';
+  msg.className = 'auth-msg';
+
+  try {
+    // แฮชรหัสผ่านก่อนส่ง (เหมือนที่ระบบ login ทำ)
+    const hashed = await API.hash(pass + 'CTB_SALT_2025');
+
+    // เรียก API สมัครสมาชิก
+    const res = await API.register({
+      phone: phone,
+      email: email,
+      name: name,
+      hashedPassword: hashed
+    });
+
+    if (res.success) {
+      msg.textContent = 'สมัครสมาชิกสำเร็จ! กำลังเข้าสู่ระบบ...';
+      msg.className = 'auth-msg ok';
+      // เข้าสู่ระบบต่ออัตโนมัติหรือเปลี่ยนหน้า
+      // .......
+    } else {
+      msg.textContent = res.message || 'สมัครไม่สำเร็จ';
+      msg.className = 'auth-msg err';
+    }
+  } catch (e) {
+    msg.textContent = 'เกิดข้อผิดพลาด: ' + e.message;
+    msg.className = 'auth-msg err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
   btn.disabled = true;
   btn.textContent = 'Creating account...';
 
