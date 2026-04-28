@@ -2890,70 +2890,57 @@ function _sessionId(){
   return _sid;
 }
 
-/* ── 3. FUNNEL HOOKS ─────────────────────────────────── */
-// Page view
-var _origNav_D=nav;
-nav=function(pgId,tabId){
-  _origNav_D(pgId,tabId);
-  trackEvent('page_view',{page:pgId});
-};
+/* ── 3. FUNNEL HOOKS (FIXED) ── */
 
-// Product view
-var _origOpenCS_D=openCS;
-openCS=function(id){
-  _origOpenCS_D(id);
-  var m=MENUS.find(function(x){return x.id===id});
-  if(m)trackEvent('product_view',{id:m.id,name:m.name,price:m.price,cat:m.cat});
-};
-
-// Add to cart
-var _origAddToCart=addToCart;
-addToCart=function(){
-  _origAddToCart();
-  var m=S.cur;if(!m)return;
-  trackEvent('add_to_cart',{
-    id:m.id,name:m.name,
-    size:S.cust.sz,qty:S.cust.qty,
-    price:(parseInt(m.price)+S.cust.szX),
-    tops:S.cust.tops.map(function(t){return t.name})
-  });
-};
-
-// Cart open (checkout start)
-var _origOpenCart_D=openCart;
-openCart=function(){
-  _origOpenCart_D();
-  trackEvent('checkout_start',{items:S.cart.length,subtotal:calcSub()});
-};
-
-// Order placed — hooked inside placeOrder success path via onOrderStatusChange
-var _origOnOrderStatus=onOrderStatusChange;
-onOrderStatusChange=function(newStatus){
-  _origOnOrderStatus(newStatus);
-  if(newStatus.toLowerCase()==='confirmed'&&S.order){
-    trackEvent('order_placed',{
-      orderId:S.order.id,
-      total:S.order.total||calcTotal(),
-      items:S.cart.length,
-      orderType:S.orderType,
-      disc:S.disc||0
-    });
+(function() {
+  // ฟังก์ชันช่วยสำหรับการ Hook
+  function hook(name, callback) {
+    var _orig = window[name];
+    if (typeof _orig === 'function') {
+      window[name] = function() {
+        var result = _orig.apply(this, arguments); // รันฟังก์ชันเดิม
+        callback.apply(this, arguments);           // รันโค้ด Track
+        return result;
+      };
+    }
   }
-};
 
-// Search
-var _origInitSrch=initSrch;
-initSrch=function(){
-  _origInitSrch();
-  var inp=ge('srchInp');if(!inp)return;
-  var _srchTrack=null;
-  inp.addEventListener('input',function(){
-    clearTimeout(_srchTrack);
-    _srchTrack=setTimeout(function(){
-      if(inp.value.trim())trackEvent('search',{query:inp.value.trim()});
-    },1000);
+  // Page view
+  hook('nav', function(pgId) {
+    trackEvent('page_view', { page: pgId });
   });
-};
+
+  // Product view
+  hook('openCS', function(id) {
+    var m = (typeof MENUS !== 'undefined') ? MENUS.find(x => x.id === id) : null;
+    if (m) trackEvent('product_view', { id: m.id, name: m.name, price: m.price, cat: m.cat });
+  });
+
+  // Add to cart
+  hook('addToCart', function() {
+    var m = S.cur; if (!m) return;
+    trackEvent('add_to_cart', {
+      id: m.id, name: m.name,
+      size: S.cust.sz, qty: S.cust.qty,
+      price: (parseInt(m.price) + S.cust.szX),
+      tops: S.cust.tops.map(t => t.name)
+    });
+  });
+
+  // Search
+  hook('initSrch', function() {
+    var inp = document.getElementById('srchInp'); if (!inp) return;
+    var _srchTrack = null;
+    inp.addEventListener('input', function() {
+      clearTimeout(_srchTrack);
+      _srchTrack = setTimeout(function() {
+        if (inp.value.trim()) trackEvent('search', { query: inp.value.trim() });
+      }, 1000);
+    });
+  });
+
+  // ทำแบบเดียวกันกับ openCart และ onOrderStatusChange...
+})();
 
 /* ── 4. ERROR BOUNDARY ───────────────────────────────── */
 function withErrorBoundary(fn, fallbackId, label){
