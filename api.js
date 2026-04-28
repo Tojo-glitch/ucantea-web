@@ -1,14 +1,14 @@
 /**
  * CERAMIC — API ADAPTER (api.js)
  * ══════════════════════════════════════════════
- * Fixed: 9 bugs (see changelog at bottom)
+ * Fixed: Auth Headers (400) & Analytics Spam (404)
  */
 
 const BACKEND_MODE  = 'supabase'; // 'supabase' | 'mock'
 const SUPABASE_URL  = window.ENV?.URL || '';
 const SUPABASE_ANON = window.ENV?.KEY || '';
 
-// SSE base for realtime fallback (referenced by Phase 5)
+// SSE base for realtime fallback
 window.API = window.API || {};
 window.API.SSE_BASE = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : null;
 
@@ -50,6 +50,15 @@ const sb = {
     };
   },
 
+  // ใช้สำหรับ Auth Endpoint โดยเฉพาะ เพื่อป้องกัน Token ตีกัน (สาเหตุของ Error 400)
+  getAuthHeaders() {
+    return {
+      'apikey':        SUPABASE_ANON,
+      'Authorization': `Bearer ${SUPABASE_ANON}`,
+      'Content-Type':  'application/json',
+    };
+  },
+
   async query(table, p = {}) {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
     if (p.select) url += `select=${encodeURIComponent(p.select)}&`;
@@ -58,7 +67,7 @@ const sb = {
     if (p.order) url += `order=${p.order}&`;
     if (p.limit) url += `limit=${p.limit}&`;
     const res = await _fetch(url, { headers: sb.getHeaders() });
-    if (!res.ok) { const t = await res.text(); throw new Error(`[${table}] ${t}`); }
+    if (!res.ok) { const t = await res.text(); throw new Error(`[${table}] ${res.status} ${t}`); }
     return res.json();
   },
 
@@ -66,7 +75,8 @@ const sb = {
     const res = await _fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
       method: 'POST', headers: sb.getHeaders(), body: JSON.stringify(data),
     });
-    if (!res.ok) { const t = await res.text(); throw new Error(`[insert ${table}] ${t}`); }
+    // แนบ status code ไปด้วยเพื่อให้ catch จับ 404 ได้
+    if (!res.ok) { const t = await res.text(); throw new Error(`[insert ${table}] ${res.status} ${t}`); }
     return res.json();
   },
 
@@ -74,7 +84,7 @@ const sb = {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
     Object.entries(eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
     const res = await _fetch(url, { method: 'PATCH', headers: sb.getHeaders(), body: JSON.stringify(data) });
-    if (!res.ok) { const t = await res.text(); throw new Error(`[update ${table}] ${t}`); }
+    if (!res.ok) { const t = await res.text(); throw new Error(`[update ${table}] ${res.status} ${t}`); }
     return res.json();
   },
 
@@ -82,14 +92,13 @@ const sb = {
     let url = `${SUPABASE_URL}/rest/v1/${table}?`;
     Object.entries(eq).forEach(([k,v]) => url += `${k}=eq.${encodeURIComponent(v)}&`);
     const res = await _fetch(url, { method: 'DELETE', headers: sb.getHeaders() });
-    if (!res.ok) { const t = await res.text(); throw new Error(`[delete ${table}] ${t}`); }
+    if (!res.ok) { const t = await res.text(); throw new Error(`[delete ${table}] ${res.status} ${t}`); }
     return true;
   },
 
-  // FIX 1: Removed duplicate signIn — single correct implementation
   async signIn(email, password) {
     const res = await _fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST', headers: sb.getHeaders(), body: JSON.stringify({ email, password }),
+      method: 'POST', headers: sb.getAuthHeaders(), body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
     if (!res.ok) return { error: data };
@@ -98,7 +107,7 @@ const sb = {
 
   async signUp(email, password) {
     const res = await _fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-      method: 'POST', headers: sb.getHeaders(), body: JSON.stringify({ email, password }),
+      method: 'POST', headers: sb.getAuthHeaders(), body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
     if (!res.ok) { _err('SignUp failed:', data); return { error: data }; }
@@ -107,13 +116,13 @@ const sb = {
 
   async signOut(token) {
     await _fetch(`${SUPABASE_URL}/auth/v1/logout`, {
-      method: 'POST', headers: { ...sb.getHeaders(), 'Authorization': `Bearer ${token}` },
+      method: 'POST', headers: { ...sb.getAuthHeaders(), 'Authorization': `Bearer ${token}` },
     }).catch(() => {});
   },
 
   async resetPassword(email) {
     const res = await _fetch(`${SUPABASE_URL}/auth/v1/recover`, {
-      method: 'POST', headers: sb.getHeaders(), body: JSON.stringify({ email }),
+      method: 'POST', headers: sb.getAuthHeaders(), body: JSON.stringify({ email }),
     });
     return res.json();
   },
@@ -127,7 +136,6 @@ window.API = {
   SSE_BASE: SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : null,
 
   /* ── STORAGE ──────────────────────────────────── */
-  // FIX 6: Removed standalone duplicate uploadSlip — single version here, uses user token
   async uploadSlip(file) {
     if (!file) return null;
     const ext      = file.name.split('.').pop() || 'jpg';
@@ -155,7 +163,6 @@ window.API = {
   },
 
   /* ── AUTH — CUSTOMER ──────────────────────────── */
-  // FIX 3: Unified pseudo-email to @ceramic.internal in BOTH login & register
   async login({ phone, hashedPassword }) {
     if (BACKEND_MODE === 'supabase') {
       try {
@@ -227,7 +234,6 @@ window.API = {
     return { success: true };
   },
 
-  // FIX 7a: Added missing updatePoints
   async updatePoints({ userId, points }) {
     if (BACKEND_MODE === 'supabase') {
       await sb.update('members', { points }, { auth_id: userId }).catch(_err);
@@ -236,7 +242,6 @@ window.API = {
   },
 
   /* ── AUTH — ADMIN ─────────────────────────────── */
-  // FIX 5: Removed dead sb.headers['Authorization'] — getHeaders() reads localStorage automatically
   async adminSecureLogin(email, password) {
     if (BACKEND_MODE === 'supabase') {
       try {
@@ -252,12 +257,9 @@ window.API = {
   },
 
   /* ── ORDERS ───────────────────────────────────── */
-  // FIX 4: Param names now match what placeOrder() sends from HTML
   async createOrder({
     items, total, branch, type, userId, promoCode, disc, slipUrl, status,
-    delivery_address,   // was: address
-    delivery_phone,     // was: contactPhone
-    pickup_time,        // was: pickupTime
+    delivery_address, delivery_phone, pickup_time
   }) {
     if (BACKEND_MODE === 'supabase') {
       const order = await sb.insert('orders', {
@@ -332,25 +334,33 @@ window.API = {
     return { products: [], categories: [] };
   },
 
-  // FIX 7b: Added missing getBanners (Phase 5 loadBanners)
   async getBanners() {
     if (BACKEND_MODE === 'supabase') {
       try {
         const banners = await sb.query('banners', { select: '*', eq: { is_active: true }, order: 'sort_order', limit: 5 });
         return { success: true, banners };
-      } catch (err) { _warn('[getBanners]', err.message); return { success: false, banners: [] }; }
+      } catch (err) { return { success: false, banners: [] }; }
     }
     return { success: true, banners: [] };
   },
 
-  // FIX 7c: Added missing track (Phase D analytics)
+  /* ── ANALYTICS TRACKING ───────────────────────── */
   async track(payload) {
     if (BACKEND_MODE === 'supabase' && payload) {
+      // ดักไม่ให้ยิงซ้ำ ถ้ารู้ว่า 404 (ไม่มี Table) ไปแล้ว
+      if (window._disableTracking) return { success: false };
+      
       sb.insert('analytics_events', {
         event_name: payload.event, user_id: payload.userId || null,
         session_id: payload.session || null, branch_id: payload.branch || null,
         properties: JSON.stringify(payload), created_at: new Date().toISOString(),
-      }).catch(e => _warn('[track]', e.message));
+      }).catch(e => {
+        // ถ้าระบบบอกว่า 404 Not found แปลว่ายังไม่ได้สร้าง Table
+        if (e.message.includes('404')) {
+            window._disableTracking = true; // ปิดการส่ง Track จนกว่าจะ Refresh หน้าต่าง
+        }
+        _warn('[track]', e.message);
+      });
     }
     return { success: true };
   },
@@ -468,7 +478,6 @@ window.API = {
     return { success: true };
   },
 
-  // FIX 2: Removed duplicate staffLogin — single version using pos_pin_hash
   async staffLogin(username, pin) {
     if (BACKEND_MODE === 'supabase') {
       const hash = await _sha256(pin + 'CTB_SALT_2025');
@@ -493,22 +502,3 @@ window.API = {
     return { success: false, message: 'Invalid PIN' };
   },
 };
-
-/*
- * CHANGELOG
- * ═══════════════════════════════════════════════
- * FIX 1: Removed duplicate sb.signIn() — first version had wrong header format
- * FIX 2: Removed duplicate staffLogin() — kept pos_pin_hash version
- * FIX 3: CRITICAL — unified pseudo-email @ceramic.internal in login() & register()
- *         Before: register=@ceramic.internal, login=@ceramic.com → users could never log in
- * FIX 4: CRITICAL — createOrder() params: delivery_address/delivery_phone/pickup_time
- *         Before: address/contactPhone/pickupTime → delivery info was always null in DB
- * FIX 5: Removed dead sb.headers['Authorization'] — sb has no .headers prop
- *         getHeaders() already reads ctb_admin_token from localStorage
- * FIX 6: Removed standalone uploadSlip() duplicate — single version in window.API
- *         Now uses user token (not anon key) + better filename sanitization
- * FIX 7: Added missing methods: getBanners(), track(), updatePoints(), SSE_BASE
- * FIX 8: All console.* gated behind _isDev — no leaks in production
- * FIX 9: Added _fetch() with 12s AbortController timeout on all requests
- *         Before: network hang = app frozen with no error message
- */
