@@ -3405,12 +3405,28 @@ updOnline(); // check on load
 
 /* ── 6. THEME-COLOR META sync with dark/light toggle ── */
 var _origApplyTheme=applyTheme;
-applyTheme=function(t){
-  _origApplyTheme(t);
+applyTheme=function(t){_origApplyTheme(t);
   var meta=ge('themeColorMeta');
   if(meta)meta.content=t==='dark'?'#0c0b09':'#f5f2ec';
 };
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  S.theme = t;
+  localStorage.setItem('ctb_theme', t);
+  
+  // --- ส่วนที่เพิ่มเข้าไปเพื่อแก้ปัญหา ---
+  var meta = document.getElementById('themeColorMeta');
+  if (meta) {
+    meta.setAttribute('content', t === 'dark' ? '#0c0b09' : '#f5f2ec');
+  }
+  // ----------------------------------
 
+  var isDark = t === 'dark';
+  var icon = ge('themeIcon');
+  if (icon) {
+    icon.innerHTML = isDark ? '...' : '...'; // โค้ด SVG เดิมของคุณ
+  }
+}
 /* ══════════════════════════════════════════════════════
    PHASE E — CONSOLIDATION
    Flatten _orig* wrapper chains · apiCall helper · cleanup
