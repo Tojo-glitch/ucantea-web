@@ -3030,13 +3030,24 @@ closeBr=function(){_origCloseBr_C();releaseSheet('brOv');};
 if (typeof openAuth === 'undefined' && typeof openAuthSheet !== 'undefined') {
   var openAuth = openAuthSheet;
 }
-var _origOpenAuth_C = openAuth;
+// --- จัดการ openAuth แบบให้เปิดหน้าต่างได้ชัวร์ๆ ---
+var _origOpenAuth_C = typeof openAuth !== 'undefined' ? openAuth : null;
+
 openAuth = function(m) {
   if (typeof _origOpenAuth_C === 'function') {
     _origOpenAuth_C(m);
-  } else {
-    console.warn('ไม่พบฟังก์ชัน openAuth ดั้งเดิม!');
+  } 
+  else if (typeof openAuthSheet === 'function') {
+    openAuthSheet(m);
+  } 
+  else {
+    var authElement = ge('authOv');
+    if (authElement) {
+      authElement.classList.add('on'); // เติมคลาส .on เพื่อเปิดหน้าต่าง
+    }
+    console.info('เปิดหน้าต่าง Auth ด้วยระบบสำรอง'); // แจ้งเตือนเบาๆ ว่าใช้ระบบสำรอง
   }
+  
   setTimeout(function(){ trapSheet('authOv'); }, 50);
 };
 
