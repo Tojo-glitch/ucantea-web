@@ -230,29 +230,32 @@
       return data;
     },
 
-    // สมัครด้วย Email และเก็บข้อมูล userData เข้า Profile
-    async signUp(email, password, userData) {
-      const res = await request(
-        `${SUPABASE_URL}/auth/v1/signup`,
-        {
-          method: 'POST',
-          headers: headers(),
-          body: JSON.stringify({
-            email: email,
-            password: password,
-            data: userData
-          })
+async signUp(params) {
+  // params expected: { email, password, data: { name, phone } }
+  const res = await request(
+    `${SUPABASE_URL}/auth/v1/signup`,
+    {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({
+        email: params.email,
+        password: params.password || params.hashedPassword,   // fallback เผื่อใช้ชื่อเก่า
+        data: params.data || {
+          name: params.name || '',
+          phone: params.phone || ''
         }
-      );
-    
-      const data = await res.json();
-    
-      if (!res.ok) {
-        throw new Error(data?.msg || data?.error_description || 'Signup failed');
-      }
-    
-      return data;
-    },
+      })
+    }
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.msg || data?.error_description || 'Signup failed');
+  }
+
+  return data;
+},
 
     async signOut(token) {
       await request(`${SUPABASE_URL}/auth/v1/logout`, {
@@ -314,27 +317,23 @@
       }
     },
 
- async register({ phone, email, name, hashedPassword }) {
+async register({ phone, email, name, hashedPassword }) {
   try {
-    // Build the auth email string
     const pseudo = String(phone).trim() + '@ceramic.app';
 
-    // Ensure all fields sent to signUp are plain strings
     const signUpParams = {
-      email: String(pseudo),
-      password: String(hashedPassword),   // Note: Supabase expects "password" key, not "hashedPassword"
+      email: pseudo,
+      password: String(hashedPassword),   // ส่ง password ตรงนี้
       data: {
         name: String(name),
         phone: String(phone)
       }
     };
 
-    // Debug log – remove after testing
-    console.log('[DEBUG signUpParams]', signUpParams);
+    console.log('[DEBUG signUpParams]', signUpParams);   // ดูค่าก่อนส่ง
 
     const auth = await sb.signUp(signUpParams);
 
-    // Check for Supabase-level errors
     if (auth.error) {
       if (auth.error.code === 'user_already_exists' ||
           auth.error.message?.includes('already registered')) {
@@ -343,7 +342,6 @@
       return fail(auth.error.message || 'Registration failed.');
     }
 
-    // Extract the auth user ID safely
     const authId = auth?.user?.id || auth?.id || auth?.data?.user?.id;
     if (!authId) {
       return fail('Registration failed – unable to retrieve user ID.');
