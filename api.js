@@ -1,10 +1,10 @@
 /**
  * api.js
  * CERAMIC API ADAPTER
- * FULL FIX + Production Hardening
+ * FULL FIX - Email Authentication & Phone Profile
  * Ready to Deploy
  *
- * Version: 2.0.0
+ * Version: 2.0.1
  */
 
 (function () {
@@ -143,15 +143,18 @@
   /* ======================================================
      SUPABASE CORE
   ====================================================== */
-const sb = {
+  const sb = {
     async query(table, p = {}) {
       let url = `${SUPABASE_URL}/rest/v1/${table}?`;
+      
       if (p.select) url += `select=${encodeURIComponent(p.select)}&`;
+      
       if (p.eq) {
         Object.entries(p.eq).forEach(([k, v]) => {
           url += `${k}=eq.${encodeURIComponent(v)}&`;
         });
       }
+      
       if (p.order) url += `order=${p.order}&`;
       if (p.limit) url += `limit=${p.limit}&`;
 
@@ -162,18 +165,19 @@ const sb = {
 
     async insert(table, data) {
       log('Inserting to:', table, data);
-      // ใช้ request และ headers() เพื่อให้ได้ Token ที่ถูกต้องเสมอ
       const res = await request(`${SUPABASE_URL}/rest/v1/${table}`, {
         method: 'POST',
         headers: headers({ 'Prefer': 'return=minimal' }),
         body: JSON.stringify(data)
       });
+      
       if (!res.ok) throw new Error(await res.text());
       return true;
     },
 
     async update(table, data, eq = {}) {
       let url = `${SUPABASE_URL}/rest/v1/${table}?`;
+      
       Object.entries(eq).forEach(([k, v]) => {
         url += `${k}=eq.${encodeURIComponent(v)}&`;
       });
@@ -186,13 +190,13 @@ const sb = {
 
       if (!res.ok) throw new Error(await res.text());
       
-      // ป้องกัน Error จากการ parse JSON ว่าง
       const text = await res.text();
       return text ? JSON.parse(text) : true;
     },
 
     async delete(table, eq = {}) {
       let url = `${SUPABASE_URL}/rest/v1/${table}?`;
+      
       Object.entries(eq).forEach(([k, v]) => {
         url += `${k}=eq.${encodeURIComponent(v)}&`;
       });
@@ -206,17 +210,18 @@ const sb = {
       return true;
     },
 
-    async signIn(params) {
+    // แก้ไขส่ง Email ตรงๆ แทน Phone
+    async signIn(email, password) {
       const res = await request(
         `${SUPABASE_URL}/auth/v1/token?grant_type=password`,
         {
           method: 'POST',
           headers: headers(),
           body: JSON.stringify({
-            email: params.email, 
-            password: params.hashedPassword
+            email: email, 
+            password: password
           })
-        } // <--- เพิ่มปีกกาปิดตรงนี้ให้แล้วครับ
+        }
       );
 
       const data = await res.json();
@@ -225,21 +230,19 @@ const sb = {
       return data;
     },
 
-  async signUp(params) {
+    // สมัครด้วย Email และเก็บข้อมูล userData เข้า Profile
+    async signUp(email, password, userData) {
       const res = await request(
         `${SUPABASE_URL}/auth/v1/signup`,
         {
           method: 'POST',
           headers: headers(),
           body: JSON.stringify({
-            email: params.email,
-            password: params.hashedPassword,
-            data: {
-              name: params.name,
-              phone: params.phone
-            }
+            email: email,
+            password: password,
+            data: userData
           })
-        } // <--- เพิ่มปีกกาปิดตรงนี้ให้แล้วครับ
+        }
       );
     
       const data = await res.json();
@@ -272,14 +275,13 @@ const sb = {
 
     /* ================= AUTH ================= */
 
-    async login({ phone, hashedPassword }) {
+    async login({ email, hashedPassword }) {
       try {
-        const email = `${phone}@ceramic.app`;
-
+        // ใช้ email ตรงๆ แทนการสร้าง pseudo email
         const data = await sb.signIn(email, hashedPassword);
 
         if (data.error) {
-          return fail('เข้าสู่ระบบไม่สำเร็จ');
+          return fail('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
         }
 
         const rows = await sb.query('members', {
@@ -308,44 +310,41 @@ const sb = {
         return success({ user: session });
       } catch (e) {
         err(e);
-        return fail(e.message);
+        return fail(e.message || 'เข้าสู่ระบบไม่สำเร็จ');
       }
     },
 
     async register({ phone, email, name, hashedPassword }) {
-  try {
-    const pseudo = `${phone}@ceramic.app`;
-    const auth = await sb.signUp(pseudo, hashedPassword);
+      try {
+        // เรียก signUp ด้วย email ตรงๆ และส่งข้อมูลโปรไฟล์ไปด้วย
+        const auth = await sb.signUp(email, hashedPassword, {
+          name: name,
+          phone: phone
+        });
 
-    // ตรวจสอบว่ามี error จาก Supabase หรือไม่
-    if (auth.error) {
-      // ถ้าซ้ำ
-      if (auth.error.code === 'user_already_exists' ||
-          auth.error.message?.includes('already registered')) {
-        return fail('เบอร์นี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ');
+        const authId = auth?.user?.id || auth?.id || auth?.data?.user?.id;
+        if (!authId) {
+          return fail('สมัครสมาชิกไม่สำเร็จ');
+        }
+
+        await sb.insert('members', {
+          auth_id: authId,
+          phone: phone,
+          email: email,
+          name: name,
+          points: 50,
+          tier: 'Bronze'
+        });
+
+        return success();
+      } catch (e) {
+        // ดักจับ Error กรณีอีเมลซ้ำ
+        if (e.message.includes('already registered') || e.message.includes('already exists')) {
+          return fail('อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ');
+        }
+        return fail(e.message || 'สมัครสมาชิกไม่สำเร็จ');
       }
-      return fail(auth.error.message || 'สมัครสมาชิกไม่สำเร็จ');
-    }
-
-    const authId = auth?.user?.id || auth?.id || auth?.data?.user?.id;
-    if (!authId) {
-      return fail('สมัครสมาชิกไม่สำเร็จ');
-    }
-
-    await sb.insert('members', {
-      auth_id: authId,
-      phone,
-      email,
-      name,
-      points: 50,
-      tier: 'Bronze'
-    });
-
-    return success();
-  } catch (e) {
-    return fail(e.message);
-  }
-},
+    },
 
     async logout() {
       try {
@@ -377,12 +376,9 @@ const sb = {
           promo_code: payload.promoCode || null,
           discount: payload.disc || 0,
           status: payload.status || 'PENDING',
-          delivery_address:
-            payload.delivery_address || null,
-          delivery_phone:
-            payload.delivery_phone || null,
-          pickup_time:
-            payload.pickup_time || null,
+          delivery_address: payload.delivery_address || null,
+          delivery_phone: payload.delivery_phone || null,
+          pickup_time: payload.pickup_time || null,
           slip_url: payload.slipUrl || null,
           source: 'CLIENT'
         });
@@ -647,5 +643,5 @@ const sb = {
     }
   };
 
-  log('API Loaded v2.0.0');
+  log('API Loaded v2.0.1 (Email Auth Active)');
 })();
