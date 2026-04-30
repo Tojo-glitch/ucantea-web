@@ -314,7 +314,7 @@
       }
     },
 
-       async register({ phone, email, name, hashedPassword }) {
+   async register({ phone, email, name, hashedPassword }) {
   try {
     const pseudo = `${phone}@ceramic.app`;
     const auth = await sb.signUp({
@@ -324,18 +324,19 @@
       phone
     });
 
-    // ตรวจสอบว่ามี error จาก Supabase หรือไม่
+    // Check for Supabase-level errors
     if (auth.error) {
       if (auth.error.code === 'user_already_exists' ||
           auth.error.message?.includes('already registered')) {
-        return fail('เบอร์นี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ');
+        return fail('This phone number already has an account. Please log in.');
       }
-      return fail(auth.error.message || 'สมัครสมาชิกไม่สำเร็จ');
+      return fail(auth.error.message || 'Registration failed.');
     }
 
+    // Extract the auth user ID safely
     const authId = auth?.user?.id || auth?.id || auth?.data?.user?.id;
     if (!authId) {
-      return fail('สมัครสมาชิกไม่สำเร็จ');
+      return fail('Registration failed – unable to retrieve user ID.');
     }
 
     await sb.insert('members', {
