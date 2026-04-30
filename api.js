@@ -314,38 +314,44 @@
       }
     },
 
-    async register({ phone, email, name, hashedPassword }) {
-      try {
-        // เรียก signUp ด้วย email ตรงๆ และส่งข้อมูลโปรไฟล์ไปด้วย
-        const auth = await sb.signUp(email, hashedPassword, {
-          name: name,
-          phone: phone
-        });
+       async register({ phone, email, name, hashedPassword }) {
+  try {
+    const pseudo = `${phone}@ceramic.app`;
+    const auth = await sb.signUp({
+      email: pseudo,
+      hashedPassword,
+      name,
+      phone
+    });
 
-        const authId = auth?.user?.id || auth?.id || auth?.data?.user?.id;
-        if (!authId) {
-          return fail('สมัครสมาชิกไม่สำเร็จ');
-        }
-
-        await sb.insert('members', {
-          auth_id: authId,
-          phone: phone,
-          email: email,
-          name: name,
-          points: 50,
-          tier: 'Bronze'
-        });
-
-        return success();
-      } catch (e) {
-        // ดักจับ Error กรณีอีเมลซ้ำ
-        if (e.message.includes('already registered') || e.message.includes('already exists')) {
-          return fail('อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ');
-        }
-        return fail(e.message || 'สมัครสมาชิกไม่สำเร็จ');
+    // ตรวจสอบว่ามี error จาก Supabase หรือไม่
+    if (auth.error) {
+      if (auth.error.code === 'user_already_exists' ||
+          auth.error.message?.includes('already registered')) {
+        return fail('เบอร์นี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ');
       }
-    },
+      return fail(auth.error.message || 'สมัครสมาชิกไม่สำเร็จ');
+    }
 
+    const authId = auth?.user?.id || auth?.id || auth?.data?.user?.id;
+    if (!authId) {
+      return fail('สมัครสมาชิกไม่สำเร็จ');
+    }
+
+    await sb.insert('members', {
+      auth_id: authId,
+      phone,
+      email,
+      name,
+      points: 50,
+      tier: 'Bronze'
+    });
+
+    return success();
+  } catch (e) {
+    return fail(e.message);
+  }
+},
     async logout() {
       try {
         const token = storage.getRaw('ctb_token');
