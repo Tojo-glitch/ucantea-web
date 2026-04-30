@@ -3007,25 +3007,60 @@ function releaseFocus(containerEl){
 function trapSheet(ovId){var ov=ge(ovId);if(!ov)return;var sht=ov.querySelector('.sht');if(sht)trapFocus(sht);}
 function releaseSheet(ovId){var ov=ge(ovId);if(!ov)return;var sht=ov.querySelector('.sht');if(sht)releaseFocus(sht);}
 
+// --- Wrap ฟังก์ชันต่างๆ ---
 var _origOpenCS_C=openCS;
 openCS=function(id){_origOpenCS_C(id);setTimeout(function(){trapSheet('csOv');},50);};
+
 var _origCloseCS_C=closeCS;
 closeCS=function(){_origCloseCS_C();releaseSheet('csOv');};
+
 var _origOpenCart_C=openCart;
 openCart=function(){_origOpenCart_C();setTimeout(function(){trapSheet('cartOv');},50);};
+
 var _origCloseCart_C=closeCart;
 closeCart=function(){_origCloseCart_C();releaseSheet('cartOv');};
+
 var _origOpenBr_C=openBr;
 openBr=function(){_origOpenBr_C();setTimeout(function(){trapSheet('brOv');},50);};
+
 var _origCloseBr_C=closeBr;
 closeBr=function(){_origCloseBr_C();releaseSheet('brOv');};
-var _origOpenAuth_C=openAuth;
-openAuth=function(m){_origOpenAuth_C(m);setTimeout(function(){trapSheet('authOv');},50);};
-// closeAuth didn't exist before — alias closeAuthSheet first, then wrap
-var closeAuth=closeAuthSheet;
-var _origCloseAuth_C=closeAuth;
-closeAuth=function(){ge('authOv').classList.remove('on');releaseSheet('authOv');};
 
+// --- จัดการ openAuth แบบปลอดภัย ---
+if (typeof openAuth === 'undefined' && typeof openAuthSheet !== 'undefined') {
+  var openAuth = openAuthSheet;
+}
+var _origOpenAuth_C = openAuth;
+openAuth = function(m) {
+  if (typeof _origOpenAuth_C === 'function') {
+    _origOpenAuth_C(m);
+  } else {
+    console.warn('ไม่พบฟังก์ชัน openAuth ดั้งเดิม!');
+  }
+  setTimeout(function(){ trapSheet('authOv'); }, 50);
+};
+
+// --- จัดการ closeAuth แบบปลอดภัย ---
+var actualCloseAuth = typeof closeAuth !== 'undefined' ? closeAuth : (typeof closeAuthSheet !== 'undefined' ? closeAuthSheet : null);
+if (actualCloseAuth) {
+    window._origCloseAuth_C = actualCloseAuth;
+    window.closeAuth = function() {
+        var authElement = ge('authOv');
+        if(authElement) authElement.classList.remove('on');
+        releaseSheet('authOv');
+        // เรียกฟังก์ชันปิดดั้งเดิม (ถ้ามี)
+        if (typeof window._origCloseAuth_C === 'function') window._origCloseAuth_C();
+    };
+} else {
+    // กรณีไม่มีฟังก์ชันดั้งเดิมเลย ก็สร้างใหม่ขึ้นมาให้ทำงานได้ไม่ติด Error
+    window.closeAuth = function() {
+        var authElement = ge('authOv');
+        if(authElement) authElement.classList.remove('on');
+        releaseSheet('authOv');
+    };
+}
+
+// --- ปุ่ม Escape สำหรับปิด Sheet ---
 document.addEventListener('keydown',function(e){
   if(e.key!=='Escape')return;
   if(ge('csOv')&&ge('csOv').classList.contains('on')){closeCS();return;}
