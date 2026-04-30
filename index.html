@@ -2127,26 +2127,69 @@ async function doLogin(){
 }
 
 async function doRegister(){
+  // 1. ดึงค่าเบอร์โทรกลับมา
   var phone=(ge('regPhone').value||'').trim();
   var email=(ge('regEmail').value||'').trim().toLowerCase();
   var name=(ge('regName').value||'').trim();
   var pass=ge('regPass').value||'';
   var msg=ge('regMsg'),btn=ge('regBtn');
-  msg.textContent='';msg.className='auth-msg';
-  if(!/^[0-9]{9,10}$/.test(phone)){msg.textContent='Enter a valid phone number (9–10 digits)';msg.className='auth-msg err';return}
-  if(!email||!email.includes('@')){msg.textContent='Enter a valid email address';msg.className='auth-msg err';return}
-  if(!name||name.length<2){msg.textContent='Enter your display name';msg.className='auth-msg err';return}
-  if(pass.length<6){msg.textContent='Password must be at least 6 characters';msg.className='auth-msg err';return}
-  btn.disabled=true;btn.textContent='Creating account...';
+  
+  msg.textContent=''; msg.className='auth-msg';
+  
+  // 2. เช็คเบอร์โทร (ต้องเป็นตัวเลข 9-10 หลัก)
+  if(!/^[0-9]{9,10}$/.test(phone)){
+    msg.textContent='Enter a valid phone number (9–10 digits)';
+    msg.className='auth-msg err';
+    return;
+  }
+  
+  // 3. เช็คอีเมล
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!emailRegex.test(email)){
+    msg.textContent='Enter a valid email address';
+    msg.className='auth-msg err';
+    return;
+  }
+  
+  if(!name||name.length<2){
+    msg.textContent='Enter your display name';
+    msg.className='auth-msg err';
+    return;
+  }
+  
+  if(pass.length<6){
+    msg.textContent='Password must be at least 6 characters';
+    msg.className='auth-msg err';
+    return;
+  }
+  
+  btn.disabled=true; btn.textContent='Creating account...';
   var hashed=await sha256(pass+'CTB_SALT_2025');
-  API.register({phone,email,name,hashedPassword:hashed}).then(function(res){
-    btn.disabled=false;btn.textContent='Create Account';
-    if(!res.success){msg.textContent=res.message||'Registration failed';msg.className='auth-msg err';return}
-    S.user=res.user;PTS=50;
+  
+  // 4. ส่งข้อมูลทั้งหมด (รวมถึง phone) ไปที่ API สมัครสมาชิก
+  API.register({email: email, phone: phone, name: name, hashedPassword: hashed}).then(function(res){
+    btn.disabled=false; btn.textContent='Create Account';
+    
+    if(!res.success){
+      msg.textContent=res.message||'Registration failed';
+      msg.className='auth-msg err';
+      return;
+    }
+    
+    S.user=res.user; PTS=50;
     try{localStorage.setItem('ctb_user',JSON.stringify(res.user))}catch(e){}
-    closeAuthSheet();renderProfile();toast('Welcome to Ceramic, '+res.user.name+'!','success');
+    
+    closeAuthSheet();
+    renderProfile();
+    toast('Welcome to Ceramic, '+res.user.name+'!','success');
+    
     if(S._pendingCheckout){S._pendingCheckout=false;setTimeout(openCart,350);}
-  }).catch(function(){btn.disabled=false;btn.textContent='Create Account';msg.textContent='Connection error';msg.className='auth-msg err'});
+    
+  }).catch(function(){
+    btn.disabled=false; btn.textContent='Create Account';
+    msg.textContent='Connection error';
+    msg.className='auth-msg err';
+  });
 }
 
 function doForgot(){
