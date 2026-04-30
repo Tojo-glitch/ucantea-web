@@ -206,14 +206,17 @@ const sb = {
       return true;
     },
 
-    async signIn(email, password) {
+    async signIn(params) {
       const res = await request(
         `${SUPABASE_URL}/auth/v1/token?grant_type=password`,
         {
           method: 'POST',
           headers: headers(),
-          body: JSON.stringify({ email, password })
-        }
+          body: JSON.stringify({
+            email: params.email, 
+            password: params.hashedPassword
+          })
+        } // <--- เพิ่มปีกกาปิดตรงนี้ให้แล้วครับ
       );
 
       const data = await res.json();
@@ -222,14 +225,21 @@ const sb = {
       return data;
     },
 
-    async signUp(email, password) {
+  async signUp(params) {
       const res = await request(
         `${SUPABASE_URL}/auth/v1/signup`,
         {
           method: 'POST',
           headers: headers(),
-          body: JSON.stringify({ email, password })
-        }
+          body: JSON.stringify({
+            email: params.email,
+            password: params.hashedPassword,
+            data: {
+              name: params.name,
+              phone: params.phone
+            }
+          })
+        } // <--- เพิ่มปีกกาปิดตรงนี้ให้แล้วครับ
       );
     
       const data = await res.json();
