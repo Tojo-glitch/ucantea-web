@@ -314,15 +314,25 @@
       }
     },
 
-   async register({ phone, email, name, hashedPassword }) {
+ async register({ phone, email, name, hashedPassword }) {
   try {
-    const pseudo = `${phone}@ceramic.app`;
-    const auth = await sb.signUp({
-      email: pseudo,
-      hashedPassword,
-      name,
-      phone
-    });
+    // Build the auth email string
+    const pseudo = String(phone).trim() + '@ceramic.app';
+
+    // Ensure all fields sent to signUp are plain strings
+    const signUpParams = {
+      email: String(pseudo),
+      password: String(hashedPassword),   // Note: Supabase expects "password" key, not "hashedPassword"
+      data: {
+        name: String(name),
+        phone: String(phone)
+      }
+    };
+
+    // Debug log – remove after testing
+    console.log('[DEBUG signUpParams]', signUpParams);
+
+    const auth = await sb.signUp(signUpParams);
 
     // Check for Supabase-level errors
     if (auth.error) {
@@ -341,9 +351,9 @@
 
     await sb.insert('members', {
       auth_id: authId,
-      phone,
-      email,
-      name,
+      phone: String(phone),
+      email: String(email),
+      name: String(name),
       points: 50,
       tier: 'Bronze'
     });
