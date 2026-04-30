@@ -1307,9 +1307,8 @@ body, #app { max-width: 430px; margin: 0 auto; }
         <button class="atab" onclick="switchAuthTab('register')">Register</button>
       </div>
       <div class="auth-field">
-        <label class="auth-label">Phone number</label>
-        <input class="inp" id="loginPhone" type="tel" placeholder="08X XXX XXXX" maxlength="10"
-          oninput="this.value=this.value.replace(/\D/g,'')"
+        <label class="auth-label">Email address</label>
+        <input class="inp" id="loginEmail" type="email" placeholder="your@email.com"
           onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()">
       </div>
       <div class="auth-field">
