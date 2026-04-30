@@ -2074,7 +2074,7 @@ function switchAuthTab(tab){
 }
 
 async function doLogin(){
-  var phone=(ge('loginPhone').value||'').trim();
+  var phone=(ge('loginEmail').value||'').trim();
   var pass=ge('loginPass').value||'';
   var msg=ge('loginMsg'),btn=ge('loginBtn');
   msg.textContent='';msg.className='auth-msg';
